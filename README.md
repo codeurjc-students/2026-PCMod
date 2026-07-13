@@ -75,7 +75,7 @@ The planned start and delivery dates for each phase are shown below:
 
 | Phase | Start Date | Planned Delivery Date | Actual Delivery Date |
 | ----- | :--------: | :-------------------: | :------------------: |
-| Phase 1: Definition of features and user interfaces | 30/06/2026 | 15/09/2026 | - |
+| Phase 1: Definition of features and user interfaces | 30/06/2026 | 15/09/2026 | 13/07/2026 |
 | Phase 2: Repository, testing and continuous integration | - | 15/10/2026 | - |
 | Phase 3: Version 0.1 – Basic functionality and Docker | - | 15/12/2026 | - |
 | Phase 4: Version 0.2 – Intermediate functionality | - | 01/03/2027 | - |
@@ -114,14 +114,14 @@ The functionalities available in the application are divided into basic, interme
 * Listing all user purchases
 * Listing all users
 * Listing all PCMod purchases
-* Displaying non-graphical statistics
-* Displaying graphical statistics
 
 ### 🛠️ Intermediate features:
 
 * Email sending (user registration and purchase completion notifications)
 * PDF generation (purchase invoice sent by email)
 * Advanced search filtering (component name, type, brand, and price)
+* Displaying non-graphical statistics
+* Displaying graphical statistics
 
 ### ⚙️ Advanced features:
 
