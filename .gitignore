@@ -1,14 +1,24 @@
 # Visual Studio Code Settings
 .vscode/
 
-# envoironment variables
+# Envoironment variables
 .env
+
+# Frontend
+frontend/.DS_Store
+frontend/**/.DS_Store
+/frontend/node_modules/
+
+# React Router (frontend)
+/frontend/.react-router/
+/frontend/build/
 
 # Backend
 backend/pcmod/target/
 backend/pcmod/.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
-!**/src/test/**/target/
+!**/src/test/**/target/´
+backend/pcmod/src/**/static/
 
 # STS
 backend/pcmod/.apt_generated
