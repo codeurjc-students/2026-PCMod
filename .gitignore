@@ -1,0 +1,46 @@
+# Visual Studio Code Settings
+.vscode/
+
+# Envoironment variables
+.env
+
+# Frontend
+frontend/.DS_Store
+frontend/**/.DS_Store
+/frontend/node_modules/
+
+# React Router (frontend)
+/frontend/.react-router/
+/frontend/build/
+
+# Backend
+backend/pcmod/target/
+backend/pcmod/.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/´
+backend/pcmod/src/**/static/
+
+# STS
+backend/pcmod/.apt_generated
+backend/pcmod/.classpath
+backend/pcmod/.factorypath
+backend/pcmod/.project
+backend/pcmod/.settings
+backend/pcmod/.springBeans
+backend/pcmod/.sts4-cache
+
+# IntelliJ IDEA
+backend/pcmod/.idea
+backend/pcmod/*.iws
+backend/pcmod/*.iml
+backend/pcmod/*.ipr
+
+# NetBeans
+backend/pcmod/nbproject/private/
+backend/pcmod/nbbuild/
+backend/pcmod/dist/
+backend/pcmod/nbdist/
+backend/pcmod/.nb-gradle/
+backend/pcmod/build/
+!**/src/main/**/build/
+!**/src/test/**/build/
