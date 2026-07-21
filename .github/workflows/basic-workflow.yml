@@ -33,13 +33,13 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Run client unit tests
-        working-directory: frontend
-        run: npm test -- --coverage --watch=false
-
       - name: Build client
         working-directory: frontend
         run: npm run build
+
+      - name: Run Client Unit Tests with Coverage
+        working-directory: frontend
+        run: npm run test:coverage
 
       # Backend steps
 
@@ -50,16 +50,15 @@ jobs:
           java-version: '25'
           cache: 'maven'
 
-      - name: Run Backend Tests with JaCoCo
+      - name: Compile Backend & Run Unit Tests with JaCoCo
         working-directory: backend/pcmod
-        run: mvn clean test jacoco:report
+        run: ./mvnw clean test jacoco:report -Dgroups="server-unit"
 
       # SonarCloud Analysis
-      
       - name: SonarCloud Analysis
         uses: sonarsource/sonarcloud-github-action@v3.1.0
         with:
-          projectBaseDir: . 
+          projectBaseDir: .
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

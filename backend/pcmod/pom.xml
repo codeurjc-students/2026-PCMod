@@ -116,8 +116,28 @@
     <plugins>
 
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.4</version>
+        <configuration>
+          <argLine>@{argLine}</argLine>
+          <excludedGroups>server-integration, server-system, client-server-integration,
+            client-system</excludedGroups>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.5.4</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
@@ -143,78 +163,6 @@
         <configuration>
           <jmxPort>9009</jmxPort>
         </configuration>
-        <executions>
-          <execution>
-            <id>pre-integration-test</id>
-            <goals>
-              <goal>start</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>post-integration-test</id>
-            <goals>
-              <goal>stop</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.springdoc</groupId>
-        <artifactId>springdoc-openapi-maven-plugin</artifactId>
-        <version>1.5</version>
-        <executions>
-          <execution>
-            <phase>integration-test</phase>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <apiDocsUrl>https://127.0.0.1:8443/v3/api-docs.yaml</apiDocsUrl>
-          <outputFileName>api-docs.yaml</outputFileName>
-          <outputDir>${project.basedir}/docs/api</outputDir>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.openapitools</groupId>
-        <artifactId>openapi-generator-maven-plugin</artifactId>
-        <version>7.17.0</version>
-        <executions>
-          <execution>
-            <phase>integration-test</phase>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-            <configuration>
-              <generatorName>html2</generatorName>
-              <inputSpec>${project.basedir}/docs/api/api-docs.yaml</inputSpec>
-              <output>${project.basedir}/docs/api/</output>
-              <skipValidateSpec>true</skipValidateSpec>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>com.coderplus.maven.plugins</groupId>
-        <artifactId>copy-rename-maven-plugin</artifactId>
-        <version>1.0.1</version>
-        <executions>
-          <execution>
-            <id>copy-file</id>
-            <phase>integration-test</phase>
-            <goals>
-              <goal>rename</goal>
-            </goals>
-            <configuration>
-              <sourceFile>${project.basedir}/docs/api/index.html</sourceFile>
-              <destinationFile>${project.basedir}/docs/api/api-docs.html</destinationFile>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
 
       <plugin>
@@ -239,6 +187,73 @@
       </plugin>
 
     </plugins>
+
   </build>
 
+  <profiles>
+    <profile>
+      <id>generate-docs</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-maven-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <apiDocsUrl>https://127.0.0.1:8443/v3/api-docs.yaml</apiDocsUrl>
+              <outputFileName>api-docs.yaml</outputFileName>
+              <outputDir>${project.basedir}/docs/api</outputDir>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.openapitools</groupId>
+            <artifactId>openapi-generator-maven-plugin</artifactId>
+            <version>7.17.0</version>
+            <executions>
+              <execution>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+                <configuration>
+                  <generatorName>html2</generatorName>
+                  <inputSpec>${project.basedir}/docs/api/api-docs.yaml</inputSpec>
+                  <output>${project.basedir}/docs/api/</output>
+                  <skipValidateSpec>true</skipValidateSpec>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>com.coderplus.maven.plugins</groupId>
+            <artifactId>copy-rename-maven-plugin</artifactId>
+            <version>1.0.1</version>
+            <executions>
+              <execution>
+                <id>copy-file</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>rename</goal>
+                </goals>
+                <configuration>
+                  <sourceFile>${project.basedir}/docs/api/index.html</sourceFile>
+                  <destinationFile>${project.basedir}/docs/api/api-docs.html</destinationFile>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
