@@ -6,7 +6,10 @@
     "build": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "test": "vitest",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@react-router/node": "8.0.0",
@@ -21,6 +24,7 @@
     "@types/node": "^22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.1.10",
     "typescript": "^5.9.3",
     "vite": "^8.0.3",
     "vite-tsconfig-paths": "^5.1.4"
