@@ -1,4 +1,4 @@
-package es.codeurjcstudents.pcmod.e2e;
+package es.codeurjcstudents.pcmod.e2e.api;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -29,8 +29,8 @@ public class ComponentsSystemTests {
   @Test
   public void getComponents() {
     given().header("Content-Type", "application/json")
-    .when().get("/components/")
-    .then().statusCode(200).contentType(ContentType.JSON)
+        .when().get("/components/")
+        .then().statusCode(200).contentType(ContentType.JSON)
         // Global checks
         .body("totalElements", equalTo(11))
         .body("content", hasSize(11))

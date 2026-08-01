@@ -54,21 +54,21 @@ export default function Index({ loaderData }: Route.ComponentProps) {
     <main className="main">
       <div className="container">
         <h1>Componentes:</h1>
-        <div>
+        <ul>
           {components.length > 0 && (
             components.map((component) => (
-              <div key={component.id}>
-                <h3>{component.name}</h3>
+              <li key={component.id}>
+                <h3 id={`name-${component.id}`}>{component.name}</h3>
                 <h4>Marca: {component.brand} | Tipo: {component.type} | Precio: {component.price} € | Stock: {component.stock} ud.</h4>
                 <p className="component-description">{component.description}</p>
                 <hr></hr>
-              </div>
+              </li>
             ))
           )}
-        </div>
+        </ul>
         <div>
           {components.length > 0 && hasNext && (
-            <button onClick={handleLoadMore} disabled={isLoadingMore} type="button">
+            <button onClick={handleLoadMore} disabled={isLoadingMore} type="button" name="loadMore">
               {!isLoadingMore && (
                 "Cargar más componentes"
               )}
