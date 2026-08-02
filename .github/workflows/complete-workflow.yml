@@ -63,8 +63,8 @@ jobs:
       - name: Client Unit Tests (Components + Virtual DOM)
         run: npm run test:unit
 
-  client-server-integration-tests:
-    name: E2E & Integration (Chrome + Selenium)
+  client-server-tests:
+    name: Integration & E2E (Vitest, Chrome + Selenium)
     runs-on: ubuntu-latest
     needs: [server-tests, client-tests]
 
@@ -86,22 +86,30 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+
       - name: Set up Chrome for Selenium
         uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: stable
 
-      - name: Prepare and Launch Full Environment
+      - name: Client Integration Tests (Vitest) + E2E Client-Server Tests (Selenium)
         env:
           HEADLESS_TESTS: "true"
           NODE_TLS_REJECT_UNAUTHORIZED: "0"
         run: |
           cd frontend
-          npm run dev &
+          npm run dev > /dev/null 2>&1 < /dev/null &
           
           cd ../backend/pcmod
-          ./mvnw spring-boot:run &
+          ./mvnw spring-boot:run > /dev/null 2>&1 < /dev/null &
           
           npx wait-on http-get://localhost:5173 https-get://localhost:8443/
           
-          ./mvnw test -Dgroups="client-server-integration,client-system"
+          cd ../../frontend
+          npm run test:integration
+
+          cd ../backend/pcmod
+          ./mvnw test -Dgroups="client-system"
