@@ -29,6 +29,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
@@ -200,6 +206,9 @@
   <profiles>
     <profile>
       <id>generate-docs</id>
+      <properties>
+        <maven.test.skip.exec>true</maven.test.skip.exec>
+      </properties>
       <build>
         <plugins>
           <plugin>
@@ -215,7 +224,7 @@
               </execution>
             </executions>
             <configuration>
-              <apiDocsUrl>https://127.0.0.1:8443/v3/api-docs.yaml</apiDocsUrl>
+              <apiDocsUrl>http://127.0.0.1:8443/v3/api-docs.yaml</apiDocsUrl>
               <outputFileName>api-docs.yaml</outputFileName>
               <outputDir>${project.basedir}/docs/api</outputDir>
             </configuration>
