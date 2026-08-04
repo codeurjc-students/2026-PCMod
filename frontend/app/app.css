@@ -11,3 +11,7 @@ body {
     color-scheme: dark;
   }
 }
+
+.component-description {
+  white-space: pre-line;
+}

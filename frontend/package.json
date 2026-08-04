@@ -8,8 +8,9 @@
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "test": "vitest",
-    "test:unit": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:coverage": "vitest run tests/unit --coverage"
   },
   "dependencies": {
     "@react-router/node": "8.0.0",
@@ -21,12 +22,18 @@
   },
   "devDependencies": {
     "@react-router/dev": "8.0.0",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/ui": "^4.1.10",
+    "jsdom": "^29.1.1",
     "typescript": "^5.9.3",
     "vite": "^8.0.3",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.1.10"
   }
 }

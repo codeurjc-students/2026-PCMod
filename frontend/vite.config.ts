@@ -2,9 +2,9 @@ import { reactRouter } from "@react-router/dev/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-export default defineConfig(({ }) => ({
+export default defineConfig(({ mode }) => ({
   base: "/",
-  plugins: [reactRouter(), tsconfigPaths()],
+  plugins: [mode !== 'test' && reactRouter(), tsconfigPaths()],
   server: {
     proxy: {
       "/api": {
@@ -17,10 +17,21 @@ export default defineConfig(({ }) => ({
   },
   test: {
     coverage: {
+      provider: "v8",
       reporter: [
         'text',
         'lcov'
       ]
-    }
+    },
+    environment: "jsdom",
+    environmentOptions: {
+      jsdom: {
+        url: "https://localhost:8443",
+      },
+    },
+    env: {
+      NODE_TLS_REJECT_UNAUTHORIZED: '0',
+    },
+    globals: true,
   }
 }));

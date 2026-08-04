@@ -1,0 +1,48 @@
+{
+  "info": {
+    "_postman_id": "5dfa398f-caf3-4d4a-a5fd-6b3b38dfe903",
+    "name": "PCMod",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52950105",
+    "_collection_link": "https://go.postman.co/collection/52950105-5dfa398f-caf3-4d4a-a5fd-6b3b38dfe903?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "ALL USERS",
+      "item": [
+        {
+          "name": "GET PC Components",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://localhost:8443/api/v1/components/?page=0&size=10",
+              "protocol": "https",
+              "host": [
+                "localhost"
+              ],
+              "port": "8443",
+              "path": [
+                "api",
+                "v1",
+                "components",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
