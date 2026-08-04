@@ -39,7 +39,7 @@ jobs:
 
       - name: Run Client Unit Tests with Coverage
         working-directory: frontend
-        run: npm run test:coverage
+        run: npm run test:unit-coverage
 
       # Backend steps
 
