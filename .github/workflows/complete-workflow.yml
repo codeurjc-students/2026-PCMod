@@ -19,6 +19,20 @@ jobs:
       run:
         working-directory: backend/pcmod
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: pcmod
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,7 +45,11 @@ jobs:
           cache: 'maven'
 
       - name: Server Tests (JUnit, Testcontainers, Rest Assured)
-        run: ./mvnw verify
+        env:
+          DB_URL: jdbc:mysql://localhost:3306/pcmod
+          DB_USERNAME: root
+          DB_PASSWORD: password
+        run: ./mvnw verify '-Dtest=!es.codeurjcstudents.pcmod.e2e.ui.**'
 
   client-tests:
     name: Frontend Unit and Integration Tests (Virtual DOM / Vitest)
@@ -39,6 +57,20 @@ jobs:
     defaults:
       run:
         working-directory: frontend
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: pcmod
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout code
@@ -65,6 +97,9 @@ jobs:
         env:
           HEADLESS_TESTS: "true"
           NODE_TLS_REJECT_UNAUTHORIZED: "0"
+          DB_URL: jdbc:mysql://localhost:3306/pcmod
+          DB_USERNAME: root
+          DB_PASSWORD: password
         run: |
           cd ../backend/pcmod
           ./mvnw spring-boot:run > /dev/null 2>&1 < /dev/null &
@@ -78,6 +113,20 @@ jobs:
     name: E2E Client-Server Tests (Chrome + Selenium)
     runs-on: ubuntu-latest
     needs: [server-tests, client-tests]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: pcmod
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout code
@@ -110,6 +159,9 @@ jobs:
         env:
           HEADLESS_TESTS: "true"
           NODE_TLS_REJECT_UNAUTHORIZED: "0"
+          DB_URL: jdbc:mysql://localhost:3306/pcmod
+          DB_USERNAME: root
+          DB_PASSWORD: password
         run: |
           cd frontend
           npm run dev > /dev/null 2>&1 < /dev/null &
