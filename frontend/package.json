@@ -8,6 +8,8 @@
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "test": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
     "test:unit-coverage": "vitest run tests/unit --coverage",
     "test:coverage": "vitest run tests/ --coverage"
   },
