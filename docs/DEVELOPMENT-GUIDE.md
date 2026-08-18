@@ -331,8 +331,7 @@ The images below are the results of executing the complete test suite with the c
 
   ![Frontend System Tests Execution](/docs/img/testing/frontend_system_tests_execution.png)
 
-  > [!NOTE]
-  >  Frontend system tests are executed from the backend folder.
+  **Note:** Frontend system tests are executed from the backend folder.
 
 * Backend Tests:
 
@@ -622,15 +621,14 @@ Select an endpoint from the left sidebar. You can customize request parameters i
 > ```
 
 To run all backend tests:
+> [!NOTE]
+> Before executing these commands, verify that the Docker daemon is running.
 ```
 # Unit + Integration + System
 
 cd backend/pcmod
 ./mvnw verify '-Dtest=!es.codeurjcstudents.pcmod.e2e.ui.**'
 ```
-
-> [!NOTE]
-> Before executing these commands, verify that the Docker daemon is running.
 
 To run all frontend tests:
 ```
