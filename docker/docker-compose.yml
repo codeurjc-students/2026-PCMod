@@ -1,6 +1,6 @@
 services: 
   web:
-    image: jaimeeg5/pcmod:0.1
+    image: jaimeeg5/pcmod:${IMAGE_TAG:-0.1}
     ports:
       - 443:443
     environment:

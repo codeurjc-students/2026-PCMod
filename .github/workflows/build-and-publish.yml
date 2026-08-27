@@ -1,0 +1,67 @@
+name: Build and Publish Docker Image and OCI Artifact
+
+on:
+  push:
+    branches: 
+      - main 
+  
+  release:
+    types: [ published ]
+
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Commit Hash'
+        required: false
+        type: string
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.commit_sha || github.ref }}
+
+    - name: Determine image and OCI Artifact tag
+      run: |
+        if [[ "${{ github.event_name }}" == "release" ]]; then
+          echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          echo "release=true" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          branch=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9._-]/-/g' | tr '[:upper:]' '[:lower:]')
+          echo "tag=${branch}-$(date +%Y%m%d-%H%M)-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "release=false" >> $GITHUB_OUTPUT
+        else
+          echo "tag=dev" >> $GITHUB_OUTPUT
+          echo "release=false" >> $GITHUB_OUTPUT
+        fi
+      id: project
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Create and push image to DockerHub
+      uses: docker/build-push-action@v6
+      with:
+        push: true
+        context: .
+        file: ./docker/Dockerfile
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/pcmod:${{ steps.project.outputs.tag }}
+          ${{ steps.project.outputs.release == 'true' && format('{0}/pcmod:latest', secrets.DOCKERHUB_USERNAME) || '' }}
+
+    - name: Push OCI Artifact to DockerHub
+      env:
+        IMAGE_TAG: ${{ steps.project.outputs.tag }}
+      run: |
+        docker compose -f ./docker/docker-compose.yml publish --with-env -y ${{ secrets.DOCKERHUB_USERNAME }}/pcmod-compose:${{ steps.project.outputs.tag }}
+        if [[ "${{ steps.project.outputs.release }}" == "true" ]]; then
+          IMAGE_TAG=latest docker compose -f ./docker/docker-compose.yml publish --with-env -y ${{ secrets.DOCKERHUB_USERNAME }}/pcmod-compose:latest
+        fi
