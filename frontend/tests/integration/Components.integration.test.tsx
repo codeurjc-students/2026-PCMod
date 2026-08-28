@@ -10,7 +10,7 @@ describe("ComponentsPageIntegration", () => {
 
     const user = userEvent.setup();
 
-    const initialData = await clientLoader({ request: new Request("https://localhost:8443/?page=0") });
+    const initialData = await clientLoader({ request: new Request("https://localhost:443/?page=0") });
 
     render(<Index loaderData={initialData} />);
 

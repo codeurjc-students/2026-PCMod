@@ -16,12 +16,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "https://localhost:8443/api/v1/components/?page=0&size=10",
+              "raw": "https://localhost:443/api/v1/components/?page=0&size=10",
               "protocol": "https",
               "host": [
                 "localhost"
               ],
-              "port": "8443",
+              "port": "443",
               "path": [
                 "api",
                 "v1",

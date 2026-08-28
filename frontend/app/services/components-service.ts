@@ -12,7 +12,7 @@ export async function getComponents(page: number): Promise<ComponentsPageResult>
 
   const baseUrl = typeof window !== "undefined" && window.location.origin
     ? window.location.origin
-    : "https://localhost:8443";
+    : "https://localhost:443";
 
   const url = new URL(`${API_URL}/?page=${page}&size=${PAGE_SIZE}`, baseUrl);
 

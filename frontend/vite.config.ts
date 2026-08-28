@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     proxy: {
       "/api": {
-        target: "https://localhost:8443/api",
+        target: "https://localhost:443/api",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
         secure: false,
@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => ({
     environment: "jsdom",
     environmentOptions: {
       jsdom: {
-        url: "https://localhost:8443",
+        url: "https://localhost:443",
       },
     },
     env: {

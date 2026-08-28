@@ -115,7 +115,7 @@ jobs:
           cd ../backend/pcmod
           ./mvnw spring-boot:run > /dev/null 2>&1 < /dev/null &
           
-          npx wait-on https-get://localhost:8443/api/v1/components/
+          npx wait-on https-get://localhost:443/api/v1/components/
           
           cd ../../frontend
           npm run test:coverage
@@ -188,7 +188,7 @@ jobs:
           cd ../backend/pcmod
           ./mvnw spring-boot:run > /dev/null 2>&1 < /dev/null &
           
-          npx wait-on http-get://localhost:5173 https-get://localhost:8443/api/v1/components/
+          npx wait-on http-get://localhost:5173 https-get://localhost:443/api/v1/components/
           
           ./mvnw test -Dgroups="client-system"
       
