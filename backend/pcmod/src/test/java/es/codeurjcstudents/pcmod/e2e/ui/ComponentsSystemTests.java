@@ -47,7 +47,7 @@ public class ComponentsSystemTests {
   @Test
   public void loadComponentsTest() throws InterruptedException {
 
-    driver.get("http://localhost:5173/");
+    driver.get("http://localhost:5173/components");
 
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name-1")));
     String componentName = driver.findElement(By.id("name-1")).getText();

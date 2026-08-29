@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import "@testing-library/jest-dom";
 import { getComponents } from "~/services/components-service";
-import Index, { clientLoader } from "~/routes/index";
+import Components, { clientLoader } from "~/routes/components";
 import { createRoutesStub } from "react-router";
 
 vi.mock("~/services/components-service", () => ({
@@ -46,13 +46,18 @@ describe("ComponentsPage", () => {
 
     const RouterStub = createRoutesStub([
       {
-        path: "/",
-        Component: Index,
-        loader: clientLoader,
+        path: "/components",
+        Component: Components,
+        loader: async ({ request }) => {
+          const url = new URL(request.url);
+          const page = Number(url.searchParams.get("page") ?? 0);
+          const result = await getComponents(page);
+          return { items: result.items, hasNext: result.hasNext };
+        },
       },
     ]);
 
-    render(<RouterStub initialEntries={["/"]} />);
+    render(<RouterStub initialEntries={["/components?page=0"]} />);
 
     expect(vi.mocked(getComponents)).toHaveBeenCalledTimes(1);
 
