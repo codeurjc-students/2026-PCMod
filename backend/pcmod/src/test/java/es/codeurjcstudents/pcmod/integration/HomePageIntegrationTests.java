@@ -1,16 +1,16 @@
 package es.codeurjcstudents.pcmod.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -26,7 +26,7 @@ import es.codeurjcstudents.pcmod.service.ComponentsService;
 @Tag("server-integration")
 @SpringBootTest
 @Testcontainers
-public class ComponentsIntegrationTests {
+public class HomePageIntegrationTests {
 
   @Container
   private static final MySQLContainer<?> mysqlContainer = new MySQLContainer<>("mysql:8.4")
@@ -66,16 +66,33 @@ public class ComponentsIntegrationTests {
             "DisplayPort 2.1 y HDMI 2.1b hasta 8K\r\n" + //
             "Tensor Cores 5ª gen y Reflex 2 para IA avanzada",
         ComponentType.GPU, "Gigabyte", BigDecimal.valueOf(359.85), 2));
+    componentsRepository.save(new Component("Kingston NV3",
+        "Capacidad: 1 TB\r\n" + //
+            "Factor de forma de disco SSD: M.2\r\n" + //
+            "Interfaz: PCI Express 4.0\r\n" + //
+            "NVMe: Si\r\n" + //
+            "Tipo de memoria: 3D NAND",
+        ComponentType.STORAGE, "Kingston", BigDecimal.valueOf(149.95), 15));
   }
 
   @Test
-  void loadComponents() {
-    Pageable pageable = Pageable.ofSize(10).withPage(0);
+  void loadRecentComponents() {
 
-    Page<Component> componentList = componentsService.findAll(pageable);
+    List<Component> componentList = componentsService.findTop3MoreRecent();
 
-    assertEquals(2, componentList.getNumberOfElements());
-    assertEquals("AMD Ryzen 7 7800X3D", componentList.getContent().get(0).getName());
-    assertEquals("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC", componentList.getContent().get(1).getName());
+    assertEquals(3, componentList.size());
+    assertEquals("Kingston NV3", componentList.get(0).getName());
+    assertEquals("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC", componentList.get(1).getName());
+    assertEquals("AMD Ryzen 7 7800X3D", componentList.get(2).getName());
+  }
+
+  @Test
+  void loadWithoutRecentComponents() {
+
+    componentsRepository.deleteAll();
+
+    List<Component> componentList = componentsService.findTop3MoreRecent();
+
+    assertTrue(componentList.isEmpty());
   }
 }

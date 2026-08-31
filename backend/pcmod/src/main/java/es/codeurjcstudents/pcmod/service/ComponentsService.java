@@ -1,5 +1,7 @@
 package es.codeurjcstudents.pcmod.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,5 +30,9 @@ public class ComponentsService {
 
   public ComponentDTO toDTO(Component component) {
     return componentMapper.toDTO(component);
+  }
+
+  public List<Component> findTop3MoreRecent() {
+    return componentRepository.findTop3ByOrderByIdDesc();
   }
 }
