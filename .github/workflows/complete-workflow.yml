@@ -113,9 +113,11 @@ jobs:
           DB_PASSWORD: password
         run: |
           cd ../backend/pcmod
-          ./mvnw spring-boot:run > /dev/null 2>&1 < /dev/null &
+          sudo -E ./mvnw spring-boot:run > /dev/null 2>&1 < /dev/null &
           
-          npx wait-on https-get://localhost:8443/api/v1/components/
+          npx wait-on https-get://localhost:443/api/v1/components/
+
+          sudo chown -R $USER:$USER target/
           
           cd ../../frontend
           npm run test:coverage
@@ -186,10 +188,12 @@ jobs:
           npm run dev > /dev/null 2>&1 < /dev/null &
           
           cd ../backend/pcmod
-          ./mvnw spring-boot:run > /dev/null 2>&1 < /dev/null &
+          sudo -E ./mvnw spring-boot:run > /dev/null 2>&1 < /dev/null &
           
-          npx wait-on http-get://localhost:5173 https-get://localhost:8443/api/v1/components/
+          npx wait-on http-get://localhost:5173 https-get://localhost:443/api/v1/components/
           
+          sudo chown -R $USER:$USER target/
+
           ./mvnw test -Dgroups="client-system"
       
   # SonarCloud Analysis

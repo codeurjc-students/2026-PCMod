@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import "@testing-library/jest-dom";
 import userEvent from "@testing-library/user-event";
-import Index, { clientLoader } from "~/routes/index";
+import Components, { clientLoader } from "~/routes/components";
 
 describe("ComponentsPageIntegration", () => {
 
@@ -10,9 +10,24 @@ describe("ComponentsPageIntegration", () => {
 
     const user = userEvent.setup();
 
-    const initialData = await clientLoader({ request: new Request("https://localhost:8443/?page=0") });
+    const initialData = await clientLoader({
+      request: new Request("https://localhost:443/components?page=0"),
+      params: {},
+      context: {},
+      url: new URL("https://localhost:443/components?page=0"),
+      pattern: { path: "/components", caseSensitive: false, end: true },
+      serverLoader: async () => undefined,
+    } as any);
 
-    render(<Index loaderData={initialData} />);
+    render(
+      <Components
+        {...({
+          loaderData: initialData,
+          params: {},
+          matches: [],
+        } as any)}
+      />
+    );
 
     await waitFor(() => {
       const initialComponentsNames = screen.getAllByRole("heading", { level: 3 });

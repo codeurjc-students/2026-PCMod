@@ -8,11 +8,16 @@ export type ComponentsPageResult = {
   hasNext: boolean;
 };
 
-export async function getComponents(page: number): Promise<ComponentsPageResult> {
-
+function getBaseUrl(): string {
   const baseUrl = typeof window !== "undefined" && window.location.origin
     ? window.location.origin
-    : "https://localhost:8443";
+    : "https://localhost:443";
+  return baseUrl;
+}
+
+export async function getComponents(page: number): Promise<ComponentsPageResult> {
+
+  const baseUrl = getBaseUrl();
 
   const url = new URL(`${API_URL}/?page=${page}&size=${PAGE_SIZE}`, baseUrl);
 
@@ -29,4 +34,25 @@ export async function getComponents(page: number): Promise<ComponentsPageResult>
   }
 
   return { items: [], hasNext: false };
+}
+
+export async function getRecentComponents(): Promise<ComponentDTO[]> {
+
+  const baseUrl = getBaseUrl();
+
+  const url = new URL(`${API_URL}/recent`, baseUrl);
+
+  const res = await fetch(url.toString());
+
+  if (!res.ok) {
+    throw new Error("Error fetching recent components");
+  }
+
+  const data = await res.json();
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return [];
 }

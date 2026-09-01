@@ -257,7 +257,7 @@ This section describes the tools used to develop the PCMod application.
 PCMod is divided into three processes:
 
 * Client (Frontend): A React SPA available on port 5173 that communicates with the REST API through HTTP requests. It allows users to interact with the application.
-* Server (Backend): A Spring Boot REST API available on port 8443 that communicates with the frontend via HTTP and with the database via TCP. It contains the business logic and operate with the database.
+* Server (Backend): A Spring Boot REST API available on port 443 that communicates with the frontend via HTTP and with the database via TCP. It contains the business logic and operate with the database.
 * Database: A MySQL database available on port 3306, that communicates with the backend via TCP. It is a relational database that ensures data integrity and persistence.
 
 Communication between the frontend and backend is carried out using JSON format.
@@ -559,7 +559,7 @@ cd backend/pcmod
 mvn spring-boot:run
 ```
 
-Open a browser and navigate to https://localhost:8443/.
+Open a browser and navigate to https://localhost:443/.
 
 #### 🛑 Stop application
 
@@ -638,7 +638,7 @@ cd frontend
 npm install
 cd ../backend/pcmod
 ./mvnw spring-boot:run > /dev/null 2>&1 < /dev/null &          
-npx wait-on https-get://localhost:8443/api/v1/components/          
+npx wait-on https-get://localhost:443/api/v1/components/          
 cd ../../frontend
 npm run test
 ```
@@ -649,7 +649,7 @@ cd frontend
 npm run dev > /dev/null 2>&1 < /dev/null &
 cd ../backend/pcmod
 ./mvnw spring-boot:run > /dev/null 2>&1 < /dev/null &     
-npx wait-on http-get://localhost:5173 https-get://localhost:8443/api/v1/components/
+npx wait-on http-get://localhost:5173 https-get://localhost:443/api/v1/components/
 ./mvnw test -Dgroups="client-system"
 ```
 
