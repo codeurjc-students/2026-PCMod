@@ -10,6 +10,8 @@ on:
       - '.github/workflows/**'
       - 'docs/**'
       - 'docker/**'
+      - sonar-project.properties
+      - sonar-basic.properties
   workflow_dispatch:
 
 jobs:
@@ -60,6 +62,8 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v3.1.0
         with:
           projectBaseDir: .
+          args: >
+            -Dproject.settings=sonar-basic.properties
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
