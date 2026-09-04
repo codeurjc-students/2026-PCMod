@@ -16,6 +16,9 @@ public class DatabaseInitializer {
   @Autowired
   private ComponentsRepository componentsRepository;
 
+  @Autowired
+  private ImageService imageService;
+
   @PostConstruct
   public void init() {
 
