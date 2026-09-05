@@ -30,23 +30,20 @@ export default function Index({ loaderData }: Route.ComponentProps) {
           <Col lg={6} md={12} className="col">
             <h1 id="welcome">Bienvenido a PCMod</h1>
             <p>
-              PCMod es una plataforma de compra online de componentes de ordenador. En nuestra tienda podrás encontrar una amplia selección de productos para montar tu nuevo PC o actualizar el que ya tienes.
+              PCMod es una plataforma de compra online de componentes de ordenador. En nuestra tienda podrá encontrar una amplia selección de productos para montar su nuevo PC o actualizar el que ya tiene.
             </p>
             <p>
               Buscamos ofrecer la mejor experiencia para nuestros clientes, y, por ello, ofrecemos un servicio de compra sencillo y eficiente. Nuestros clientes cuentan con un servicio de confirmación de operaciones por correo electrónico, un sistema de pago seguro y un asistente potenciado por IA.
             </p>
             <p>
-              Si tienes cualquier duda, no dudes en ponerte en contacto con nosotros:
-              <a href="mailto:....">
-                <span>....</span>
-              </a>
+              Si tiene cualquier duda, no dude en ponerse en contacto con nosotros:{' '}<a href="mailto:...."><span>....</span></a>
             </p>
           </Col>
         </section>
 
         <section className="recentComponents-section">
 
-          <h2>Descubre nuestras últimas novedades:</h2>
+          <h2>Descubra nuestras últimas novedades:</h2>
 
           <div className="row-recentComponents">
             {recentComponents.length > 0 ? (

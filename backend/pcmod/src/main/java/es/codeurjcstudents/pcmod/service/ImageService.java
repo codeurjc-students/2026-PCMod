@@ -17,7 +17,7 @@ import es.codeurjcstudents.pcmod.repository.ImageRepository;
 @Service
 public class ImageService {
 
-  private static final long MAX_SIZE = 10 * 1024 * 1024; // 10MB
+  private static final long MAX_SIZE = 10L * 1024L * 1024L; // 10MB
   private static final List<String> ALLOWED_TYPES = List.of("image/jpeg", "image/png", "image/webp");
 
   private final ImageRepository imageRepository;

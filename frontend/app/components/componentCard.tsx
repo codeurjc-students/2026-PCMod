@@ -2,11 +2,7 @@ import { Link } from "react-router";
 import { Image as ImageIcon } from "react-bootstrap-icons";
 import type ComponentDTO from "~/dtos/ComponentDTO";
 
-interface ComponentCardProps {
-  component: ComponentDTO;
-}
-
-export default function ComponentCard({ component }: ComponentCardProps) {
+export default function ComponentCard({ component }: Readonly<{ component: ComponentDTO }>) {
   return (
     <div>
       <Link to={`/components/${component.id}`} className="component-card-link">
