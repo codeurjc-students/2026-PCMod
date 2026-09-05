@@ -61,7 +61,7 @@ export default function Components({ loaderData }: Route.ComponentProps) {
                 <h3 id={`name-${component.id}`}>{component.name}</h3>
                 <h4>Marca: {component.brand} | Tipo: {component.type} | Precio: {component.price} € | Stock: {component.stock} ud.</h4>
                 <p className="component-description">{component.description}</p>
-                <hr></hr>
+                <hr />
               </li>
             ))
           )}
@@ -73,6 +73,11 @@ export default function Components({ loaderData }: Route.ComponentProps) {
                 "Cargar más componentes"
               )}
             </button>
+          )}
+          {loadMoreError && (
+            <p className="text-danger" role="alert">
+              Hubo un problema al cargar más componentes. Por favor, pruebe de nuevo.
+            </p>
           )}
         </div>
       </div>

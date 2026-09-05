@@ -3,6 +3,7 @@ package es.codeurjcstudents.pcmod.e2e.ui;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
@@ -63,6 +64,30 @@ public class ComponentsSystemTests {
     assertThat(loadedComponentName).isEqualTo("Kingston FURY Beast");
 
     assertThat(driver.findElements(By.name("loadMore"))).isEmpty();
+
+  }
+
+  @Test
+  public void loadErrorTest() {
+
+    driver.get("http://localhost:5173/components");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.name("loadMore")));
+    WebElement loadMoreButton = driver.findElement(By.name("loadMore"));
+
+    // Simulate a network error
+    ((ChromeDriver) driver).executeCdpCommand("Network.enable", Map.of());
+    ((ChromeDriver) driver).executeCdpCommand("Network.emulateNetworkConditions", Map.of(
+        "offline", true,
+        "latency", 0,
+        "downloadThroughput", 0,
+        "uploadThroughput", 0));
+
+    loadMoreButton.click();
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[role='alert']")));
+    String errorMessage = driver.findElement(By.cssSelector("[role='alert']")).getText();
+    assertThat(errorMessage).isEqualTo("Hubo un problema al cargar más componentes. Por favor, pruebe de nuevo.");
 
   }
 }
