@@ -22,7 +22,8 @@
     "react-bootstrap": "^2.10.10",
     "react-bootstrap-icons": "^1.11.6",
     "react-dom": "^19.2.7",
-    "react-router": "^8.3.0"
+    "react-router": "^8.3.0",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@react-router/dev": "^8.3.0",
@@ -34,7 +35,9 @@
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/ui": "^4.1.10",
+    "fetch-cookie": "^3.2.0",
     "jsdom": "^29.1.1",
+    "tough-cookie": "^6.0.2",
     "typescript": "^5.9.3",
     "vite": "^8.0.3",
     "vite-tsconfig-paths": "^5.1.4",

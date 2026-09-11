@@ -11,9 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import es.codeurjcstudents.pcmod.model.User;
 import es.codeurjcstudents.pcmod.repository.UsersRepository;
@@ -39,6 +37,38 @@ public class UsersUnitTests {
 
     assertEquals(user, actualUser);
     verify(usersRepository).save(user);
+
+  }
+
+  @Test
+  public void testGetUser() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+        passwordEncoder.encode("pass"), "REGISTERED_USER");
+
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+
+    User actualUser = usersService.getUser(1L).orElseThrow();
+
+    assertEquals(user, actualUser);
+    verify(usersRepository).findById(1L);
+
+  }
+
+  @Test
+  public void testGetUserException() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository);
+
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+
+    assertThrows(NoSuchElementException.class, () -> {
+      usersService.getUser(1L).orElseThrow();
+    });
 
   }
 

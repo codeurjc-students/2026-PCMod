@@ -1,6 +1,6 @@
 package es.codeurjcstudents.pcmod.service;
 
-import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -18,6 +18,10 @@ public class UsersService {
 
   public User createUser(User user) {
     return userRepository.save(user);
+  }
+
+  public Optional<User> getUser(long id) {
+    return userRepository.findById(id);
   }
 
 }

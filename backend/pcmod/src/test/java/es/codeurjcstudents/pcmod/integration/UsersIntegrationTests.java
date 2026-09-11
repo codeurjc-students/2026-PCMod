@@ -73,4 +73,19 @@ public class UsersIntegrationTests {
 
   }
 
+  @Test
+  void getUser() {
+    User user = usersRepository.save(new User("user3", "test", "userTest3", "c/testaddress", "testuser3@example.com",
+        passwordEncoder.encode("pass"), "REGISTERED_USER"));
+
+    User loadedUser = usersService.getUser(user.getId()).orElseThrow();
+
+    assertEquals("user3", loadedUser.getName());
+    assertEquals("test", loadedUser.getSurname());
+    assertEquals("userTest3", loadedUser.getUsername());
+    assertEquals("c/testaddress", loadedUser.getAddress());
+    assertEquals("testuser3@example.com", loadedUser.getEmail());
+
+  }
+
 }

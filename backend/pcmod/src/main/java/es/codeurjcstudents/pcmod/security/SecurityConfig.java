@@ -35,11 +35,6 @@ public class SecurityConfig {
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-    return authConfig.getAuthenticationManager();
-  }
-
-  @Bean
   public DaoAuthenticationProvider authenticationProvider() {
     DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailService);
     authProvider.setPasswordEncoder(passwordEncoder());
@@ -48,7 +43,14 @@ public class SecurityConfig {
   }
 
   @Bean
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+    return authConfig.getAuthenticationManager();
+  }
+
+  @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+    http.authenticationProvider(authenticationProvider());
 
     http.securityMatcher("/api/**")
         .exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedHandlerJwt));

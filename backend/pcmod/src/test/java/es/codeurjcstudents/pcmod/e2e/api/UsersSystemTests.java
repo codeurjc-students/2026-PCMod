@@ -22,7 +22,7 @@ public class UsersSystemTests {
   public void setup() {
     RestAssured.port = port;
     RestAssured.baseURI = "https://localhost";
-    RestAssured.basePath = "/api/v1/auth";
+    RestAssured.basePath = "/api/v1/";
     RestAssured.useRelaxedHTTPSValidation();
   }
 
@@ -36,7 +36,7 @@ public class UsersSystemTests {
                 "password": "userpass"
             }
             """)
-        .when().post("/login")
+        .when().post("auth/login")
         .then().statusCode(200).contentType(ContentType.JSON)
         .body("error", nullValue())
         .body("message", equalTo("Auth successful. Tokens are created in cookie."))
@@ -55,7 +55,7 @@ public class UsersSystemTests {
                 "password": "pass"
             }
             """)
-        .when().post("/login")
+        .when().post("auth/login")
         .then().statusCode(401).contentType(ContentType.JSON)
         .body("error", equalTo("Unauthorized"))
         .body("status", equalTo(401))
@@ -72,13 +72,13 @@ public class UsersSystemTests {
               "password": "userpass"
             }
             """)
-        .when().post("/login")
+        .when().post("auth/login")
         .then().statusCode(200)
         .extract().cookie("RefreshToken");
 
     given()
         .cookie("RefreshToken", refreshToken)
-        .when().post("/refresh")
+        .when().post("auth/refresh")
         .then().statusCode(200).contentType(ContentType.JSON)
         .body("error", nullValue())
         .body("message", equalTo("Auth successful. Tokens are created in cookie."))
@@ -88,13 +88,46 @@ public class UsersSystemTests {
   @Test
   public void logout() {
     given().header("Content-Type", "application/json")
-        .when().post("/logout")
+        .when().post("auth/logout")
         .then().statusCode(200).contentType(ContentType.JSON)
         .body("error", nullValue())
         .body("message", equalTo("Logout successfully"))
         .body("status", equalTo("SUCCESS"))
         .cookie("AuthToken", emptyString())
         .cookie("RefreshToken", emptyString());
+  }
+
+  @Test
+  public void getMe() {
+        String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("error", nullValue())
+        .body("message", equalTo("Auth successful. Tokens are created in cookie."))
+        .body("status", equalTo("SUCCESS"))
+        .cookie("AuthToken", notNullValue())
+        .cookie("RefreshToken", notNullValue())
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().get("users/me")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("id", equalTo(1))
+        .body("name", equalTo("user"))
+        .body("surname", equalTo("example"))
+        .body("username", equalTo("user_example"))
+        .body("email", equalTo("user@example.com"))
+        .body("address", equalTo("c/example_address 1"))
+        .body("roles[0]", equalTo("REGISTERED_USER"));
   }
 
 }

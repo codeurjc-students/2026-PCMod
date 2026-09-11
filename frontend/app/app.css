@@ -347,3 +347,121 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* Login */
+
+.main:has(.login-form) .container {
+  max-width: 520px;
+}
+
+.login-form {
+  padding: clamp(1.5rem, 5vw, 3rem);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-top: 5px solid var(--color-principal);
+  border-radius: 8px;
+  box-shadow: 0 14px 30px rgb(84 37 20 / 12%);
+}
+
+.login-form>a:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-brand-dark);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-form>a:first-child:hover,
+.login-form>a:first-child:focus-visible {
+  color: var(--color-principal);
+}
+
+.login-form h3 {
+  margin: 2rem 0 1.75rem;
+  color: var(--color-ink);
+  font-size: clamp(1.45rem, 4vw, 1.85rem);
+  font-weight: 700;
+}
+
+.custom-login-form .form {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.custom-login-form .form-control {
+  min-height: 46px;
+  padding: 0 0 0 0.5rem;
+  color: var(--color-ink);
+  background-color: #fffdfb;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: var(--font-sans);
+}
+
+.custom-login-form .invalid-feedback {
+  display: none;
+  margin-bottom: 0.75rem;
+  color: var(--color-brand-dark);
+  font-size: 0.85rem;
+}
+
+.custom-login-form.was-validated .form-control:invalid~.invalid-feedback {
+  display: block;
+}
+
+.custom-login-form>.pcmod-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: fit-content;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.error-message-text {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1rem 0 0.75rem;
+  color: var(--color-brand-dark);
+  background-color: #f9dcca;
+  border: 1px solid #ff0404;
+  border-left: 4px solid var(--color-brand);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.custom-login-form>p {
+  margin-top: 1.25rem;
+  margin-bottom: 0.45rem;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.link-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--color-principal);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.link-text:hover,
+.link-text:focus-visible {
+  color: var(--color-principal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
