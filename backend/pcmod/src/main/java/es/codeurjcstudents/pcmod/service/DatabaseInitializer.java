@@ -3,18 +3,29 @@ package es.codeurjcstudents.pcmod.service;
 import java.math.BigDecimal;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import es.codeurjcstudents.pcmod.enums.ComponentType;
 import es.codeurjcstudents.pcmod.model.Component;
+import es.codeurjcstudents.pcmod.model.User;
 import es.codeurjcstudents.pcmod.repository.ComponentsRepository;
 import jakarta.annotation.PostConstruct;
 
 @Service
 public class DatabaseInitializer {
 
+  @Value("${app.user-password}")
+  private String userPasswordEncoded;
+
+  @Value("${app.admin-password}")
+  private String adminPasswordEncoded;
+
   @Autowired
   private ComponentsRepository componentsRepository;
+
+  @Autowired
+  private UsersService userService;
 
   @Autowired
   private ImageService imageService;
@@ -126,6 +137,12 @@ public class DatabaseInitializer {
             "Tipo de memoria interna: DDR5\r\n" + //
             "Velocidad de memoria del reloj: 6000 MHz",
         ComponentType.RAM, "Kingston", BigDecimal.valueOf(269.00), 15));
+
+    userService.createUser(new User("user", "example", "user_example", "c/example_address 1", "user@example.com",
+        userPasswordEncoded, "REGISTERED_USER"));
+    userService.createUser(
+        new User("admin", "example", "admin_example", "c/example_address 5", "admin@example.com", adminPasswordEncoded,
+            "REGISTERED_USER", "ADMIN"));
 
   }
 

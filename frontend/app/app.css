@@ -41,7 +41,8 @@ body {
   flex-wrap: nowrap;
   gap: 1.5rem;
   max-width: 1180px;
-  margin-left: 0;
+  width: 100%;
+  margin: 0 auto;
   padding: 0.5rem 1rem;
 }
 
@@ -57,8 +58,8 @@ body {
   position: relative;
   padding: 0.65rem 0.1rem;
   color: #ffffff;
-  font-size: 0.96rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 500;
   text-decoration: none;
   transition: color 160ms ease;
 }
@@ -87,6 +88,132 @@ body {
   transform: scaleX(1);
 }
 
+.header-content>.ms-auto {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.8rem;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: 2px solid rgb(255, 255, 255);
+  border-radius: 8px;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.header-btn:hover,
+.header-btn:focus-visible {
+  color: #ffffff;
+  background-color: var(--color-brand-dark);
+  border-color: #ed7e2969;
+  transform: translateY(-1px);
+}
+
+/* Avatar Dropdown Toggle Button */
+
+.avatar-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  padding: 0;
+  border: 2px solid rgb(255 255 255 / 70%);
+  border-radius: 50%;
+  transition: border-color 160ms ease, transform 160ms ease;
+  cursor: pointer;
+}
+
+.avatar-toggle-btn::after {
+  display: none !important;
+}
+
+.avatar-toggle-btn img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.header .dropdown-menu {
+  min-width: 190px;
+  margin-top: 0.65rem;
+  padding: 0.4rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgb(84 37 20 / 16%);
+}
+
+.header .dropdown-menu>.dropdown-item:not(.menu-option) {
+  padding: 0;
+  background-color: transparent;
+}
+
+.menu-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 0.75rem;
+  color: var(--color-ink);
+  background-color: transparent;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  text-decoration: none !important;
+  border: 0;
+  border-radius: 4px;
+}
+
+.menu-option:hover,
+.menu-option:focus-visible {
+  color: var(--color-brand-dark);
+  background-color: #f3dfd1;
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+}
+
+.header .dropdown-menu .menu-option::after {
+  display: none;
+  content: none;
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    gap: 0.75rem;
+    padding: 0.45rem 0.75rem;
+  }
+
+  .header .logo img {
+    width: min(190px, 42vw);
+  }
+
+  .header-content>ul {
+    gap: 0.35rem;
+  }
+
+  .header-content>.ms-auto {
+    gap: 0.35rem;
+  }
+
+  .header-btn {
+    padding: 0.5rem;
+    font-size: 0;
+  }
+
+  .header-btn svg {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+}
+
 /* Footer */
 
 .footer {
@@ -95,6 +222,15 @@ body {
   margin-top: auto;
   background: var(--color-principal);
   color: #ffffff;
+}
+
+.footer.sticky-bottom {
+  position: static;
+}
+
+.social-container>.col-1 {
+  width: auto;
+  flex: 0 0 auto;
 }
 
 .social-container {
@@ -133,6 +269,10 @@ body {
   color: var(--color-principal-muted);
   font-size: 1.0rem;
   text-align: center;
+}
+
+.footer-bottom-content>.mb-0 {
+  margin-bottom: 1em !important;
 }
 
 .sitename {
@@ -346,4 +486,130 @@ body {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* Login */
+
+.main:has(.login-form) .container {
+  max-width: 520px;
+}
+
+.login-form {
+  padding: clamp(1.5rem, 5vw, 3rem);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-top: 5px solid var(--color-principal);
+  border-radius: 8px;
+  box-shadow: 0 14px 30px rgb(84 37 20 / 12%);
+}
+
+.login-form>a:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-brand-dark);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-form>a:first-child:hover,
+.login-form>a:first-child:focus-visible {
+  color: var(--color-principal);
+}
+
+.login-form h3 {
+  margin: 2rem 0 1.75rem;
+  color: var(--color-ink);
+  font-size: clamp(1.45rem, 4vw, 1.85rem);
+  font-weight: 700;
+}
+
+.custom-login-form .form {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.custom-login-form .form-control {
+  min-height: 46px;
+  padding: 0 0 0 0.5rem;
+  color: var(--color-ink);
+  background-color: #fffdfb;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: var(--font-sans);
+}
+
+.custom-login-form .form-control:focus {
+  color: var(--color-ink);
+  background-color: #fffdfb;
+  border-color: var(--color-line);
+  box-shadow: none;
+  outline: none;
+}
+
+.custom-login-form .invalid-feedback {
+  display: none;
+  margin-bottom: 0.75rem;
+  color: var(--color-brand-dark);
+  font-size: 0.85rem;
+}
+
+.custom-login-form.was-validated .form-control:invalid~.invalid-feedback {
+  display: block;
+}
+
+.custom-login-form>.pcmod-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: fit-content;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.error-message-text {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1rem 1rem 0.75rem;
+  color: var(--color-brand-dark);
+  background-color: #f9dcca;
+  border: 1px solid #ff0404;
+  border-left: 4px solid var(--color-brand);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.custom-login-form>p {
+  margin-top: 1.25rem;
+  margin-bottom: 0.45rem;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.link-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--color-principal);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.link-text:hover,
+.link-text:focus-visible {
+  color: var(--color-principal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

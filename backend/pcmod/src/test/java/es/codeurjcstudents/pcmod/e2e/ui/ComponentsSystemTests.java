@@ -14,6 +14,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -21,7 +22,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 public class ComponentsSystemTests {
 
   private WebDriver driver;
-
   private WebDriverWait wait;
 
   @BeforeEach
@@ -33,6 +33,7 @@ public class ComponentsSystemTests {
     options.addArguments("--headless");
     options.addArguments("--no-sandbox");
     options.addArguments("--disable-dev-shm-usage");
+    options.addArguments("--window-size=1920,1080");
 
     driver = new ChromeDriver(options);
     wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -43,6 +44,18 @@ public class ComponentsSystemTests {
     if (driver != null) {
       driver.quit();
     }
+  }
+
+  private void scrollToAndClick(By locator) {
+
+    WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+
+    new Actions(driver)
+        .scrollToElement(element)
+        .perform();
+
+    wait.until(ExpectedConditions.elementToBeClickable(element)).click();
+
   }
 
   @Test
@@ -56,8 +69,7 @@ public class ComponentsSystemTests {
 
     assertThat(driver.findElements(By.id("name-11"))).isEmpty();
 
-    WebElement loadMoreButton = driver.findElement(By.name("loadMore"));
-    loadMoreButton.click();
+    scrollToAndClick(By.name("loadMore"));
 
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name-11")));
     String loadedComponentName = driver.findElement(By.id("name-11")).getText();
@@ -73,7 +85,6 @@ public class ComponentsSystemTests {
     driver.get("http://localhost:5173/components");
 
     wait.until(ExpectedConditions.presenceOfElementLocated(By.name("loadMore")));
-    WebElement loadMoreButton = driver.findElement(By.name("loadMore"));
 
     // Simulate a network error
     ((ChromeDriver) driver).executeCdpCommand("Network.enable", Map.of());
@@ -83,7 +94,7 @@ public class ComponentsSystemTests {
         "downloadThroughput", 0,
         "uploadThroughput", 0));
 
-    loadMoreButton.click();
+    scrollToAndClick(By.name("loadMore"));
 
     wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[role='alert']")));
     String errorMessage = driver.findElement(By.cssSelector("[role='alert']")).getText();

@@ -13,6 +13,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -32,6 +33,7 @@ public class HomePageSystemTests {
     options.addArguments("--headless");
     options.addArguments("--no-sandbox");
     options.addArguments("--disable-dev-shm-usage");
+    options.addArguments("--window-size=1920,1080");
 
     driver = new ChromeDriver(options);
     wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -42,6 +44,16 @@ public class HomePageSystemTests {
     if (driver != null) {
       driver.quit();
     }
+  }
+
+  private void scrollToAndClick(By locator) {
+    WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+
+    new Actions(driver)
+        .scrollToElement(element)
+        .perform();
+
+    wait.until(ExpectedConditions.elementToBeClickable(element)).click();
   }
 
   @Test
@@ -60,9 +72,11 @@ public class HomePageSystemTests {
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-9")));
     String componentName9 = driver.findElement(By.id("component-9")).getText();
     assertThat(componentName9).isEqualTo("AMD Radeon RX 9060 XT DUAL WHITE");
+
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-10")));
     String componentName10 = driver.findElement(By.id("component-10")).getText();
     assertThat(componentName10).isEqualTo("Seagate BarraCuda 3.5");
+
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-11")));
     String componentName11 = driver.findElement(By.id("component-11")).getText();
     assertThat(componentName11).isEqualTo("Kingston FURY Beast");
@@ -77,9 +91,7 @@ public class HomePageSystemTests {
 
     driver.get("http://localhost:5173/");
 
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.name("componentsButton")));
-    WebElement componentsButton = driver.findElement(By.name("componentsButton"));
-    componentsButton.click();
+    scrollToAndClick(By.name("componentsButton"));
 
     wait.until(ExpectedConditions.urlToBe("http://localhost:5173/components"));
 
