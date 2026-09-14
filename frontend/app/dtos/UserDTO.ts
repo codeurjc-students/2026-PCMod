@@ -5,4 +5,5 @@ export default interface UserDTO {
   username: string;
   address: string;
   email: string;
+  roles: Array<string>
 }

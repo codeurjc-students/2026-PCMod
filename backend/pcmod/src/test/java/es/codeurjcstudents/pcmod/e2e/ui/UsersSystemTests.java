@@ -12,8 +12,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -33,6 +35,7 @@ public class UsersSystemTests {
     options.addArguments("--headless");
     options.addArguments("--no-sandbox");
     options.addArguments("--disable-dev-shm-usage");
+    options.addArguments("--window-size=1920,1080");
 
     driver = new ChromeDriver(options);
     wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -43,6 +46,16 @@ public class UsersSystemTests {
     if (driver != null) {
       driver.quit();
     }
+  }
+
+  private void scrollToAndClick(By locator) {
+    WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+
+    new Actions(driver)
+        .scrollToElement(element)
+        .perform();
+
+    wait.until(ExpectedConditions.elementToBeClickable(element)).click();
   }
 
   @Test
@@ -78,7 +91,7 @@ public class UsersSystemTests {
 
     driver.get("http://localhost:5173/login");
 
-    wait.until(ExpectedConditions.elementToBeClickable(By.name("login-button"))).click();
+    scrollToAndClick(By.name("login-button"));
 
     assertThat(driver.findElement(By.id("invalid-email")).isDisplayed()).isTrue();
     assertThat(driver.findElement(By.id("invalid-email")).getText())
@@ -100,7 +113,7 @@ public class UsersSystemTests {
     driver.findElement(By.id("email")).sendKeys("user@example.com");
     driver.findElement(By.id("password")).sendKeys("userpass");
 
-    wait.until(ExpectedConditions.elementToBeClickable(By.name("login-button"))).click();
+    scrollToAndClick(By.name("login-button"));
 
     assertThat(driver.findElement(By.id("invalid-email")).isDisplayed()).isFalse();
     assertThat(driver.findElement(By.id("invalid-password")).isDisplayed()).isFalse();
@@ -119,7 +132,7 @@ public class UsersSystemTests {
     driver.findElement(By.id("email")).sendKeys("user");
     driver.findElement(By.id("password")).sendKeys("userpass");
 
-    wait.until(ExpectedConditions.elementToBeClickable(By.name("login-button"))).click();
+    scrollToAndClick(By.name("login-button"));
 
     assertThat(driver.findElement(By.id("invalid-email")).isDisplayed()).isTrue();
     assertThat(driver.findElement(By.id("invalid-email")).getText())
@@ -138,7 +151,7 @@ public class UsersSystemTests {
     driver.findElement(By.id("email")).sendKeys("user@example.com");
     driver.findElement(By.id("password")).sendKeys("pass");
 
-    wait.until(ExpectedConditions.elementToBeClickable(By.name("login-button"))).click();
+    scrollToAndClick(By.name("login-button"));
 
     assertThat(driver.findElement(By.id("invalid-password")).isDisplayed()).isTrue();
     assertThat(driver.findElement(By.id("invalid-password")).getText())
@@ -162,7 +175,7 @@ public class UsersSystemTests {
     driver.findElement(By.id("email")).sendKeys(email);
     driver.findElement(By.id("password")).sendKeys(password);
 
-    wait.until(ExpectedConditions.elementToBeClickable(By.name("login-button"))).click();
+    scrollToAndClick(By.name("login-button"));
 
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("error-message")));
     assertThat(driver.findElement(By.id("error-message")).getText())
