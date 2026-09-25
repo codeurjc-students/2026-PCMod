@@ -1,6 +1,7 @@
 package es.codeurjcstudents.pcmod.dto;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import es.codeurjcstudents.pcmod.model.User;
 
@@ -8,5 +9,8 @@ import es.codeurjcstudents.pcmod.model.User;
 public interface UserMapper {
 
   UserDTO toDTO(User user);
+
+  @Mapping(target = "encodedPassword", ignore = true)
+  User toDomainFromFullDTO(UserFullDTO userFullDTO);
 
 }
