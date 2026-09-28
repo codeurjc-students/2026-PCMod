@@ -82,6 +82,18 @@ public class HeaderSystemTests {
   }
 
   @Test
+  public void registerButtonNavigatesToRegisterTest() {
+
+    driver.get("http://localhost:5173/");
+
+    scrollToAndClick(By.linkText("Registrarse"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/register"));
+    assertThat(driver.findElement(By.id("register-title")).getText()).isEqualTo("Registro:");
+
+  }
+
+  @Test
   public void userDropdownOptionsTest() {
 
     login("user@example.com", "userpass");
