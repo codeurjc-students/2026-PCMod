@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 import type UserDTO from "~/dtos/UserDTO";
-import { HttpError, logIn, logOut, reqIsLogged } from "~/services/login-service";
+import { HttpError, logIn, logOut, reqIsLogged } from "~/services/users-service";
 
 interface UserState {
   user: UserDTO | null;

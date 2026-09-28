@@ -1,12 +1,12 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import "@testing-library/jest-dom";
-import { logIn, reqIsLogged } from "~/services/login-service";
+import { logIn, reqIsLogged } from "~/services/users-service";
 import Login from "~/routes/login";
 import { createRoutesStub } from "react-router";
 import userEvent from "@testing-library/user-event";
 
-vi.mock("~/services/login-service", () => ({
+vi.mock("~/services/users-service", () => ({
   logIn: vi.fn(),
   reqIsLogged: vi.fn(),
 }));

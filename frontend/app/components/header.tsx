@@ -35,7 +35,7 @@ export default function Header() {
                 id="dropdown-user"
               >
                 <Image
-                  src="empty-profile-image.jpg"
+                  src={`/api/v1/users/${user.id}/image`}
                   width="45"
                   height="45"
                   alt="User"

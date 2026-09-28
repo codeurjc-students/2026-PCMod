@@ -5,10 +5,11 @@ import Login from "~/routes/login";
 import Header from "~/components/header";
 import { createRoutesStub } from "react-router";
 import userEvent from "@testing-library/user-event";
-import { logIn, logOut, reqIsLogged } from "~/services/login-service";
+import { logIn, logOut, reqIsLogged } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
+import Register from "~/routes/register";
 
-vi.mock("~/services/login-service", () => ({
+vi.mock("~/services/users-service", () => ({
   logIn: vi.fn(),
   logOut: vi.fn(),
   reqIsLogged: vi.fn(),
@@ -73,6 +74,22 @@ describe("Header", () => {
     await user.click(screen.getByRole("link", { name: /Iniciar Sesión/i }));
 
     expect(screen.getByRole("heading", { name: "Iniciar sesión:" })).toBeInTheDocument();
+
+  });
+
+  it("navigates to /register when clicking the register button", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/", Component: Header },
+      { path: "/register", Component: Register },
+    ]);
+
+    render(<RouterStub initialEntries={["/"]} />)
+
+    await user.click(screen.getByRole("link", { name: /Registrarse/i }));
+
+    expect(screen.getByRole("heading", { name: "Registro:" })).toBeInTheDocument();
 
   });
 

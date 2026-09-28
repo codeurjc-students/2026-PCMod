@@ -488,13 +488,18 @@ body {
   }
 }
 
-/* Login */
+/* Login and register */
 
 .main:has(.login-form) .container {
   max-width: 520px;
 }
 
-.login-form {
+.main:has(.register-form) .container {
+  max-width: 640px;
+}
+
+.login-form,
+.register-form {
   padding: clamp(1.5rem, 5vw, 3rem);
   background-color: var(--color-surface);
   border: 1px solid var(--color-line);
@@ -503,7 +508,8 @@ body {
   box-shadow: 0 14px 30px rgb(84 37 20 / 12%);
 }
 
-.login-form>a:first-child {
+.login-form>a:first-child,
+.register-form>a:first-child {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -514,18 +520,22 @@ body {
 }
 
 .login-form>a:first-child:hover,
-.login-form>a:first-child:focus-visible {
+.login-form>a:first-child:focus-visible,
+.register-form>a:first-child:hover,
+.register-form>a:first-child:focus-visible {
   color: var(--color-principal);
 }
 
-.login-form h3 {
+.login-form h3,
+.register-form h3 {
   margin: 2rem 0 1.75rem;
   color: var(--color-ink);
   font-size: clamp(1.45rem, 4vw, 1.85rem);
   font-weight: 700;
 }
 
-.custom-login-form .form {
+.custom-login-form .form,
+.custom-register-form .form {
   display: grid;
   gap: 0.5rem;
   margin-bottom: 1.75rem;
@@ -536,7 +546,8 @@ body {
   gap: 0.25rem;
 }
 
-.custom-login-form .form-control {
+.custom-login-form .form-control,
+.custom-register-form .form-control {
   min-height: 46px;
   padding: 0 0 0 0.5rem;
   color: var(--color-ink);
@@ -547,7 +558,8 @@ body {
   font-family: var(--font-sans);
 }
 
-.custom-login-form .form-control:focus {
+.custom-login-form .form-control:focus,
+.custom-register-form .form-control:focus {
   color: var(--color-ink);
   background-color: #fffdfb;
   border-color: var(--color-line);
@@ -555,18 +567,26 @@ body {
   outline: none;
 }
 
-.custom-login-form .invalid-feedback {
+.custom-register-form input[type="file"] {
+  min-height: 38px;
+  padding: 0.35rem 0.5rem;
+}
+
+.custom-login-form .invalid-feedback,
+.custom-register-form .invalid-feedback {
   display: none;
   margin-bottom: 0.75rem;
   color: var(--color-brand-dark);
   font-size: 0.85rem;
 }
 
-.custom-login-form.was-validated .form-control:invalid~.invalid-feedback {
+.custom-login-form.was-validated .form-control:invalid~.invalid-feedback,
+.custom-register-form.was-validated .form-control:invalid~.invalid-feedback {
   display: block;
 }
 
-.custom-login-form>.pcmod-button {
+.custom-login-form>.pcmod-button,
+.custom-register-form>.pcmod-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -587,7 +607,13 @@ body {
   font-size: 0.85rem;
 }
 
-.custom-login-form>p {
+.error-message-text p,
+.error-message-text #error-message {
+  white-space: pre-line;
+}
+
+.custom-login-form>p,
+.custom-register-form>p {
   margin-top: 1.25rem;
   margin-bottom: 0.45rem;
   color: var(--color-muted);

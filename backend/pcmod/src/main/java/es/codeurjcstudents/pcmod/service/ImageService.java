@@ -6,11 +6,9 @@ import java.util.List;
 
 import javax.sql.rowset.serial.SerialBlob;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import es.codeurjcstudents.pcmod.dto.ComponentMapper;
 import es.codeurjcstudents.pcmod.model.Image;
 import es.codeurjcstudents.pcmod.repository.ImageRepository;
 
@@ -21,9 +19,6 @@ public class ImageService {
   private static final List<String> ALLOWED_TYPES = List.of("image/jpeg", "image/png", "image/webp");
 
   private final ImageRepository imageRepository;
-
-  @Autowired
-  private ComponentMapper componentMapper;
 
   public ImageService(ImageRepository imageRepository) {
     this.imageRepository = imageRepository;
