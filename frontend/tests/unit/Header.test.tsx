@@ -5,10 +5,10 @@ import Login from "~/routes/login";
 import Header from "~/components/header";
 import { createRoutesStub } from "react-router";
 import userEvent from "@testing-library/user-event";
-import { logIn, logOut, reqIsLogged } from "~/services/login-service";
+import { logIn, logOut, reqIsLogged } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
 
-vi.mock("~/services/login-service", () => ({
+vi.mock("~/services/users-service", () => ({
   logIn: vi.fn(),
   logOut: vi.fn(),
   reqIsLogged: vi.fn(),

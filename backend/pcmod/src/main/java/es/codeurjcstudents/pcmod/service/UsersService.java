@@ -65,7 +65,7 @@ public class UsersService {
     List<String> errors = validateUser(user, rawPassword);
 
     if (!errors.isEmpty()) {
-      throw new IllegalArgumentException("Validation failed: " + errors);
+      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
     }
 
     User userToSave = new User(user.getName(), user.getSurname(), user.getUsername(), user.getAddress(),
@@ -79,32 +79,32 @@ public class UsersService {
     List<String> errors = new ArrayList<>();
 
     if (user.getName() == null || user.getName().isEmpty()) {
-      errors.add("Name is required");
+      errors.add("El nombre es obligatorio.");
     }
 
     if (user.getSurname() == null || user.getSurname().isEmpty()) {
-      errors.add("Surname is required");
+      errors.add("El apellido es obligatorio.");
     }
 
     if (user.getUsername() == null || user.getUsername().isEmpty()) {
-      errors.add("Username is required");
+      errors.add("El nombre de usuario es obligatorio.");
     } else if (userRepository.existsByUsername(user.getUsername())) {
-      errors.add("Username already exists");
+      errors.add("El nombre de usuario ya existe.");
     }
 
     if (user.getEmail() == null || user.getEmail().isEmpty()) {
-      errors.add("Email is required");
+      errors.add("El email es obligatorio.");
     } else if (userRepository.existsByEmail(user.getEmail())) {
-      errors.add("Email already exists");
+      errors.add("El email ya existe.");
     } else if (!user.getEmail().matches(EMAIL_REGEX)) {
-      errors.add("Email format is invalid. It should be in the format: example@domain.com");
+      errors.add("El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com.");
     }
 
     if (rawPassword == null || rawPassword.isEmpty()) {
-      errors.add("Password is required");
+      errors.add("La contraseña es obligatoria.");
     } else if (!rawPassword.matches(PASS_REGEX)) {
       errors.add(
-          "Password must contain at least 8 characters including 1 uppercase letter, 1 lowercase letter, 1 digit, and 1 special character (@$!%*?&-_)");
+          "La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&-_).");
     }
 
     return errors;

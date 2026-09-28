@@ -236,11 +236,11 @@ public class UsersIntegrationTests {
 
     List<String> errors = usersService.validateUser(user, "");
 
-    assertTrue(errors.contains("Name is required"));
-    assertTrue(errors.contains("Surname is required"));
-    assertTrue(errors.contains("Username is required"));
-    assertTrue(errors.contains("Email is required"));
-    assertTrue(errors.contains("Password is required"));
+    assertTrue(errors.contains("El nombre es obligatorio."));
+    assertTrue(errors.contains("El apellido es obligatorio."));
+    assertTrue(errors.contains("El nombre de usuario es obligatorio."));
+    assertTrue(errors.contains("El email es obligatorio."));
+    assertTrue(errors.contains("La contraseña es obligatoria."));
 
   }
 
@@ -251,11 +251,11 @@ public class UsersIntegrationTests {
 
     List<String> errors = usersService.validateUser(user, null);
 
-    assertTrue(errors.contains("Name is required"));
-    assertTrue(errors.contains("Surname is required"));
-    assertTrue(errors.contains("Username is required"));
-    assertTrue(errors.contains("Email is required"));
-    assertTrue(errors.contains("Password is required"));
+    assertTrue(errors.contains("El nombre es obligatorio."));
+    assertTrue(errors.contains("El apellido es obligatorio."));
+    assertTrue(errors.contains("El nombre de usuario es obligatorio."));
+    assertTrue(errors.contains("El email es obligatorio."));
+    assertTrue(errors.contains("La contraseña es obligatoria."));
 
   }
 
@@ -266,8 +266,8 @@ public class UsersIntegrationTests {
 
     List<String> errors = usersService.validateUser(user, "R3gister_Test_Pass");
 
-    assertTrue(errors.contains("Username already exists"));
-    assertTrue(errors.contains("Email already exists"));
+    assertTrue(errors.contains("El nombre de usuario ya existe."));
+    assertTrue(errors.contains("El email ya existe."));
 
   }
 
@@ -278,9 +278,9 @@ public class UsersIntegrationTests {
 
     List<String> errors = usersService.validateUser(user, "pass");
 
-    assertTrue(errors.contains("Email format is invalid. It should be in the format: example@domain.com"));
+    assertTrue(errors.contains("El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com."));
     assertTrue(errors.contains(
-        "Password must contain at least 8 characters including 1 uppercase letter, 1 lowercase letter, 1 digit, and 1 special character (@$!%*?&-_)"));
+        "La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&-_)."));
 
   }
 
@@ -344,6 +344,22 @@ public class UsersIntegrationTests {
 
     assertArrayEquals(expectedImage.getInputStream().readAllBytes(),
         savedAdminImage.getImageFile().getBinaryStream().readAllBytes());
+
+  }
+
+  @Test
+  void postImageWithInvalidFile() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    MockMultipartFile invalidTypeImage = new MockMultipartFile(
+        "image", "image.txt", "text/plain", new byte[1024]);
+
+    assertThrows(IllegalArgumentException.class, () -> usersService.addUserImage(user.getId(), invalidTypeImage));
 
   }
 

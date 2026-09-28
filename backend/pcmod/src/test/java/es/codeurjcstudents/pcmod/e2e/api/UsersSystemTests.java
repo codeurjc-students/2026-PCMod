@@ -294,7 +294,7 @@ public class UsersSystemTests {
         .then().statusCode(500).contentType(ContentType.JSON)
         .body("status", equalTo(500))
         .body("message", equalTo(
-            "Validation failed: [Name is required, Surname is required, Username is required, Email is required, Password is required]"));
+            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
   }
 
   @Test
@@ -315,7 +315,7 @@ public class UsersSystemTests {
         .then().statusCode(500).contentType(ContentType.JSON)
         .body("status", equalTo(500))
         .body("message", equalTo(
-            "Validation failed: [Name is required, Surname is required, Username is required, Email is required, Password is required]"));
+            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
   }
 
   @Test
@@ -335,7 +335,7 @@ public class UsersSystemTests {
         .when().post("auth/register")
         .then().statusCode(500).contentType(ContentType.JSON)
         .body("status", equalTo(500))
-        .body("message", equalTo("Validation failed: [Username already exists, Email already exists]"));
+        .body("message", equalTo("Validación fallida:\n• El nombre de usuario ya existe.\n• El email ya existe."));
   }
 
   @Test
@@ -356,7 +356,7 @@ public class UsersSystemTests {
         .then().statusCode(500).contentType(ContentType.JSON)
         .body("status", equalTo(500))
         .body("message", equalTo(
-            "Validation failed: [Email format is invalid. It should be in the format: example@domain.com, Password must contain at least 8 characters including 1 uppercase letter, 1 lowercase letter, 1 digit, and 1 special character (@$!%*?&-_)]"));
+            "Validación fallida:\n• El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com.\n• La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&-_)."));
   }
 
   @Test
@@ -443,6 +443,31 @@ public class UsersSystemTests {
         .multiPart("imageFile", "user.png", expectedImage, "image/png")
         .when().post("users/2/image")
         .then().statusCode(201).contentType(ContentType.JSON);
+  }
+
+  @Test
+  public void postImageWithInvalidFile() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    byte[] invalidTypeImage = new byte[1024];
+
+    given()
+        .cookie("AuthToken", authToken)
+        .multiPart("imageFile", "test.txt", invalidTypeImage, "text/plain")
+        .when().post("users/1/image")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("status", equalTo(500))
+        .body("message", equalTo("El tipo de archivo no es válido. Solo se permiten imágenes JPEG, PNG y WebP."));
   }
 
 }
