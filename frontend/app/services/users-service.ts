@@ -95,6 +95,19 @@ export async function register(name: string, surname: string, username: string, 
 
 }
 
+export async function getUser(): Promise<UserDTO> {
+
+  const url = new URL(`${API_USERS_URL}/me`, getBaseUrl());
+  const res = await fetch(url.toString());
+
+  if (!res.ok) {
+    throw new Error("Hubo un error al cargar la página de perfil");
+  }
+
+  return await res.json();
+
+}
+
 export async function addImage(id: number, image: File): Promise<ImageDTO> {
 
   const formData = new FormData();

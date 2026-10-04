@@ -401,4 +401,39 @@ public class UsersSystemTests {
 
   }
 
+  @Test
+  public void loadProfilePageTest() {
+
+    driver.get("http://localhost:5173/login");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("user@example.com");
+    driver.findElement(By.id("password")).sendKeys("userpass");
+
+    scrollToAndClick(By.name("login-button"));
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/me");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    String loadedName = driver.findElement(By.id("name")).getText();
+    assertThat(loadedName).isEqualTo("user");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("surname")));
+    String loadedSurname = driver.findElement(By.id("surname")).getText();
+    assertThat(loadedSurname).isEqualTo("example");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
+    String loadedUsername = driver.findElement(By.id("username")).getText();
+    assertThat(loadedUsername).isEqualTo("user_example");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("address")));
+    String loadedAddress = driver.findElement(By.id("address")).getText();
+    assertThat(loadedAddress).isEqualTo("c/example_address 1");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    String loadedEmail = driver.findElement(By.id("email")).getText();
+    assertThat(loadedEmail).isEqualTo("user@example.com");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("purchases")));
+    String loadedPurchasesTitle = driver.findElement(By.id("purchases")).getText();
+    assertThat(loadedPurchasesTitle).isEqualTo("Mis compras:");
+
+  }
 }

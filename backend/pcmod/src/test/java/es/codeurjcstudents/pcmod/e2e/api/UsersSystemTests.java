@@ -105,7 +105,15 @@ public class UsersSystemTests {
   }
 
   @Test
-  public void getMe() {
+  public void getMeWithoutBeingLoggedIn() {
+    given()
+        .header("Content-Type", "application/json")
+        .when().get("users/me")
+        .then().statusCode(401).contentType(ContentType.JSON);
+  }
+
+  @Test
+  public void getLoggedMe() {
     String authToken = given()
         .header("Content-Type", "application/json")
         .body("""

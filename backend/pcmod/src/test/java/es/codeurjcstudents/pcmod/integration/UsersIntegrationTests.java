@@ -19,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -68,6 +69,7 @@ public class UsersIntegrationTests {
 
   @BeforeEach
   void setUp() {
+    SecurityContextHolder.clearContext();
     usersRepository.deleteAll();
     usersRepository.save(new User("user1", "test", "userTest1", "c/testaddress", "testuser1@example.com",
         passwordEncoder.encode("pass"), "REGISTERED_USER"));
@@ -91,17 +93,55 @@ public class UsersIntegrationTests {
   }
 
   @Test
-  void getUser() {
+  void getUserAsNotLoggedIn() {
+
+    assertThrows(AuthenticationCredentialsNotFoundException.class, () -> usersService.getUser(1L));
+
+  }
+
+  @Test
+  void getOwnUser() {
     User user = usersRepository.save(new User("user3", "test", "userTest3", "c/testaddress", "testuser3@example.com",
         passwordEncoder.encode("pass"), "REGISTERED_USER"));
 
-    User loadedUser = usersService.getUser(user.getId()).orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
 
-    assertEquals("user3", loadedUser.getName());
-    assertEquals("test", loadedUser.getSurname());
-    assertEquals("userTest3", loadedUser.getUsername());
-    assertEquals("c/testaddress", loadedUser.getAddress());
-    assertEquals("testuser3@example.com", loadedUser.getEmail());
+    assertDoesNotThrow(() -> usersService.getUser(user.getId()));
+
+  }
+
+  @Test
+  void getOtherUserAsLoggedIn() {
+    User user = usersRepository.save(new User("user3", "test", "userTest3", "c/testaddress", "testuser3@example.com",
+        passwordEncoder.encode("pass"), "REGISTERED_USER"));
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    assertThrows(AuthorizationDeniedException.class, () -> usersService.getUser(2L));
+
+  }
+
+  @Test
+  void getUsersAsAdmin() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    assertDoesNotThrow(() -> usersService.getUser(user.getId()));
+    assertDoesNotThrow(() -> usersService.getUser(admin.getId()));
 
   }
 
