@@ -384,6 +384,129 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Profile */
+
+.main:has(.profile-data) {
+  padding-top: clamp(1.5rem, 4vw, 3rem);
+}
+
+.main:has(.profile-data) .container {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  align-items: start;
+  gap: 1.5rem;
+  max-width: 1080px;
+}
+
+.profile-data,
+.purchases-data {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgb(84 37 20 / 8%);
+}
+
+.profile-data {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1rem;
+  padding: 1.5rem 1.25rem 1.25rem;
+}
+
+.profile-data>.rounded-circle {
+  align-self: center;
+  width: 116px;
+  height: 116px;
+  padding: 0.25rem;
+  background-color: #f1f1f1;
+  border: 1px solid #e5e7eb;
+  object-fit: cover;
+}
+
+.profile-fields {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+}
+
+.profile-fields>div {
+  min-width: 0;
+}
+
+.profile-fields dt {
+  margin-bottom: 0.35rem;
+  color: var(--color-brand-dark);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.profile-fields dd {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.purchases-data {
+  min-height: 360px;
+  overflow: hidden;
+}
+
+.purchases-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.purchases-header>div {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--color-brand-dark);
+}
+
+.purchases-header h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 1.35rem;
+}
+
+.purchases-header svg {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 1.35rem;
+}
+
+.empty-purchases {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 290px;
+  gap: 0.85rem;
+  padding: 2rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.empty-purchases svg {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: #a7a7a7;
+}
+
+.empty-purchases p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 1rem;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
 
   .main section.row,
@@ -401,6 +524,18 @@ body {
   .component-card-col {
     flex: 1 1 100%;
     max-width: 100%;
+  }
+
+  .main:has(.profile-data) .container {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-data {
+    padding: 1.25rem 1rem;
+  }
+
+  .purchases-data {
+    min-height: 300px;
   }
 }
 

@@ -3,6 +3,7 @@ package es.codeurjcstudents.pcmod.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -57,7 +58,9 @@ public class SecurityConfig {
     http.securityMatcher("/api/**")
         .exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedHandlerJwt));
 
-    http.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
+    http.authorizeHttpRequests(authorize -> authorize
+        .requestMatchers(HttpMethod.GET, "/api/v1/users/**").hasRole("REGISTERED_USER")
+        .anyRequest().permitAll());
 
     http.formLogin(formLogin -> formLogin.disable());
     http.csrf(csrf -> csrf.disable());

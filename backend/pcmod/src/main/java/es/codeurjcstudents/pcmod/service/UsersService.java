@@ -44,6 +44,7 @@ public class UsersService {
     return userRepository.save(user);
   }
 
+  @PreAuthorize("hasRole('ADMIN') or principal.username == #id.toString()")
   public Optional<User> getUser(long id) {
     return userRepository.findById(id);
   }

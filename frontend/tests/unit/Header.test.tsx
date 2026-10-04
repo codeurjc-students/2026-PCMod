@@ -8,6 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { logIn, logOut, reqIsLogged } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
 import Register from "~/routes/register";
+import Profile from "~/routes/profile";
 
 vi.mock("~/services/users-service", () => ({
   logIn: vi.fn(),
@@ -90,6 +91,25 @@ describe("Header", () => {
     await user.click(screen.getByRole("link", { name: /Registrarse/i }));
 
     expect(screen.getByRole("heading", { name: "Registro:" })).toBeInTheDocument();
+
+  });
+
+  it("navigates to /me when clicking the profile button", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/", Component: Header },
+      { path: "/me", Component: Profile, loader: () => userAccount },
+    ]);
+
+    vi.mocked(reqIsLogged).mockResolvedValue(userAccount);
+
+    render(<RouterStub initialEntries={["/"]} />)
+
+    await user.click(await screen.findByRole("button", { name: "User" }));
+    await user.click(screen.getByRole("link", { name: /Mi perfil/i }));
+
+    expect(screen.getByRole("heading", { name: "Mis compras:" })).toBeInTheDocument();
 
   });
 

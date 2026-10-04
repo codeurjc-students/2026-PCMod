@@ -44,7 +44,7 @@ export default function Header() {
               </Dropdown.Toggle>
 
               <Dropdown.Menu>
-                <Dropdown.Item as={Link} id="profile-option" className="menu-option" to={`/users/${user.id}`}>
+                <Dropdown.Item as={Link} id="profile-option" className="menu-option" to={`/me`}>
                   <Person /> Mi perfil
                 </Dropdown.Item>
 
