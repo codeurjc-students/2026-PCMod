@@ -60,6 +60,7 @@ public class SecurityConfig {
 
     http.authorizeHttpRequests(authorize -> authorize
         .requestMatchers(HttpMethod.GET, "/api/v1/users/**").hasRole("REGISTERED_USER")
+        .requestMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasRole("REGISTERED_USER")
         .anyRequest().permitAll());
 
     http.formLogin(formLogin -> formLogin.disable());

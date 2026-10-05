@@ -478,4 +478,121 @@ public class UsersSystemTests {
         .body("message", equalTo("El tipo de archivo no es válido. Solo se permiten imágenes JPEG, PNG y WebP."));
   }
 
+  @Test
+  public void deleteUserAsNotLoggedIn() {
+
+    given()
+        .when().delete("users/1")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("status", equalTo(401))
+        .body("error", equalTo("Unauthorized"));
+  }
+
+  @Test
+  public void deleteOwnUser() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("users/1")
+        .then().statusCode(200);
+
+    given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("error", equalTo("Unauthorized"));
+  }
+
+  @Test
+  public void deleteOtherUserAsNoAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("users/2")
+        .then().statusCode(403).contentType(ContentType.JSON)
+        .body("error", equalTo("Forbidden"));
+  }
+
+  @Test
+  public void deleteUsersAsAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("users/1")
+        .then().statusCode(200);
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("users/2")
+        .then().statusCode(200);
+
+    given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("error", equalTo("Unauthorized"));
+
+    given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("error", equalTo("Unauthorized"));
+
+  }
+
 }
