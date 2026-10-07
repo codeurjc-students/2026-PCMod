@@ -40,7 +40,7 @@ export default function Login() {
       } catch (error) {
 
         console.log(error);
-        setErrorMessage("Hubo un error al iniciar sesión. Por favor, inténtalo de nuevo.");
+        setErrorMessage("Hubo un error al iniciar sesión. Por favor, inténtelo de nuevo.");
 
       }
 

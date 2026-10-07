@@ -182,7 +182,7 @@ public class UsersSystemTests {
 
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("error-message")));
     assertThat(driver.findElement(By.id("error-message")).getText())
-        .isEqualTo("Error al iniciar sesión. Por favor, inténtenlo de nuevo");
+        .isEqualTo("Error al iniciar sesión. Por favor, inténtelo de nuevo");
     assertThat(driver.findElement(By.id("invalid-email")).isDisplayed()).isFalse();
     assertThat(driver.findElement(By.id("invalid-password")).isDisplayed()).isFalse();
 
@@ -434,6 +434,111 @@ public class UsersSystemTests {
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("purchases")));
     String loadedPurchasesTitle = driver.findElement(By.id("purchases")).getText();
     assertThat(loadedPurchasesTitle).isEqualTo("Mis compras:");
+
+  }
+
+  @Test
+  public void cancelAccountDeletionTest() {
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("user@example.com");
+    driver.findElement(By.id("password")).sendKeys("userpass");
+    scrollToAndClick(By.name("login-button"));
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/me");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.name("delete-button")));
+    scrollToAndClick(By.name("delete-button"));
+
+    WebElement deleteModal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal.show")));
+    assertThat(deleteModal.findElement(By.className("modal-title")).getText())
+        .isEqualTo("¿Está seguro de que desea borrar su cuenta?");
+    assertThat(deleteModal.findElement(By.className("modal-body")).getText())
+        .contains("Todos sus datos se perderán y no podrá recuperarlos.")
+        .contains("Esta acción no se puede deshacer.");
+
+    scrollToAndClick(By.cssSelector(".modal-footer .btn-secondary"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/me"));
+
+  }
+
+  @Test
+  public void cancelAccountDeletionClosingModalTest() {
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("user@example.com");
+    driver.findElement(By.id("password")).sendKeys("userpass");
+    scrollToAndClick(By.name("login-button"));
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/me");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.name("delete-button")));
+    scrollToAndClick(By.name("delete-button"));
+
+    WebElement deleteModal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal.show")));
+    assertThat(deleteModal.findElement(By.className("modal-title")).getText())
+        .isEqualTo("¿Está seguro de que desea borrar su cuenta?");
+    assertThat(deleteModal.findElement(By.className("modal-body")).getText())
+        .contains("Todos sus datos se perderán y no podrá recuperarlos.")
+        .contains("Esta acción no se puede deshacer.");
+    scrollToAndClick(By.cssSelector(".modal-header .btn-close"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/me"));
+
+  }
+
+  @Test
+  public void deleteAccountTest() {
+
+    driver.get("http://localhost:5173/register");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    driver.findElement(By.id("name")).sendKeys("Delete");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("surname")));
+    driver.findElement(By.id("surname")).sendKeys("Test");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
+    driver.findElement(By.id("username")).sendKeys("delete_test");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("address")));
+    driver.findElement(By.id("address")).sendKeys("c/delete_test");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    driver.findElement(By.id("email")).sendKeys("delete_test@example.com");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("password")).sendKeys("Delete_Test1");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.name("register-button")));
+    scrollToAndClick(By.name("register-button"));
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/me");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.name("delete-button")));
+    scrollToAndClick(By.name("delete-button"));
+
+    WebElement deleteModal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal.show")));
+    assertThat(deleteModal.findElement(By.className("modal-title")).getText())
+        .isEqualTo("¿Está seguro de que desea borrar su cuenta?");
+    assertThat(deleteModal.findElement(By.className("modal-body")).getText())
+        .contains("Todos sus datos se perderán y no podrá recuperarlos.")
+        .contains("Esta acción no se puede deshacer.");
+    scrollToAndClick(By.cssSelector(".modal-footer .pcmod-btn-danger"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/login");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("delete_test@example.com");
+    driver.findElement(By.id("password")).sendKeys("Delete_Test1");
+    scrollToAndClick(By.name("login-button"));
+
+    WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("error-message")));
+    assertThat(errorMessage.getText()).isEqualTo("Error al iniciar sesión. Por favor, inténtelo de nuevo");
 
   }
 }

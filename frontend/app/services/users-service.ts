@@ -125,3 +125,16 @@ export async function addImage(id: number, image: File): Promise<ImageDTO> {
   return await res.json();
 
 }
+
+export async function deleteUser(id: number): Promise<void> {
+
+  const url = new URL(`${API_USERS_URL}/${id}`, getBaseUrl());
+  const response = await fetch(url.toString(), {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Hubo un error al borrar la cuenta.");
+  }
+
+}

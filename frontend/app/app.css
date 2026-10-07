@@ -449,6 +449,117 @@ body {
   overflow-wrap: anywhere;
 }
 
+.profile-actions {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-line);
+}
+
+.profile-actions .pcmod-button,
+.profile-actions .pcmod-danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem 0.8rem !important;
+  font-size: 0.9rem !important;
+}
+
+.pcmod-danger-button {
+  color: var(--color-page);
+  background-color: #ff0000dc;
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+}
+
+.pcmod-danger-button:hover,
+.pcmod-danger-button:focus-visible {
+  background-color: var(--color-brand-dark);
+}
+
+/* Modal */
+
+.modal-content {
+  overflow: hidden;
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-top: 5px solid var(--color-principal);
+  border-radius: 8px;
+  box-shadow: 0 14px 30px rgb(84 37 20 / 18%);
+  font-family: var(--font-sans);
+}
+
+.modal-header {
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.modal-title {
+  color: var(--color-ink);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.modal-header .btn-close {
+  margin: 0;
+  padding: 0.35rem;
+}
+
+.modal-body {
+  padding: 1.25rem 1.25rem;
+}
+
+.modal-body p {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.5;
+  text-align: left;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.25rem;
+}
+
+.modal-footer .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 42px;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.modal-footer .btn:hover,
+.modal-footer .btn:focus-visible {
+  transform: translateY(-1px);
+}
+
+.modal-footer .btn-pcmod-btn-danger {
+  color: #ffffff;
+  background-color: #ff0000dc;
+  border-color: transparent;
+}
+
+.modal-footer .btn-pcmod-btn-danger:hover,
+.modal-footer .btn-pcmod-btn-danger:focus-visible {
+  color: #ffffff;
+  background-color: var(--color-brand-dark);
+  border-color: transparent;
+}
+
 .purchases-data {
   min-height: 360px;
   overflow: hidden;

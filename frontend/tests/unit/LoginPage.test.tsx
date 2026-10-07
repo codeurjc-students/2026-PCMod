@@ -128,7 +128,7 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("Error al iniciar sesión. Por favor, inténtenlo de nuevo")).toBeInTheDocument();
+      expect(screen.getByText("Error al iniciar sesión. Por favor, inténtelo de nuevo")).toBeInTheDocument();
     });
     expect(logIn).toHaveBeenCalledWith("wrongUser@example.com", "wrongPass");
 
