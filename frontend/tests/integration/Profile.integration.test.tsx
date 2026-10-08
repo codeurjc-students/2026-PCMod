@@ -7,6 +7,7 @@ import "@testing-library/jest-dom";
 import { CookieJar } from "tough-cookie";
 import Login from "~/routes/login";
 import Profile, { clientLoader } from "~/routes/profile";
+import { register } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
 
 function RootRoute() {
@@ -106,10 +107,19 @@ describe("ProfileIntegration", () => {
       { path: "/me", Component: Profile, loader: clientLoader },
     ]);
 
+    await register(
+      "delete",
+      "account",
+      "delete_account",
+      "c/delete_account_address 1",
+      "delete.account@example.com",
+      "delete_Pass1",
+    );
+
     render(<RouterStub initialEntries={["/login"]} />);
 
-    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
-    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.type(screen.getByLabelText("Correo electrónico:"), "delete.account@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "delete_Pass1");
     await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
 
     await user.click(await screen.findByRole("button", { name: "Borrar cuenta" }));
