@@ -34,7 +34,7 @@ export default function Login() {
         if (error) {
           setErrorMessage(error)
         } else {
-          navigate(`/`);
+          await navigate(`/`);
         }
 
       } catch (error) {

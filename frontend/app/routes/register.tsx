@@ -53,7 +53,7 @@ export default function Register() {
           await addImage(user.id, image);
         }
 
-        navigate("/");
+        await navigate("/");
 
       } catch (error) {
 
