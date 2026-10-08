@@ -50,7 +50,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     } catch (error) {
 
       console.log(error);
-      const message = "Error al iniciar sesión. Por favor, inténtenlo de nuevo";
+      const message = "Error al iniciar sesión. Por favor, inténtelo de nuevo";
       set({ loginError: message });
 
     }

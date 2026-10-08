@@ -34,13 +34,13 @@ export default function Login() {
         if (error) {
           setErrorMessage(error)
         } else {
-          navigate(`/`);
+          await navigate(`/`);
         }
 
       } catch (error) {
 
         console.log(error);
-        setErrorMessage("Hubo un error al iniciar sesión. Por favor, inténtalo de nuevo.");
+        setErrorMessage("Hubo un error al iniciar sesión. Por favor, inténtelo de nuevo.");
 
       }
 

@@ -337,4 +337,36 @@ public class UsersUnitTests {
 
     assertThrows(IllegalArgumentException.class, () -> usersService.addUserImage(1L, invalidTypeImage));
   }
+
+  @Test
+  public void testDeleteUser() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, null, null, null);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+        passwordEncoder.encode("pass"), "REGISTERED_USER");
+
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+
+    usersService.deleteUser(1L);
+
+    verify(usersRepository).deleteById(1L);
+
+  }
+
+  @Test
+  public void testDeleteUserNotFound() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, null, null, null);
+
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+
+    usersService.deleteUser(1L);
+
+    verify(usersRepository, never()).deleteById(1L);
+
+  }
+
 }

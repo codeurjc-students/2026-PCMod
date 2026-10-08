@@ -124,6 +124,19 @@ public class UsersService {
     return userRepository.save(user).getImage();
   }
 
+  @PreAuthorize("hasRole('ADMIN') or principal.username == #id.toString()")
+  public void deleteUser(long id) {
+
+    Optional<User> user = userRepository.findById(id);
+
+    if (user.isPresent()) {
+
+      userRepository.deleteById(id);
+
+    }
+
+  }
+
   public UserDTO toDTO(User user) {
     return userMapper.toDTO(user);
   }

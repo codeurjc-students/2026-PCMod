@@ -109,7 +109,8 @@ describe("Header", () => {
     await user.click(await screen.findByRole("button", { name: "User" }));
     await user.click(screen.getByRole("link", { name: /Mi perfil/i }));
 
-    expect(screen.getByRole("heading", { name: "Mis compras:" })).toBeInTheDocument();
+    const purchasesTitle = await screen.findByRole("heading", { name: "Mis compras:" });
+    expect(purchasesTitle).toBeInTheDocument();
 
   });
 

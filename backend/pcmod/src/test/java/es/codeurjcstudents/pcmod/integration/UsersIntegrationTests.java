@@ -403,4 +403,58 @@ public class UsersIntegrationTests {
 
   }
 
+  @Test
+  void deleteUserAsNotLoggedIn() {
+
+    assertThrows(AuthenticationCredentialsNotFoundException.class, () -> usersService.deleteUser(1L));
+
+  }
+
+  @Test
+  void deleteOwnUser() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    assertDoesNotThrow(() -> usersService.deleteUser(user.getId()));
+    assertEquals(1, usersRepository.count());
+
+  }
+
+  @Test
+  void deleteOtherUserAsLoggedIn() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    assertThrows(AuthorizationDeniedException.class, () -> usersService.deleteUser(2L));
+    assertEquals(2, usersRepository.count());
+
+  }
+
+  @Test
+  void deleteUsersAsAdmin() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    assertDoesNotThrow(() -> usersService.deleteUser(user.getId()));
+    assertDoesNotThrow(() -> usersService.deleteUser(admin.getId()));
+    assertEquals(0, usersRepository.count());
+
+  }
+
 }
