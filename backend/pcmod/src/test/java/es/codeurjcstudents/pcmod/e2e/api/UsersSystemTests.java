@@ -302,7 +302,7 @@ public class UsersSystemTests {
         .then().statusCode(500).contentType(ContentType.JSON)
         .body("status", equalTo(500))
         .body("message", equalTo(
-            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
+            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
   }
 
   @Test
@@ -323,7 +323,7 @@ public class UsersSystemTests {
         .then().statusCode(500).contentType(ContentType.JSON)
         .body("status", equalTo(500))
         .body("message", equalTo(
-            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
+            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
   }
 
   @Test
@@ -365,6 +365,20 @@ public class UsersSystemTests {
         .body("status", equalTo(500))
         .body("message", equalTo(
             "Validación fallida:\n• El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com.\n• La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&-_)."));
+  }
+
+  @Test
+  public void postImageAsNoLoggedIn() throws IOException {
+    byte[] expectedImage;
+    try (InputStream imageResource = getClass().getResourceAsStream("/sample_images/user.png")) {
+      expectedImage = imageResource.readAllBytes();
+    }
+
+    given()
+        .multiPart("imageFile", "user.png", expectedImage, "image/png")
+        .when().post("users/1/image")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("error", equalTo("Unauthorized"));
   }
 
   @Test
@@ -476,6 +490,105 @@ public class UsersSystemTests {
         .then().statusCode(500).contentType(ContentType.JSON)
         .body("status", equalTo(500))
         .body("message", equalTo("El tipo de archivo no es válido. Solo se permiten imágenes JPEG, PNG y WebP."));
+  }
+
+  @Test
+  public void putUserImageAsNoLoggedIn() throws IOException {
+    byte[] updatedImage;
+    try (InputStream imageResource = getClass().getResourceAsStream("/sample_images/user.png")) {
+      updatedImage = imageResource.readAllBytes();
+    }
+
+    given()
+        .multiPart("imageFile", "user.png", updatedImage, "image/png")
+        .when().put("users/1/image")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("error", equalTo("Unauthorized"));
+  }
+
+  @Test
+  public void putOwnImage() throws IOException {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    byte[] updatedImage;
+    try (InputStream imageResource = getClass().getResourceAsStream("/sample_images/user.png")) {
+      updatedImage = imageResource.readAllBytes();
+    }
+
+    given()
+        .cookie("AuthToken", authToken)
+        .multiPart("imageFile", "user.png", updatedImage, "image/png")
+        .when().put("users/1/image")
+        .then().statusCode(201).contentType(ContentType.JSON);
+  }
+
+  @Test
+  public void putOtherUserImageAsNoAdmin() throws IOException {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    byte[] updatedImage;
+    try (InputStream imageResource = getClass().getResourceAsStream("/sample_images/user.png")) {
+      updatedImage = imageResource.readAllBytes();
+    }
+
+    given()
+        .cookie("AuthToken", authToken)
+        .multiPart("imageFile", "user.png", updatedImage, "image/png")
+        .when().put("users/2/image")
+        .then().statusCode(403).contentType(ContentType.JSON)
+        .body("message", equalTo("Forbidden"));
+  }
+
+  @Test
+  public void putUsersImagesAsAdmin() throws IOException {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    byte[] updatedImage;
+    try (InputStream imageResource = getClass().getResourceAsStream("/sample_images/user.png")) {
+      updatedImage = imageResource.readAllBytes();
+    }
+
+    given()
+        .cookie("AuthToken", authToken)
+        .multiPart("imageFile", "user.png", updatedImage, "image/png")
+        .when().put("users/1/image")
+        .then().statusCode(201).contentType(ContentType.JSON);
+
+    given()
+        .cookie("AuthToken", authToken)
+        .multiPart("imageFile", "user2.jpg", updatedImage, "image/jpeg")
+        .when().put("users/2/image")
+        .then().statusCode(201).contentType(ContentType.JSON);
   }
 
   @Test
@@ -593,6 +706,291 @@ public class UsersSystemTests {
         .then().statusCode(401).contentType(ContentType.JSON)
         .body("error", equalTo("Unauthorized"));
 
+  }
+
+  @Test
+  public void putUserAsNoLoggedIn() {
+
+    given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "update",
+              "surname": "user",
+              "username": "update.user",
+              "address" : "c/ example 3",
+              "email": "update.user@example.com",
+              "password": "Updat3_user_pass"
+            }
+            """)
+        .when().put("users/1")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("error", equalTo("Unauthorized"));
+  }
+
+  @Test
+  public void putOwnAccount() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "update",
+              "surname": "user",
+              "username": "update.user",
+              "address" : "c/ example 3",
+              "email": "update.user@example.com",
+              "password": "Updat3_user_pass"
+            }
+            """)
+        .when().put("users/1")
+        .then().statusCode(201).contentType(ContentType.JSON)
+        .body("id", notNullValue())
+        .body("name", equalTo("update"))
+        .body("surname", equalTo("user"))
+        .body("username", equalTo("update.user"))
+        .body("address", equalTo("c/ example 3"))
+        .body("email", equalTo("update.user@example.com"))
+        .body("roles[0]", equalTo("REGISTERED_USER"));
+  }
+
+  @Test
+  public void putOtherUserAccount() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "update",
+              "surname": "user",
+              "username": "update.user",
+              "address" : "c/ example 3",
+              "email": "update.user@example.com",
+              "password": "Updat3_user_pass"
+            }
+            """)
+        .when().put("users/2")
+        .then().statusCode(403).contentType(ContentType.JSON)
+        .body("error", equalTo("Forbidden"));
+  }
+
+  @Test
+  public void putUsersAccountsAsAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "update",
+              "surname": "user",
+              "username": "update.user",
+              "address" : "c/ example 3",
+              "email": "update.user@example.com",
+              "password": "Updat3_user_pass"
+            }
+            """)
+        .when().put("users/1")
+        .then().statusCode(201).contentType(ContentType.JSON)
+        .body("id", notNullValue())
+        .body("name", equalTo("update"))
+        .body("surname", equalTo("user"))
+        .body("username", equalTo("update.user"))
+        .body("address", equalTo("c/ example 3"))
+        .body("email", equalTo("update.user@example.com"))
+        .body("roles[0]", equalTo("REGISTERED_USER"));
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "update",
+              "surname": "admin",
+              "username": "update.admin",
+              "address" : "c/ example 3",
+              "email": "update.admin@example.com",
+              "password": "Updat3_admin_pass"
+            }
+            """)
+        .when().put("users/2")
+        .then().statusCode(201).contentType(ContentType.JSON)
+        .body("id", notNullValue())
+        .body("name", equalTo("update"))
+        .body("surname", equalTo("admin"))
+        .body("username", equalTo("update.admin"))
+        .body("address", equalTo("c/ example 3"))
+        .body("email", equalTo("update.admin@example.com"))
+        .body("roles[0]", equalTo("REGISTERED_USER"));
+
+  }
+
+  @Test
+  public void putVoidCredentials() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "",
+              "surname": "",
+              "username": "",
+              "address" : "",
+              "email": "",
+              "password": ""
+            }
+            """)
+        .when().put("users/1")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("message", equalTo(
+            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
+  }
+
+  @Test
+  public void putNullCredentials() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": null,
+              "surname": null,
+              "username": null,
+              "address" : null,
+              "email": null,
+              "password": null
+            }
+            """)
+        .when().put("users/1")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("message", equalTo(
+            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
+  }
+
+  @Test
+  public void putExistingCredentials() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "user",
+              "surname": "test",
+              "username": "admin_example",
+              "address" : "c/example 5",
+              "email": "admin@example.com",
+              "password": "Updat3_pass"
+            }
+            """)
+        .when().put("users/1")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("status", equalTo(500))
+        .body("message", equalTo("Validación fallida:\n• El nombre de usuario ya existe.\n• El email ya existe."));
+  }
+
+  @Test
+  public void putBadFormatCredentials() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "user",
+              "surname": "test",
+              "username": "user_example",
+              "address" : "c/example 5",
+              "email": "user@example",
+              "password": "pass"
+            }
+            """)
+        .when().put("users/1")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("status", equalTo(500))
+        .body("message", equalTo(
+            "Validación fallida:\n• El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com.\n• La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&-_)."));
   }
 
 }

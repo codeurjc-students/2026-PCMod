@@ -16,14 +16,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import es.codeurjcstudents.pcmod.dto.ImageDTO;
 import es.codeurjcstudents.pcmod.dto.UserDTO;
+import es.codeurjcstudents.pcmod.dto.UserFullDTO;
 import es.codeurjcstudents.pcmod.dto.UserMapper;
 import es.codeurjcstudents.pcmod.model.Image;
 import es.codeurjcstudents.pcmod.model.User;
@@ -70,7 +73,7 @@ public class UsersRestController {
     return ResponseEntity.ok().contentType(mediaType).body(imageFile);
   }
 
-  @PostMapping("/{id}/image")
+  @RequestMapping(value = "/{id}/image", method = { RequestMethod.POST, RequestMethod.PUT })
   public ResponseEntity<ImageDTO> addUserImage(@PathVariable long id, @RequestParam MultipartFile imageFile)
       throws IOException {
 
@@ -85,6 +88,18 @@ public class UsersRestController {
   public void deleteUser(@PathVariable long id) {
 
     usersService.deleteUser(id);
+
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<UserDTO> updateUser(@RequestBody UserFullDTO updatedData, @PathVariable long id) {
+
+    User newUserData = usersService.toDomainFromFullDTO(updatedData);
+    User updatedUser = usersService.updateUser(newUserData, updatedData.password(), id);
+
+    URI location = fromCurrentRequest().buildAndExpand(updatedUser.getId()).toUri();
+
+    return ResponseEntity.created(location).body(usersService.toDTO(updatedUser));
 
   }
 

@@ -63,7 +63,7 @@ public class UsersService {
 
   public User register(User user, String rawPassword) {
 
-    List<String> errors = validateUser(user, rawPassword);
+    List<String> errors = validateUser(user, rawPassword, null);
 
     if (!errors.isEmpty()) {
       throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
@@ -75,49 +75,19 @@ public class UsersService {
     return userRepository.save(userToSave);
   }
 
-  public List<String> validateUser(User user, String rawPassword) {
-
-    List<String> errors = new ArrayList<>();
-
-    if (user.getName() == null || user.getName().isEmpty()) {
-      errors.add("El nombre es obligatorio.");
-    }
-
-    if (user.getSurname() == null || user.getSurname().isEmpty()) {
-      errors.add("El apellido es obligatorio.");
-    }
-
-    if (user.getUsername() == null || user.getUsername().isEmpty()) {
-      errors.add("El nombre de usuario es obligatorio.");
-    } else if (userRepository.existsByUsername(user.getUsername())) {
-      errors.add("El nombre de usuario ya existe.");
-    }
-
-    if (user.getEmail() == null || user.getEmail().isEmpty()) {
-      errors.add("El email es obligatorio.");
-    } else if (userRepository.existsByEmail(user.getEmail())) {
-      errors.add("El email ya existe.");
-    } else if (!user.getEmail().matches(EMAIL_REGEX)) {
-      errors.add("El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com.");
-    }
-
-    if (rawPassword == null || rawPassword.isEmpty()) {
-      errors.add("La contraseña es obligatoria.");
-    } else if (!rawPassword.matches(PASS_REGEX)) {
-      errors.add(
-          "La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&-_).");
-    }
-
-    return errors;
-  }
-
   @PreAuthorize("hasRole('ADMIN') or principal.username == #id.toString()")
   public Image addUserImage(long id, MultipartFile imageFile) throws IOException {
 
     imagesService.validate(imageFile);
 
     User user = userRepository.findById(id).orElseThrow();
-    Image image = imagesService.createImage(imageFile.getInputStream());
+    Image image;
+
+    if (user.getImage() == null) {
+      image = imagesService.createImage(imageFile.getInputStream());
+    } else {
+      image = imagesService.replaceImageFile(user.getImage().getId(), imageFile.getInputStream());
+    }
 
     user.setImage(image);
 
@@ -133,6 +103,106 @@ public class UsersService {
 
       userRepository.deleteById(id);
 
+    }
+
+  }
+
+  @PreAuthorize("hasRole('ADMIN') or principal.username == #id.toString()")
+  public User updateUser(User newUserData, String rawPassword, long id) {
+
+    List<String> errors = validateUser(newUserData, rawPassword, id);
+
+    if (!errors.isEmpty()) {
+      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+    }
+
+    User user = userRepository.findById(id).orElseThrow();
+    user.setName(newUserData.getName());
+    user.setSurname(newUserData.getSurname());
+    user.setUsername(newUserData.getUsername());
+    user.setAddress(newUserData.getAddress());
+    user.setEmail(newUserData.getEmail());
+    user.setEncodedPassword(passwordEncoder.encode(rawPassword));
+
+    return userRepository.save(user);
+
+  }
+
+  public List<String> validateUser(User user, String rawPassword, Long id) {
+
+    List<String> errors = new ArrayList<>();
+    User originalUser = null;
+
+    if (id != null) {
+      originalUser = userRepository.findById(id).orElseThrow();
+    }
+
+    validateRequiredField(user.getName(), "El nombre es obligatorio.", errors);
+    validateRequiredField(user.getSurname(), "El apellido es obligatorio.", errors);
+    validateRequiredField(user.getAddress(), "La dirección es obligatoria.", errors);
+
+    if (user.getUsername() == null || user.getUsername().isEmpty()) {
+      errors.add("El nombre de usuario es obligatorio.");
+    } else {
+      validateUsername(user, originalUser, errors);
+    }
+
+    if (user.getEmail() == null || user.getEmail().isEmpty()) {
+      errors.add("El email es obligatorio.");
+    } else {
+      validateEmail(user, originalUser, errors);
+    }
+
+    if (rawPassword == null || rawPassword.isEmpty()) {
+      errors.add("La contraseña es obligatoria.");
+    } else {
+      validatePassword(rawPassword, errors);
+    }
+
+    return errors;
+
+  }
+
+  private void validateRequiredField(String value, String message, List<String> errors) {
+
+    if (value == null || value.isEmpty()) {
+      errors.add(message);
+    }
+
+  }
+
+  public void validateUsername(User user, User originalUser, List<String> errors) {
+
+    boolean isNewUser = (originalUser == null);
+    boolean usernameChanged = !isNewUser && !originalUser.getUsername().equals(user.getUsername());
+
+    if ((isNewUser || usernameChanged) && userRepository.existsByUsername(user.getUsername())) {
+      errors.add("El nombre de usuario ya existe.");
+    }
+
+  }
+
+  public void validateEmail(User user, User originalUser, List<String> errors) {
+
+    boolean isNewUser = (originalUser == null);
+    boolean emailChanged = !isNewUser && !originalUser.getEmail().equals(user.getEmail());
+
+    if ((isNewUser || emailChanged) && userRepository.existsByEmail(user.getEmail())) {
+      errors.add("El email ya existe.");
+      return;
+    }
+
+    if (!user.getEmail().matches(EMAIL_REGEX)) {
+      errors.add("El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com.");
+    }
+
+  }
+
+  public void validatePassword(String rawPassword, List<String> errors) {
+
+    if (!rawPassword.matches(PASS_REGEX)) {
+      errors.add(
+          "La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&-_).");
     }
 
   }
