@@ -122,7 +122,9 @@ public class UsersService {
     user.setUsername(newUserData.getUsername());
     user.setAddress(newUserData.getAddress());
     user.setEmail(newUserData.getEmail());
-    user.setEncodedPassword(passwordEncoder.encode(rawPassword));
+    if (rawPassword != null && !rawPassword.isEmpty()) {
+      user.setEncodedPassword(passwordEncoder.encode(rawPassword));
+    }
 
     return userRepository.save(user);
 
@@ -153,9 +155,9 @@ public class UsersService {
       validateEmail(user, originalUser, errors);
     }
 
-    if (rawPassword == null || rawPassword.isEmpty()) {
+    if (id == null && (rawPassword == null || rawPassword.isEmpty())) {
       errors.add("La contraseña es obligatoria.");
-    } else {
+    } else if (rawPassword != null && !rawPassword.isEmpty()) {
       validatePassword(rawPassword, errors);
     }
 

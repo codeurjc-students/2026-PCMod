@@ -137,4 +137,190 @@ describe("ProfileIntegration", () => {
     });
   });
 
+  it("updates with valid credentials", async () => {
+
+    const user = userEvent.setup();
+    await register(
+      "update",
+      "account",
+      "update_account",
+      "c/update_account_address 1",
+      "update.account@example.com",
+      "update_Pass1",
+    );
+
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/me" replace /> },
+      { path: "/me", Component: Profile, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "update.account@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "update_Pass1");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    const file = new File(["dummy content"], "user.jpg", { type: "image/jpeg" });
+
+    const formButton = await screen.findByRole("button", { name: /Editar perfil/i });
+    await user.click(formButton);
+
+    await user.clear(screen.getByLabelText("Nombre:"));
+    await user.type(screen.getByLabelText("Nombre:"), "updated");
+    await user.clear(screen.getByLabelText("Apellido:"));
+    await user.type(screen.getByLabelText("Apellido:"), "user");
+    await user.clear(screen.getByLabelText("Nombre de usuario:"));
+    await user.type(screen.getByLabelText("Nombre de usuario:"), "updatedUser");
+    await user.clear(screen.getByLabelText("Dirección:"));
+    await user.type(screen.getByLabelText("Dirección:"), "c/updated");
+    await user.clear(screen.getByLabelText("Correo electrónico:"));
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@updated.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "Updat3_Test");
+
+    await user.upload(screen.getByLabelText("Imagen de perfil:"), file);
+
+    const updateButton = await screen.findByRole("button", { name: /Guardar cambios/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("updated")).toBeInTheDocument();
+      expect(screen.getByText("user")).toBeInTheDocument();
+      expect(screen.getByText("updatedUser")).toBeInTheDocument();
+      expect(screen.getByText("c/updated")).toBeInTheDocument();
+      expect(screen.getByText("user@updated.com")).toBeInTheDocument();
+    });
+
+  });
+
+  it("updates with void credentials", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/me" replace /> },
+      { path: "/me", Component: Profile, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    const formButton = await screen.findByRole("button", { name: /Editar perfil/i });
+    await user.click(formButton);
+
+    await user.clear(screen.getByLabelText("Nombre:"));
+    await user.clear(screen.getByLabelText("Apellido:"));
+    await user.clear(screen.getByLabelText("Nombre de usuario:"));
+    await user.clear(screen.getByLabelText("Dirección:"));
+    await user.clear(screen.getByLabelText("Correo electrónico:"));
+
+    const updateButton = await screen.findByRole("button", { name: /Guardar cambios/i });
+    await user.click(updateButton);
+
+    expect(screen.getByText("Por favor, ingrese un nombre válido.")).toBeInTheDocument();
+    expect(screen.getByText("Por favor, ingrese un apellido válido.")).toBeInTheDocument();
+    expect(screen.getByText("Por favor, ingrese un nombre de usuario válido.")).toBeInTheDocument();
+    expect(screen.getByText("Por favor, ingrese una dirección válida.")).toBeInTheDocument();
+    expect(screen.getByText("Por favor, ingrese un correo electrónico válido.")).toBeInTheDocument();
+
+  });
+
+  it("updates with existing credentials", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/me" replace /> },
+      { path: "/me", Component: Profile, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    const formButton = await screen.findByRole("button", { name: /Editar perfil/i });
+    await user.click(formButton);
+
+    await user.clear(screen.getByLabelText("Nombre de usuario:"));
+    await user.type(screen.getByLabelText("Nombre de usuario:"), "admin_example");
+    await user.clear(screen.getByLabelText("Correo electrónico:"));
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+
+    const updateButton = await screen.findByRole("button", { name: /Guardar cambios/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/El nombre de usuario ya existe\./)).toBeInTheDocument();
+      expect(screen.getByText(/El email ya existe\./)).toBeInTheDocument();
+    });
+
+  });
+
+  it("updates with invalid format credentials", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/me" replace /> },
+      { path: "/me", Component: Profile, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    const formButton = await screen.findByRole("button", { name: /Editar perfil/i });
+    await user.click(formButton);
+
+    await user.clear(screen.getByLabelText("Correo electrónico:"));
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@updated");
+    await user.type(screen.getByLabelText("Contraseña:"), "updatePass");
+
+    const updateButton = await screen.findByRole("button", { name: /Guardar cambios/i });
+    await user.click(updateButton);
+    await waitFor(() => {
+      expect(screen.getByText(/El formato del email no es válido/)).toBeInTheDocument();
+      expect(screen.getByText(/La contraseña debe tener al menos 8 caracteres/)).toBeInTheDocument();
+    });
+
+  });
+
+  it("updates with invalid image format", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/me" replace /> },
+      { path: "/me", Component: Profile, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    const file = new File(["dummy image"], "user.txt", { type: "text/plain" });
+
+    const formButton = await screen.findByRole("button", { name: /Editar perfil/i });
+    await user.click(formButton);
+
+    await user.upload(screen.getByLabelText("Imagen de perfil:"), file);
+
+    const updateButton = await screen.findByRole("button", { name: /Guardar cambios/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Por favor, seleccione un archivo de imagen válido.")).toBeInTheDocument();
+    });
+
+  });
+
 });

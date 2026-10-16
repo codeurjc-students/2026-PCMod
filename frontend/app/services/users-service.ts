@@ -113,7 +113,8 @@ export async function addImage(id: number, image: File): Promise<ImageDTO> {
   const formData = new FormData();
   formData.append('imageFile', image);
 
-  const res = await fetch(`${API_USERS_URL}/${id}/image`, {
+  const url = new URL(`${API_USERS_URL}/${id}/image`, getBaseUrl());
+  const res = await fetch(url.toString(), {
     method: 'POST',
     body: formData
   });
@@ -137,4 +138,37 @@ export async function deleteUser(id: number): Promise<void> {
     throw new Error("Hubo un error al borrar la cuenta.");
   }
 
+}
+
+export async function updateUser(id: number, name: string, surname: string, username: string, address: string, email: string, password: string): Promise<UserDTO> {
+  const url = new URL(`${API_USERS_URL}/${id}`, getBaseUrl());
+  const res = await fetch(url.toString(), {
+    method: 'PUT',
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name,
+      surname,
+      username,
+      address,
+      email,
+      password
+    })
+  });
+
+  if (!res.ok) {
+    let message: string | undefined;
+
+    try {
+      const error = await res.json();
+      message = typeof error.message === "string" ? error.message : undefined;
+    } catch {
+      message = undefined;
+    }
+
+    throw new Error(message ?? "Hubo un error al actualizar el perfil.");
+  }
+
+  return await res.json();
 }

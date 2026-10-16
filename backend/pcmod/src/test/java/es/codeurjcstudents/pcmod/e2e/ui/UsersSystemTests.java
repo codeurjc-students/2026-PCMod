@@ -525,7 +525,7 @@ public class UsersSystemTests {
     assertThat(deleteModal.findElement(By.className("modal-body")).getText())
         .contains("Todos sus datos se perderán y no podrá recuperarlos.")
         .contains("Esta acción no se puede deshacer.");
-    scrollToAndClick(By.cssSelector(".modal-footer .pcmod-btn-danger"));
+    scrollToAndClick(By.cssSelector(".modal-footer .pcmod-danger-button"));
 
     wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
 
@@ -541,4 +541,245 @@ public class UsersSystemTests {
     assertThat(errorMessage.getText()).isEqualTo("Error al iniciar sesión. Por favor, inténtelo de nuevo");
 
   }
+
+  @Test
+  public void updateTest() {
+
+    driver.get("http://localhost:5173/register");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    driver.findElement(By.id("name")).sendKeys("user");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("surname")));
+    driver.findElement(By.id("surname")).sendKeys("test");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
+    driver.findElement(By.id("username")).sendKeys("userToUpdateTest");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("address")));
+    driver.findElement(By.id("address")).sendKeys("c/test");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    driver.findElement(By.id("email")).sendKeys("userToUpdate@test.com");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("password")).sendKeys("R3gister_Test");
+    scrollToAndClick(By.name("register-button"));
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/me");
+    scrollToAndClick(By.name("edit-button"));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name-form")));
+    driver.findElement(By.id("name-form")).clear();
+    driver.findElement(By.id("name-form")).sendKeys("updated");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("surname-form")));
+    driver.findElement(By.id("surname-form")).clear();
+    driver.findElement(By.id("surname-form")).sendKeys("user");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username-form")));
+    driver.findElement(By.id("username-form")).clear();
+    driver.findElement(By.id("username-form")).sendKeys("updated_user");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("address-form")));
+    driver.findElement(By.id("address-form")).clear();
+    driver.findElement(By.id("address-form")).sendKeys("c/updated");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email-form")));
+    driver.findElement(By.id("email-form")).clear();
+    driver.findElement(By.id("email-form")).sendKeys("updated@test.com");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("password")).sendKeys("Updat3_Test");
+    scrollToAndClick(By.name("save-button"));
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    String loadedName = driver.findElement(By.id("name")).getText();
+    assertThat(loadedName).isEqualTo("updated");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("surname")));
+    String loadedSurname = driver.findElement(By.id("surname")).getText();
+    assertThat(loadedSurname).isEqualTo("user");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
+    String loadedUsername = driver.findElement(By.id("username")).getText();
+    assertThat(loadedUsername).isEqualTo("updated_user");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("address")));
+    String loadedAddress = driver.findElement(By.id("address")).getText();
+    assertThat(loadedAddress).isEqualTo("c/updated");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    String loadedEmail = driver.findElement(By.id("email")).getText();
+    assertThat(loadedEmail).isEqualTo("updated@test.com");
+
+  }
+
+  @Test
+  public void updateVoidCredentialsTest() {
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("user@example.com");
+    driver.findElement(By.id("password")).sendKeys("userpass");
+    scrollToAndClick(By.name("login-button"));
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/me");
+    scrollToAndClick(By.name("edit-button"));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name-form")));
+    driver.findElement(By.id("name-form")).clear();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("surname-form")));
+    driver.findElement(By.id("surname-form")).clear();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username-form")));
+    driver.findElement(By.id("username-form")).clear();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("address-form")));
+    driver.findElement(By.id("address-form")).clear();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email-form")));
+    driver.findElement(By.id("email-form")).clear();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    scrollToAndClick(By.name("save-button"));
+
+    assertThat(driver.findElement(By.id("invalid-name")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-name")).getText())
+        .isEqualTo("Por favor, ingrese un nombre válido.");
+    assertThat(driver.findElement(By.id("invalid-surname")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-surname")).getText())
+        .isEqualTo("Por favor, ingrese un apellido válido.");
+    assertThat(driver.findElement(By.id("invalid-username")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-username")).getText())
+        .isEqualTo("Por favor, ingrese un nombre de usuario válido.");
+    assertThat(driver.findElement(By.id("invalid-address")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-address")).getText())
+        .isEqualTo("Por favor, ingrese una dirección válida.");
+    assertThat(driver.findElement(By.id("invalid-email")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-email")).getText())
+        .isEqualTo("Por favor, ingrese un correo electrónico válido.");
+
+  }
+
+  @Test
+  public void updateExistingCredentialsTest() {
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("user@example.com");
+    driver.findElement(By.id("password")).sendKeys("userpass");
+    scrollToAndClick(By.name("login-button"));
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/me");
+    scrollToAndClick(By.name("edit-button"));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username-form")));
+    driver.findElement(By.id("username-form")).clear();
+    driver.findElement(By.id("username-form")).sendKeys("admin_example");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email-form")));
+    driver.findElement(By.id("email-form")).clear();
+    driver.findElement(By.id("email-form")).sendKeys("admin@example.com");
+    scrollToAndClick(By.name("save-button"));
+
+    WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("error-message")));
+    assertThat(errorMessage.getText()).contains("El nombre de usuario ya existe.");
+    assertThat(errorMessage.getText()).contains("El email ya existe.");
+
+  }
+
+  @Test
+  public void updateInvalidFormatCredentialsTest() {
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("user@example.com");
+    driver.findElement(By.id("password")).sendKeys("userpass");
+    scrollToAndClick(By.name("login-button"));
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/me");
+    scrollToAndClick(By.name("edit-button"));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email-form")));
+    driver.findElement(By.id("email-form")).clear();
+    driver.findElement(By.id("email-form")).sendKeys("update@email");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("password")).clear();
+    driver.findElement(By.id("password")).sendKeys("UpdatePass");
+    scrollToAndClick(By.name("save-button"));
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("error-message")));
+    assertThat(driver.findElement(By.id("error-message")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("error-message")).getText())
+        .contains("El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com.");
+    assertThat(driver.findElement(By.id("error-message")).getText()).contains(
+        "La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&-_).");
+
+  }
+
+  @Test
+  public void updateInvalidImageFormatTest() throws Exception {
+
+    Path tempFile = Files.createTempFile("invalid-image", ".txt");
+    Files.writeString(tempFile, "invalid file content");
+    String imagePath = tempFile.toAbsolutePath().toString();
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("user@example.com");
+    driver.findElement(By.id("password")).sendKeys("userpass");
+    scrollToAndClick(By.name("login-button"));
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/me");
+    scrollToAndClick(By.name("edit-button"));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("image")));
+    driver.findElement(By.id("image")).sendKeys(imagePath);
+    scrollToAndClick(By.name("save-button"));
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("error-message")));
+    assertThat(driver.findElement(By.id("error-message")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("error-message")).getText())
+        .isEqualTo("Hubo un error al subir la imagen. Solo se permiten imágenes JPEG, PNG y WebP.");
+
+    Files.deleteIfExists(Paths.get(imagePath));
+
+  }
+
+  @Test
+  public void cancelUpdateUserTest() {
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("user@example.com");
+    driver.findElement(By.id("password")).sendKeys("userpass");
+    scrollToAndClick(By.name("login-button"));
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/me");
+
+    scrollToAndClick(By.name("edit-button"));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name-form")));
+    driver.findElement(By.id("name-form")).clear();
+    driver.findElement(By.id("name-form")).sendKeys("updated");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("surname-form")));
+    driver.findElement(By.id("surname-form")).clear();
+    driver.findElement(By.id("surname-form")).sendKeys("user");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username-form")));
+    driver.findElement(By.id("username-form")).clear();
+    driver.findElement(By.id("username-form")).sendKeys("updated_user");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("address-form")));
+    driver.findElement(By.id("address-form")).clear();
+    driver.findElement(By.id("address-form")).sendKeys("c/updated");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email-form")));
+    driver.findElement(By.id("email-form")).clear();
+    driver.findElement(By.id("email-form")).sendKeys("updated@test.com");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("password")).sendKeys("Updat3_Test");
+    scrollToAndClick(By.name("cancel-button"));
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    String loadedName = driver.findElement(By.id("name")).getText();
+    assertThat(loadedName).isEqualTo("user");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("surname")));
+    String loadedSurname = driver.findElement(By.id("surname")).getText();
+    assertThat(loadedSurname).isEqualTo("example");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
+    String loadedUsername = driver.findElement(By.id("username")).getText();
+    assertThat(loadedUsername).isEqualTo("user_example");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("address")));
+    String loadedAddress = driver.findElement(By.id("address")).getText();
+    assertThat(loadedAddress).isEqualTo("c/example_address 1");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    String loadedEmail = driver.findElement(By.id("email")).getText();
+    assertThat(loadedEmail).isEqualTo("user@example.com");
+
+  }
+
 }

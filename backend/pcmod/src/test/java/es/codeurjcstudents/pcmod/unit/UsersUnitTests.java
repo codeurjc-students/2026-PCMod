@@ -506,6 +506,28 @@ public class UsersUnitTests {
   }
 
   @Test
+  public void testUpdateKeepsExistingPasswordWhenEmpty() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, passwordEncoder, null, null);
+    String encodedPassword = passwordEncoder.encode("Existing_Pass1");
+
+    User originalUser = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+        encodedPassword, "REGISTERED_USER");
+    User updatedUser = new User("updated", "test", "userTest", "c/testaddress", "testuser@example.com",
+        null, "REGISTERED_USER");
+
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(originalUser));
+    when(usersRepository.save(any(User.class))).thenReturn(originalUser);
+
+    usersService.updateUser(updatedUser, "", 1L);
+
+    assertEquals(encodedPassword, originalUser.getEncodedPassword());
+    verify(usersRepository).save(any(User.class));
+
+  }
+
+  @Test
   public void testUpdateValidation() {
 
     UsersRepository usersRepository = mock(UsersRepository.class);

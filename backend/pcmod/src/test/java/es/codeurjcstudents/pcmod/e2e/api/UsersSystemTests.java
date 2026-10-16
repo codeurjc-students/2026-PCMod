@@ -890,7 +890,7 @@ public class UsersSystemTests {
         .when().put("users/1")
         .then().statusCode(500).contentType(ContentType.JSON)
         .body("message", equalTo(
-            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
+            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio."));
   }
 
   @Test
@@ -923,7 +923,7 @@ public class UsersSystemTests {
         .when().put("users/1")
         .then().statusCode(500).contentType(ContentType.JSON)
         .body("message", equalTo(
-            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
+            "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio."));
   }
 
   @Test
