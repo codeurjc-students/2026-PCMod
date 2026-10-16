@@ -1,10 +1,12 @@
-import { useActionState, useRef, useState, startTransition } from "react";
+import { useActionState, useRef, useState } from "react";
 import type { SubmitEvent } from "react";
 import { Button, FormControl, FormLabel } from "react-bootstrap";
 import { ArrowLeft, BoxArrowInRight, ExclamationCircleFill, PersonPlus } from "react-bootstrap-icons";
 import { Link, useNavigate } from "react-router";
 import { register, addImage } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
+import { getUserFormValues, validateImage, handleFormSubmit } from "~/utils/user-form-utils";
+import type { UserFormValues } from "~/utils/user-form-utils";
 
 export default function Register() {
 
@@ -18,76 +20,41 @@ export default function Register() {
     { name: "", surname: "", username: "", address: "", email: "", password: "" }
   );
 
-  async function registerAction(prevState: {}, formData: FormData) {
-
-    const name = (formData.get("name") as string) ?? "";
-    const surname = (formData.get("surname") as string) ?? "";
-    const username = (formData.get("username") as string) ?? "";
-    const address = (formData.get("address") as string) ?? "";
-    const email = (formData.get("email") as string) ?? "";
-    const password = (formData.get("password") as string) ?? "";
+  async function registerAction(_prevState: UserFormValues, formData: FormData) {
+    const { name, surname, username, address, email, password } = getUserFormValues(formData);
     const image = formData.get("image") as File | null;
 
-    const form = formRef.current;
-    setWasValidated(true)
+    const imageError = validateImage(image);
+    if (imageError) {
+      setErrorMessage(imageError);
+      return { name, surname, username, address, email, password };
+    }
 
-    if (form?.checkValidity()) {
+    try {
+      const user = await register(name, surname, username, address, email, password);
+
+      await userStore.loginUser(email, password);
 
       if (image && image.size > 0) {
-        const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
-        const maxImageSize = 10 * 1024 * 1024;
-
-        if (image.size > maxImageSize || !allowedImageTypes.includes(image.type)) {
-          setErrorMessage("Hubo un error al subir la imagen. Solo se permiten imágenes JPEG, PNG y WebP.");
-          return { name, surname, username, address, email, password };
-        }
+        await addImage(user.id, image);
       }
 
-      try {
+      await navigate("/");
+    } catch (error) {
+      console.log(error);
 
-        const user = await register(name, surname, username, address, email, password);
-
-        await userStore.loginUser(email, password);
-
-        if (image && image.size > 0) {
-          await addImage(user.id, image);
-        }
-
-        await navigate("/");
-
-      } catch (error) {
-
-        console.log(error);
-        setErrorMessage(error instanceof Error
+      setErrorMessage(
+        error instanceof Error
           ? error.message
-          : "Hubo un error al completar el registro. Por favor, inténtalo de nuevo.");
-
-      }
-
+          : "Hubo un error al completar el registro. Por favor, inténtalo de nuevo.",
+      );
     }
 
     return { name, surname, username, address, email, password };
   }
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-
-    event.preventDefault();
-    const form = event.currentTarget;
-
-    if (!form.checkValidity()) {
-
-      event.stopPropagation();
-      setWasValidated(true);
-
-    } else {
-
-      setWasValidated(true);
-      startTransition(() => {
-        formAction(new FormData(form));
-      });
-
-    }
-
+    handleFormSubmit(event, formAction, setWasValidated);
   }
 
   return (

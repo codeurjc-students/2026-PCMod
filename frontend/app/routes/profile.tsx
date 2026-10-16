@@ -1,4 +1,4 @@
-import { startTransition, useActionState, useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import type { SubmitEvent } from "react";
 import type { Route } from "./+types/profile";
 import { addImage, deleteUser, getUser, updateUser } from "~/services/users-service";
@@ -7,16 +7,19 @@ import { CartX, Trash, Cart, ArrowLeft, PencilSquare, ExclamationCircleFill, Flo
 import { Button, FormControl, FormLabel, Image, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router";
 import { useUserStore } from "~/stores/user-store";
+import { getUserFormValues, validateImage, handleFormSubmit } from "~/utils/user-form-utils";
+import type { UserFormValues } from "~/utils/user-form-utils";
 
-const API_URL = "/api/v1/users"
+const API_URL = "/api/v1/users";
 
 export async function clientLoader() {
-  return await getUser()
+  return await getUser();
 }
 
 export default function Profile({ loaderData }: Route.ComponentProps) {
 
-  let { logoutUser } = useUserStore();
+  const { logoutUser } = useUserStore();
+  const navigate = useNavigate();
 
   const [profile, setProfile] = useState<UserDTO>(loaderData);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -28,77 +31,55 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
     updateAction,
     { name: profile.name, surname: profile.surname, username: profile.username, address: profile.address, email: profile.email, password: "" }
   );
-  const navigate = useNavigate();
 
   async function handleDeleteAccount() {
     try {
       await deleteUser(profile.id);
       await logoutUser();
       await navigate("/");
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
     }
   }
 
-  async function updateAction(prevState: {}, formData: FormData) {
-    const name = (formData.get("name") as string) ?? "";
-    const surname = (formData.get("surname") as string) ?? "";
-    const username = (formData.get("username") as string) ?? "";
-    const address = (formData.get("address") as string) ?? "";
-    const email = (formData.get("email") as string) ?? "";
-    const password = (formData.get("password") as string) ?? "";
+  async function updateAction(_prevState: UserFormValues, formData: FormData): Promise<UserFormValues> {
+    const { name, surname, username, address, email, password } = getUserFormValues(formData);
     const image = formData.get("image") as File | null;
 
-    const form = formRef.current;
-    setWasValidated(true)
+    const imageError = validateImage(image);
+    if (imageError) {
+      setErrorMessage(imageError);
+      return { name, surname, username, address, email, password };
+    }
 
-    if (form?.checkValidity()) {
+    try {
+      const user = await updateUser(profile.id, name, surname, username, address, email, password);
+
       if (image && image.size > 0) {
-        const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
-        const maxImageSize = 10 * 1024 * 1024;
-
-        if (image.size > maxImageSize || !allowedImageTypes.includes(image.type)) {
-          setErrorMessage("Hubo un error al subir la imagen. Solo se permiten imágenes JPEG, PNG y WebP.");
-          return { name, surname, username, address, email, password };
-        }
+        await addImage(user.id, image);
       }
 
-      try {
-        const user = await updateUser(profile.id, name, surname, username, address, email, password);
+      setProfile(user);
+      setIsEditing(false);
+      setWasValidated(false);
+      setErrorMessage("");
+    } catch (error) {
+      console.log(error);
 
-        if (image && image.size > 0) {
-          await addImage(user.id, image);
-        }
-
-        setProfile(user);
-        setIsEditing(false);
-        setWasValidated(false);
-        setErrorMessage("");
-      } catch (error) {
-        console.log(error);
-        setErrorMessage(error instanceof Error
+      setErrorMessage(
+        error instanceof Error
           ? error.message
-          : "Hubo un error al completar la actualización. Por favor, inténtalo de nuevo.");
-      }
+          : "Hubo un error al completar la actualización. Por favor, inténtalo de nuevo.",
+      );
     }
 
     return { name, surname, username, address, email, password };
   }
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-
-    if (!form.checkValidity()) {
-      event.stopPropagation();
-      setWasValidated(true);
-    } else {
-      setWasValidated(true);
-      startTransition(() => {
-        formAction(new FormData(form));
-      });
-    }
+    handleFormSubmit(event, formAction, setWasValidated);
   }
+
 
   return (
     <>
@@ -126,7 +107,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
                     <>
                       <FormLabel htmlFor="name-form" className="required-label">Nombre:</FormLabel>
                       <FormControl type="text" disabled={isPending} defaultValue={profile.name} className="form-control" name="name" id="name-form" required />
-                      <div className="invalid-name" id="invalid-name">Por favor, ingrese un nombre válido.</div>
+                      <div className="invalid-feedback" id="invalid-name">Por favor, ingrese un nombre válido.</div>
                     </>
                   ) : (
                     <>
@@ -141,7 +122,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
                     <>
                       <FormLabel htmlFor="surname-form" className="required-label">Apellido:</FormLabel>
                       <FormControl type="text" disabled={isPending} defaultValue={profile.surname} className="form-control" name="surname" id="surname-form" required />
-                      <div className="invalid-surname" id="invalid-surname">Por favor, ingrese un apellido válido.</div>
+                      <div className="invalid-feedback" id="invalid-surname">Por favor, ingrese un apellido válido.</div>
                     </>
                   ) : (
                     <>
@@ -156,7 +137,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
                     <>
                       <FormLabel htmlFor="username-form" className="required-label">Nombre de usuario:</FormLabel>
                       <FormControl type="text" disabled={isPending} defaultValue={profile.username} className="form-control" name="username" id="username-form" required />
-                      <div className="invalid-username" id="invalid-username">Por favor, ingrese un nombre de usuario válido.</div>
+                      <div className="invalid-feedback" id="invalid-username">Por favor, ingrese un nombre de usuario válido.</div>
                     </>
                   ) : (
                     <>
@@ -171,7 +152,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
                     <>
                       <FormLabel htmlFor="address-form" className="required-label">Dirección:</FormLabel>
                       <FormControl type="text" disabled={isPending} defaultValue={profile.address} className="form-control" name="address" id="address-form" required />
-                      <div className="invalid-address" id="invalid-address">Por favor, ingrese una dirección válida.</div>
+                      <div className="invalid-feedback" id="invalid-address">Por favor, ingrese una dirección válida.</div>
                     </>
                   ) : (
                     <>
@@ -186,7 +167,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
                     <>
                       <FormLabel htmlFor="email-form" className="required-label">Correo electrónico:</FormLabel>
                       <FormControl type="email" disabled={isPending} defaultValue={profile.email} className="form-control" name="email" id="email-form" placeholder="ejemplo@correo.com" required />
-                      <div className="invalid-email" id="invalid-email">Por favor, ingrese un correo electrónico válido.</div>
+                      <div className="invalid-feedback" id="invalid-email">Por favor, ingrese un correo electrónico válido.</div>
                     </>
                   ) : (
                     <>
@@ -200,7 +181,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
                   <div className="form-field">
                     <FormLabel htmlFor="password">Contraseña:</FormLabel>
                     <FormControl type="password" disabled={isPending} defaultValue={state.password} className="form-control" name="password" id="password" placeholder="********" minLength={8} maxLength={20} />
-                    <div className="invalid-password" id="invalid-password">Por favor, ingrese una contraseña válida.</div>
+                    <div className="invalid-feedback" id="invalid-password">Por favor, ingrese una contraseña válida.</div>
                   </div>
                 )}
 
@@ -208,7 +189,7 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
                   <div className="form-field">
                     <FormLabel htmlFor="image">Imagen de perfil:</FormLabel>
                     <FormControl type="file" disabled={isPending} className="form-control" name="image" id="image" accept=".png,.jpg,.jpeg,.webp" />
-                    <div className="invalid-image" id="invalid-image">Por favor, seleccione un archivo de imagen válido.</div>
+                    <div className="invalid-feedback" id="invalid-image">Por favor, seleccione un archivo de imagen válido.</div>
                   </div>
                 )}
               </div>
