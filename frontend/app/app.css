@@ -414,8 +414,9 @@ body {
   padding: 1.5rem 1.25rem 1.25rem;
 }
 
-.profile-data>.rounded-circle {
-  align-self: center;
+.profile-data>form>.rounded-circle {
+  display: block;
+  margin: 0 auto 1rem;
   width: 116px;
   height: 116px;
   padding: 0.25rem;
@@ -434,7 +435,8 @@ body {
   min-width: 0;
 }
 
-.profile-fields dt {
+.profile-fields dt,
+.profile-fields .form-label {
   margin-bottom: 0.35rem;
   color: var(--color-brand-dark);
   font-size: 1.05rem;
@@ -547,14 +549,14 @@ body {
   transform: translateY(-1px);
 }
 
-.modal-footer .btn-pcmod-btn-danger {
+.modal-footer .pcmod-danger-button {
   color: #ffffff;
   background-color: #ff0000dc;
   border-color: transparent;
 }
 
-.modal-footer .btn-pcmod-btn-danger:hover,
-.modal-footer .btn-pcmod-btn-danger:focus-visible {
+.modal-footer .pcmod-danger-button:hover,
+.modal-footer .pcmod-danger-button:focus-visible {
   color: #ffffff;
   background-color: var(--color-brand-dark);
   border-color: transparent;

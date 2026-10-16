@@ -14,12 +14,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
 import javax.sql.rowset.serial.SerialBlob;
@@ -211,7 +214,7 @@ public class UsersUnitTests {
     User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
         null, "");
 
-    List<String> errors = usersService.validateUser(user, "R3gister_Test_Pass");
+    List<String> errors = usersService.validateUser(user, "R3gister_Test_Pass", null);
 
     assertTrue(errors.isEmpty());
 
@@ -226,11 +229,12 @@ public class UsersUnitTests {
     User user = new User("", "", "", "", "",
         null, "");
 
-    List<String> errors = usersService.validateUser(user, "");
+    List<String> errors = usersService.validateUser(user, "", null);
 
     assertTrue(errors.contains("El nombre es obligatorio."));
     assertTrue(errors.contains("El apellido es obligatorio."));
     assertTrue(errors.contains("El nombre de usuario es obligatorio."));
+    assertTrue(errors.contains("La dirección es obligatoria."));
     assertTrue(errors.contains("El email es obligatorio."));
     assertTrue(errors.contains("La contraseña es obligatoria."));
 
@@ -245,11 +249,12 @@ public class UsersUnitTests {
     User user = new User(null, null, null, null, null,
         null, "");
 
-    List<String> errors = usersService.validateUser(user, null);
+    List<String> errors = usersService.validateUser(user, null, null);
 
     assertTrue(errors.contains("El nombre es obligatorio."));
     assertTrue(errors.contains("El apellido es obligatorio."));
     assertTrue(errors.contains("El nombre de usuario es obligatorio."));
+    assertTrue(errors.contains("La dirección es obligatoria."));
     assertTrue(errors.contains("El email es obligatorio."));
     assertTrue(errors.contains("La contraseña es obligatoria."));
 
@@ -267,7 +272,7 @@ public class UsersUnitTests {
     when(usersRepository.existsByUsername("userTest")).thenReturn(true);
     when(usersRepository.existsByEmail("testuser@example.com")).thenReturn(true);
 
-    List<String> errors = usersService.validateUser(user, "R3gister_Existing");
+    List<String> errors = usersService.validateUser(user, "R3gister_Existing", null);
 
     assertTrue(errors.contains("El nombre de usuario ya existe."));
     assertTrue(errors.contains("El email ya existe."));
@@ -285,7 +290,7 @@ public class UsersUnitTests {
     User user = new User("user", "test", "userTest", "c/testaddress", "test@email",
         null, "");
 
-    List<String> errors = usersService.validateUser(user, "pass");
+    List<String> errors = usersService.validateUser(user, "pass", null);
 
     assertTrue(errors.contains("El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com."));
     assertTrue(errors.contains(
@@ -339,6 +344,43 @@ public class UsersUnitTests {
   }
 
   @Test
+  public void testUpdateImageFile() throws Exception {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    ImageService imageService = mock(ImageService.class);
+    UsersService usersService = new UsersService(usersRepository, passwordEncoder, null, imageService);
+
+    Resource originalResource = new ClassPathResource("/sample_images/user.png");
+    MockMultipartFile originalImageFile = new MockMultipartFile("imageFile", "user.png", "image/png",
+        originalResource.getInputStream());
+    Image originalImage = new Image(new SerialBlob(originalImageFile.getInputStream().readAllBytes()));
+    originalImage.setId(1L);
+
+    Resource newResource = new ClassPathResource("/sample_images/user2.jpg");
+    MockMultipartFile newImageFile = new MockMultipartFile("imageFile", "user2.jpg", "image/jpg",
+        newResource.getInputStream());
+    Image newImage = new Image(new SerialBlob(newImageFile.getInputStream().readAllBytes()));
+    newImage.setId(2L);
+
+    when(imageService.createImage(any(InputStream.class))).thenReturn(originalImage);
+    when(imageService.replaceImageFile(anyLong(), any(InputStream.class))).thenReturn(newImage);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+        passwordEncoder.encode("R3gister_Test_Pass"), "REGISTERED_USER");
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+    when(usersRepository.save(user)).thenReturn(user);
+    usersService.addUserImage(1L, originalImageFile);
+
+    Image actualImage = usersService.addUserImage(1L, newImageFile);
+
+    verify(usersRepository, times(2)).save(user);
+
+    assertArrayEquals(newResource.getInputStream().readAllBytes(),
+        actualImage.getImageFile().getBinaryStream().readAllBytes());
+
+  }
+
+  @Test
   public void testDeleteUser() {
 
     UsersRepository usersRepository = mock(UsersRepository.class);
@@ -366,6 +408,164 @@ public class UsersUnitTests {
     usersService.deleteUser(1L);
 
     verify(usersRepository, never()).deleteById(1L);
+
+  }
+
+  @Test
+  public void testUpdate() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, passwordEncoder, null, null);
+
+    User originalUser = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+        passwordEncoder.encode("R3gister_Test_Pass"), "REGISTERED_USER");
+
+    User updatedUser = new User("userUpdated", "testUpdated", "userTestUpdated", "c/testaddressUpdated",
+        "testUpdateduser@example.com",
+        passwordEncoder.encode("R3gister_Test_Pass"), "REGISTERED_USER");
+
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(originalUser));
+    when(usersRepository.save(any(User.class))).thenReturn(originalUser);
+
+    User userSaved = usersService.updateUser(updatedUser, "R3gister_Test_Pass", 1L);
+
+    assertEquals(updatedUser.getUsername(), userSaved.getUsername());
+    assertEquals(updatedUser.getName(), userSaved.getName());
+    assertEquals(updatedUser.getSurname(), userSaved.getSurname());
+    assertEquals(updatedUser.getAddress(), userSaved.getAddress());
+    assertEquals(updatedUser.getEmail(), userSaved.getEmail());
+    assertTrue(userSaved.getRoles().contains("REGISTERED_USER"));
+    assertFalse(userSaved.getRoles().contains("ADMIN"));
+    verify(usersRepository).save(any(User.class));
+
+  }
+
+  @Test
+  public void testVoidCredentialsUpdate() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, passwordEncoder, null, null);
+
+    User user = new User("", "", "", "", "",
+        null, "");
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+
+    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(user, "", 1L));
+    verify(usersRepository, never()).save(any(User.class));
+
+  }
+
+  @Test
+  public void testNullCredentialsUpdate() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, passwordEncoder, null, null);
+
+    User user = new User(null, null, null, null, null,
+        null, "");
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+
+    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(user, null, 1L));
+    verify(usersRepository, never()).save(any(User.class));
+
+  }
+
+  @Test
+  public void testExistingCredentialsUpdate() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, passwordEncoder, null, null);
+
+    User originalUser = new User("originalUser", "test", "originalUserTest", "c/testaddress",
+        "originaltestuser@example.com", null, "");
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(originalUser));
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+        null, "");
+
+    when(usersRepository.existsByUsername("userTest")).thenReturn(true);
+    when(usersRepository.existsByEmail("testuser@example.com")).thenReturn(true);
+
+    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(user, "Updat3_Existing", 1L));
+    verify(usersRepository, never()).save(any(User.class));
+
+  }
+
+  @Test
+  public void testBadFormatCredentialsUpdate() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, passwordEncoder, null, null);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "test@email",
+        null, "");
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+
+    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(user, "pass", 1L));
+    verify(usersRepository, never()).save(any(User.class));
+  }
+
+  @Test
+  public void testUpdateKeepsExistingPasswordWhenEmpty() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, passwordEncoder, null, null);
+    String encodedPassword = passwordEncoder.encode("Existing_Pass1");
+
+    User originalUser = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+        encodedPassword, "REGISTERED_USER");
+    User updatedUser = new User("updated", "test", "userTest", "c/testaddress", "testuser@example.com",
+        null, "REGISTERED_USER");
+
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(originalUser));
+    when(usersRepository.save(any(User.class))).thenReturn(originalUser);
+
+    usersService.updateUser(updatedUser, "", 1L);
+
+    assertEquals(encodedPassword, originalUser.getEncodedPassword());
+    verify(usersRepository).save(any(User.class));
+
+  }
+
+  @Test
+  public void testUpdateValidation() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, passwordEncoder, null, null);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+        null, "");
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+
+    List<String> errors = usersService.validateUser(user, "R3gister_Test_Pass", 1L);
+
+    assertTrue(errors.isEmpty());
+
+  }
+
+  @Test
+  public void testExistingCredentialsUpdateValidation() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, passwordEncoder, null, null);
+
+    User originalUser = new User("originalUser", "test", "originalUserTest", "c/testaddress",
+        "originaltestuser@example.com",
+        null, "");
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(originalUser));
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+        null, "");
+
+    when(usersRepository.existsByUsername("userTest")).thenReturn(true);
+    when(usersRepository.existsByEmail("testuser@example.com")).thenReturn(true);
+
+    List<String> errors = usersService.validateUser(user, "R3gister_Existing", 1L);
+
+    assertTrue(errors.contains("El nombre de usuario ya existe."));
+    assertTrue(errors.contains("El email ya existe."));
+    verify(usersRepository).existsByUsername("userTest");
+    verify(usersRepository).existsByEmail("testuser@example.com");
 
   }
 

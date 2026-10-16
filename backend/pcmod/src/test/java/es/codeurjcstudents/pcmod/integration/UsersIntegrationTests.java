@@ -1,5 +1,6 @@
 package es.codeurjcstudents.pcmod.integration;
 
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -263,7 +264,7 @@ public class UsersIntegrationTests {
     User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
         null, "");
 
-    List<String> errors = usersService.validateUser(user, "R3gister_Test_Pass");
+    List<String> errors = usersService.validateUser(user, "R3gister_Test_Pass", null);
 
     assertTrue(errors.isEmpty());
 
@@ -274,11 +275,12 @@ public class UsersIntegrationTests {
     User user = new User("", "", "", "", "",
         null, "");
 
-    List<String> errors = usersService.validateUser(user, "");
+    List<String> errors = usersService.validateUser(user, "", null);
 
     assertTrue(errors.contains("El nombre es obligatorio."));
     assertTrue(errors.contains("El apellido es obligatorio."));
     assertTrue(errors.contains("El nombre de usuario es obligatorio."));
+    assertTrue(errors.contains("La dirección es obligatoria."));
     assertTrue(errors.contains("El email es obligatorio."));
     assertTrue(errors.contains("La contraseña es obligatoria."));
 
@@ -289,11 +291,12 @@ public class UsersIntegrationTests {
     User user = new User(null, null, null, null, null,
         null, "");
 
-    List<String> errors = usersService.validateUser(user, null);
+    List<String> errors = usersService.validateUser(user, null, null);
 
     assertTrue(errors.contains("El nombre es obligatorio."));
     assertTrue(errors.contains("El apellido es obligatorio."));
     assertTrue(errors.contains("El nombre de usuario es obligatorio."));
+    assertTrue(errors.contains("La dirección es obligatoria."));
     assertTrue(errors.contains("El email es obligatorio."));
     assertTrue(errors.contains("La contraseña es obligatoria."));
 
@@ -304,7 +307,7 @@ public class UsersIntegrationTests {
     User user = new User("user", "test", "userTest1", "c/testaddress", "testuser1@example.com",
         null, "");
 
-    List<String> errors = usersService.validateUser(user, "R3gister_Test_Pass");
+    List<String> errors = usersService.validateUser(user, "R3gister_Test_Pass", null);
 
     assertTrue(errors.contains("El nombre de usuario ya existe."));
     assertTrue(errors.contains("El email ya existe."));
@@ -316,11 +319,24 @@ public class UsersIntegrationTests {
     User user = new User("user", "test", "userTest", "c/testaddress", "test@email",
         null, "");
 
-    List<String> errors = usersService.validateUser(user, "pass");
+    List<String> errors = usersService.validateUser(user, "pass", null);
 
     assertTrue(errors.contains("El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com."));
     assertTrue(errors.contains(
         "La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&-_)."));
+
+  }
+
+  @Test
+  void addImageAsNonRegisteredUser() throws IOException {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+
+    Resource resource = new ClassPathResource("/sample_images/user.png");
+    MockMultipartFile imageFile = new MockMultipartFile("imageFile", "user.png", "image/png",
+        resource.getInputStream());
+
+    assertThrows(AuthenticationCredentialsNotFoundException.class,
+        () -> usersService.addUserImage(user.getId(), imageFile));
 
   }
 
@@ -404,6 +420,93 @@ public class UsersIntegrationTests {
   }
 
   @Test
+  void updateOwnImage() throws IOException, SQLException {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    Resource originalResource = new ClassPathResource("/sample_images/user.png");
+    MockMultipartFile originalImageFile = new MockMultipartFile("imageFile", "user.png", "image/png",
+        originalResource.getInputStream());
+    usersService.addUserImage(user.getId(), originalImageFile);
+
+    Resource newResource = new ClassPathResource("/sample_images/user2.jpg");
+    MockMultipartFile newImageFile = new MockMultipartFile("imageFile", "user2.jpg", "image/jpeg",
+        newResource.getInputStream());
+    Image newImage = usersService.addUserImage(user.getId(), newImageFile);
+
+    assertNotEquals(originalResource.getInputStream().readAllBytes(),
+        newImage.getImageFile().getBinaryStream().readAllBytes());
+
+  }
+
+  @Test
+  void updateOtherUserImageAsNoAdmin() throws IOException {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    User otherUser = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User
+                .withUsername(otherUser.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Resource originalResource = new ClassPathResource("/sample_images/user.png");
+    MockMultipartFile originalImageFile = new MockMultipartFile("imageFile", "user.png", "image/png",
+        originalResource.getInputStream());
+    usersService.addUserImage(otherUser.getId(), originalImageFile);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User
+                .withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    Resource newResource = new ClassPathResource("/sample_images/user2.jpg");
+    MockMultipartFile newImageFile = new MockMultipartFile("imageFile", "user2.jpg", "image/jpg",
+        newResource.getInputStream());
+
+    assertThrows(AuthorizationDeniedException.class, () -> usersService.addUserImage(otherUser.getId(), newImageFile));
+
+  }
+
+  @Test
+  void updateImagesAsAdmin() throws IOException, SQLException {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Resource originalResource = new ClassPathResource("/sample_images/user.png");
+    MockMultipartFile originalImageFile = new MockMultipartFile("imageFile", "user.png", "image/png",
+        originalResource.getInputStream());
+
+    Image originalUserImage = usersService.addUserImage(user.getId(), originalImageFile);
+    Image originalAdminImage = usersService.addUserImage(admin.getId(), originalImageFile);
+
+    Resource newResource = new ClassPathResource("/sample_images/user2.jpg");
+    MockMultipartFile newImageFile = new MockMultipartFile("imageFile", "user2.jpg", "image/jpeg",
+        newResource.getInputStream());
+
+    Image newUserImage = usersService.addUserImage(user.getId(), newImageFile);
+    Image newAdminImage = usersService.addUserImage(admin.getId(), newImageFile);
+
+    assertNotEquals(originalUserImage.getImageFile().getBinaryStream().readAllBytes(),
+        newUserImage.getImageFile().getBinaryStream().readAllBytes());
+    assertNotEquals(originalAdminImage.getImageFile().getBinaryStream().readAllBytes(),
+        newAdminImage.getImageFile().getBinaryStream().readAllBytes());
+
+  }
+
+  @Test
   void deleteUserAsNotLoggedIn() {
 
     assertThrows(AuthenticationCredentialsNotFoundException.class, () -> usersService.deleteUser(1L));
@@ -454,6 +557,202 @@ public class UsersIntegrationTests {
     assertDoesNotThrow(() -> usersService.deleteUser(user.getId()));
     assertDoesNotThrow(() -> usersService.deleteUser(admin.getId()));
     assertEquals(0, usersRepository.count());
+
+  }
+
+  @Test
+  void updateAsNonRegisteredUser() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+
+    User updatedUser = new User("updatedName", "updatedSurname", "updatedUser", "c/testaddressUpdate",
+        "testuserUpdated@example.com",
+        null, "REGISTERED_USER");
+
+    assertThrows(AuthenticationCredentialsNotFoundException.class,
+        () -> usersService.updateUser(updatedUser, "Updat3_Test", user.getId()));
+
+  }
+
+  @Test
+  void updateOwnUserAccount() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    User updatedUser = new User("updatedName", "updatedSurname", "updatedUser", "c/testaddressUpdate",
+        "testuserUpdated@example.com",
+        null, "REGISTERED_USER");
+    user = usersService.updateUser(updatedUser, "Updat3_Test_Pass", user.getId());
+
+    assertEquals("updatedName", user.getName());
+    assertEquals("updatedSurname", user.getSurname());
+    assertEquals("updatedUser", user.getUsername());
+    assertEquals("c/testaddressUpdate", user.getAddress());
+    assertEquals("testuserUpdated@example.com", user.getEmail());
+    assertTrue(user.getRoles().contains("REGISTERED_USER"));
+    assertFalse(user.getRoles().contains("ADMIN"));
+
+  }
+
+  @Test
+  void updateOtherUserAccountAsNoAdmin() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    User updatedUser = new User("updatedName", "updatedSurname", "updatedUser", "c/testaddressUpdate",
+        "testuserUpdated@example.com",
+        null, "REGISTERED_USER");
+
+    assertThrows(AuthorizationDeniedException.class,
+        () -> usersService.updateUser(updatedUser, "Updat3_Test", admin.getId()));
+
+  }
+
+  @Test
+  void updateUsersAccountAsAdmin() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    User updatedUser = new User("updatedUserName", "updatedUserSurname", "updatedUserUsername", "c/testaddressUpdate",
+        "testUserUpdated@example.com",
+        null, "REGISTERED_USER");
+    user = usersService.updateUser(updatedUser, "Updat3_Test_Pass", user.getId());
+
+    assertEquals("updatedUserName", user.getName());
+    assertEquals("updatedUserSurname", user.getSurname());
+    assertEquals("updatedUserUsername", user.getUsername());
+    assertEquals("c/testaddressUpdate", user.getAddress());
+    assertEquals("testUserUpdated@example.com", user.getEmail());
+    assertTrue(user.getRoles().contains("REGISTERED_USER"));
+    assertFalse(user.getRoles().contains("ADMIN"));
+
+    User updatedAdmin = new User("updatedAdminName", "updatedAdminSurname", "updatedAdminUsername",
+        "c/testaddressUpdate",
+        "testAdminUpdated@example.com",
+        null, "REGISTERED_USER", "ADMIN");
+    admin = usersService.updateUser(updatedAdmin, "Updat3_Test_Pass", admin.getId());
+
+    assertEquals("updatedAdminName", admin.getName());
+    assertEquals("updatedAdminSurname", admin.getSurname());
+    assertEquals("updatedAdminUsername", admin.getUsername());
+    assertEquals("c/testaddressUpdate", admin.getAddress());
+    assertEquals("testAdminUpdated@example.com", admin.getEmail());
+    assertTrue(admin.getRoles().contains("REGISTERED_USER"));
+    assertTrue(admin.getRoles().contains("ADMIN"));
+
+  }
+
+  @Test
+  void updateVoidCredentials() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    User updatedUser = new User("", "", "", "", "", "", "");
+
+    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(updatedUser, "", user.getId()));
+
+  }
+
+  @Test
+  void updateNullCredentials() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    User updatedUser = new User(null, null, null, null, null, null, "");
+
+    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(updatedUser, null, user.getId()));
+
+  }
+
+  @Test
+  void updateExistingCredentials() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    User updatedUser = new User("user", "test", "adminTest1", "c/testAddress", "testadmin1@example.com", null,
+        "REGISTERED_USER");
+
+    assertThrows(IllegalArgumentException.class,
+        () -> usersService.updateUser(updatedUser, "Updat3_Test_Pass", user.getId()));
+
+  }
+
+  @Test
+  void updateBadFormatCredentials() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    User updatedUser = new User("user", "test", "userTest", "c/testAddress", "test@example", null,
+        "REGISTERED_USER");
+
+    assertThrows(IllegalArgumentException.class,
+        () -> usersService.updateUser(updatedUser, "pass", user.getId()));
+
+  }
+
+  @Test
+  void validateUpdateUser() {
+    User originalUser = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    User modifiedUser = new User("updatedName", "updatedSurname", "updatedUsername", "updatedAddress",
+        "updatedEmail@example.com",
+        null, "REGISTERED_USER");
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(originalUser.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    List<String> errors = usersService.validateUser(modifiedUser, "Updat3_Test_Pass", originalUser.getId());
+
+    assertTrue(errors.isEmpty());
+
+  }
+
+  @Test
+  void validateUpdateExistingCredentials() {
+    User originalUser = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    User modifiedUser = new User("user", "test", "userTest1", "c/testaddress", "testuser1@example.com", null, "");
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(originalUser.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    List<String> errors = usersService.validateUser(modifiedUser, "Updat3_Test_Pass", originalUser.getId());
+
+    assertTrue(errors.contains("El nombre de usuario ya existe."));
+    assertTrue(errors.contains("El email ya existe."));
 
   }
 
