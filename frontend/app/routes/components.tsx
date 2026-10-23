@@ -68,7 +68,7 @@ export default function Components({ loaderData }: Route.ComponentProps) {
               ))}
             </>
           ) : (
-            <Col className="col">
+            <Col className="col empty-components-state">
               <XOctagon />
               <p id="empty-message">
                 No se han encontrado componentes de PC.
@@ -77,6 +77,11 @@ export default function Components({ loaderData }: Route.ComponentProps) {
           )}
         </div>
         <div className="load-more-container">
+          {loadMoreError && (
+            <p className="text-danger" role="alert">
+              Hubo un problema al cargar más componentes. Por favor, pruebe de nuevo.
+            </p>
+          )}
           {components.length > 0 && hasNext && (
             <Button onClick={handleLoadMore} disabled={isLoadingMore} type="button" name="loadMore" className="pcmod-button">
               <Plus />
@@ -84,11 +89,6 @@ export default function Components({ loaderData }: Route.ComponentProps) {
                 " Cargar más componentes"
               )}
             </Button>
-          )}
-          {loadMoreError && (
-            <p className="text-danger" role="alert">
-              Hubo un problema al cargar más componentes. Por favor, pruebe de nuevo.
-            </p>
           )}
         </div>
       </div>

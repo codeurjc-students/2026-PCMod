@@ -82,9 +82,11 @@ public class ComponentsSystemTests {
   @Test
   public void loadEmptyComponentsTest() {
 
-    driver.get("http://localhost:5173/components/?page=0&size=0");
+    driver.get("http://localhost:5173/components/?page=2");
 
-    String emptyMessage = driver.findElement(By.id("empty-message")).getText();
+    WebElement emptyMessageElement = wait.until(
+        ExpectedConditions.presenceOfElementLocated(By.id("empty-message")));
+    String emptyMessage = emptyMessageElement.getText();
 
     assertThat(emptyMessage).isEqualTo("No se han encontrado componentes de PC.");
     assertThat(driver.findElements(By.cssSelector("[id^='component-']"))).isEmpty();

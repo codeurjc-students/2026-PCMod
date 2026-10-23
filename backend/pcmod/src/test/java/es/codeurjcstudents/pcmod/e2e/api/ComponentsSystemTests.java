@@ -60,7 +60,7 @@ public class ComponentsSystemTests {
 
     byte[] actualImage = given().header("Content-Type", "application/json")
         .when().get("/components/1/image")
-        .then().statusCode(200).contentType("image/webp")
+        .then().statusCode(200).contentType("image/jpeg")
         .extract().asByteArray();
 
     assertArrayEquals(expectedImage, actualImage);

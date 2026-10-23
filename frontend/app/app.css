@@ -361,6 +361,17 @@ body {
   margin-bottom: 2.5rem;
 }
 
+.empty-components-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.empty-components-state p {
+  margin-bottom: 0;
+}
+
 .component-card-col {
   flex: 1 1 calc(33.333% - 1.5rem);
   min-width: 260px;
@@ -388,7 +399,14 @@ body {
 
 .load-more-container {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+}
+
+.load-more-container p {
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
 /* Profile */

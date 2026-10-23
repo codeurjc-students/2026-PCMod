@@ -59,7 +59,7 @@ export default function Index({ loaderData }: Route.ComponentProps) {
                 </Button>
               </>
             ) : (
-              <Col className="col">
+              <Col className="col empty-components-state">
                 <XOctagon />
                 <p>
                   No se han encontrado componentes de PC.
