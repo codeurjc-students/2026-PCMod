@@ -45,7 +45,7 @@ export default function Index({ loaderData }: Route.ComponentProps) {
 
           <h2>Descubra nuestras últimas novedades:</h2>
 
-          <div className="row-recentComponents">
+          <div className="row-components">
             {recentComponents.length > 0 ? (
               <>
                 {recentComponents.map((component) => (

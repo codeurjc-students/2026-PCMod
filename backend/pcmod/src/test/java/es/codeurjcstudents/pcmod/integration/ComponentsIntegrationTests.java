@@ -1,14 +1,19 @@
 package es.codeurjcstudents.pcmod.integration;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -22,6 +27,7 @@ import es.codeurjcstudents.pcmod.enums.ComponentType;
 import es.codeurjcstudents.pcmod.model.Component;
 import es.codeurjcstudents.pcmod.repository.ComponentsRepository;
 import es.codeurjcstudents.pcmod.service.ComponentsService;
+import es.codeurjcstudents.pcmod.service.ImageService;
 
 @Tag("server-integration")
 @SpringBootTest
@@ -49,6 +55,9 @@ public class ComponentsIntegrationTests {
 
   @Autowired
   private ComponentsRepository componentsRepository;
+
+  @Autowired
+  private ImageService imageService;
 
   @BeforeEach
   void setUp() {
@@ -78,4 +87,23 @@ public class ComponentsIntegrationTests {
     assertEquals("AMD Ryzen 7 7800X3D", componentList.getContent().get(0).getName());
     assertEquals("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC", componentList.getContent().get(1).getName());
   }
+
+  @Test
+  public void testGetComponentImage() throws IOException, SQLException {
+    Component component = componentsRepository.findAll().get(0);
+    Resource expectedImage = new ClassPathResource("/sample_images/ryzen-7.webp");
+    component.setImage(imageService.createImage(expectedImage.getInputStream()));
+    componentsRepository.save(component);
+    Resource actualImage = componentsService.getImageFile(component.getId());
+
+    assertArrayEquals(expectedImage.getInputStream().readAllBytes(), actualImage.getInputStream().readAllBytes());
+  }
+
+  @Test
+  public void testGetNullComponentImage() throws SQLException {
+    Resource actualImage = componentsService.getImageFile(1L);
+
+    assertEquals(null, actualImage);
+  }
+
 }

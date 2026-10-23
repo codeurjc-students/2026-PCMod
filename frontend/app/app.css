@@ -322,11 +322,13 @@ body {
   border-radius: 4px;
 }
 
-.main h1,
-.home-page h1 {
+.main h1 {
   font-size: 1.8rem;
   font-weight: 600;
   margin-bottom: 1rem;
+}
+
+#welcome {
   text-align: center;
 }
 
@@ -351,7 +353,7 @@ body {
   color: #111827;
 }
 
-.row-recentComponents {
+.row-components {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
@@ -382,6 +384,11 @@ body {
   background-color: var(--color-brand-dark);
   transform: translateY(-1px);
   font-family: var(--font-sans);
+}
+
+.load-more-container {
+  display: flex;
+  justify-content: center;
 }
 
 /* Profile */
@@ -662,7 +669,7 @@ body {
   background-color: #ffffff;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
+  border: 2px solid #e5e7eb;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   height: 100%;
 }
@@ -673,13 +680,19 @@ body {
   color: inherit;
 }
 
-.component-card-link .bg-secondary {
+.component-card-link .component-card-image {
   height: 200px !important;
-  background-color: #e5e7eb !important;
+  background-color: #ffffff !important;
   color: #9ca3af !important;
   position: relative;
   border-bottom: 1px solid #e5e7eb;
   align-content: center;
+}
+
+.component-card-link .bg-secondary img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .component-card-link .bg-secondary svg {

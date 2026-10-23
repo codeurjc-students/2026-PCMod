@@ -28,6 +28,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import es.codeurjcstudents.pcmod.model.Image;
 import es.codeurjcstudents.pcmod.repository.ImageRepository;
 import es.codeurjcstudents.pcmod.service.ImageService;
+import es.codeurjcstudents.pcmod.repository.ComponentsRepository;
 
 @Tag("server-integration")
 @SpringBootTest
@@ -56,8 +57,12 @@ public class ImagesIntegrationTests {
   @Autowired
   private ImageRepository imageRepository;
 
+  @Autowired
+  private ComponentsRepository componentRepository;
+
   @BeforeEach
   void setUp() {
+    componentRepository.deleteAll();
     imageRepository.deleteAll();
     imageRepository.save(new Image());
     imageRepository.save(new Image());
@@ -109,7 +114,7 @@ public class ImagesIntegrationTests {
   }
 
   @Test
-  void deleteImage() throws IOException {
+  void deleteImage() {
 
     Long imageToDelete = imageRepository.findAll().getFirst().getId();
     imageService.deleteImage(imageToDelete);

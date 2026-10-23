@@ -11,6 +11,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -20,6 +21,9 @@ public class Component {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id = null;
+
+  @OneToOne
+  private Image image;
 
   @NotBlank(message = "El nombre del componente es obligatorio")
   private String name;
@@ -60,6 +64,14 @@ public class Component {
 
   public void setId(Long id) {
     this.id = id;
+  }
+
+  public Image getImage() {
+    return image;
+  }
+
+  public void setImage(Image image) {
+    this.image = image;
   }
 
   public String getName() {

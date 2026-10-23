@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import type { Route } from "./+types/components";
 import { getComponents } from "~/services/components-service";
+import Col from "react-bootstrap/esm/Col";
+import ComponentCard from "~/components/componentCard";
+import { Button } from "react-bootstrap";
+import { Plus, XOctagon } from "react-bootstrap-icons";
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
 
@@ -54,25 +58,32 @@ export default function Components({ loaderData }: Route.ComponentProps) {
     <main className="main">
       <div className="container">
         <h1>Componentes:</h1>
-        <ul>
-          {components.length > 0 && (
-            components.map((component) => (
-              <li key={component.id}>
-                <h3 id={`name-${component.id}`}>{component.name}</h3>
-                <h4>Marca: {component.brand} | Tipo: {component.type} | Precio: {component.price} € | Stock: {component.stock} ud.</h4>
-                <p className="component-description">{component.description}</p>
-                <hr />
-              </li>
-            ))
+        <div id="list-components" className="row-components">
+          {components.length > 0 ? (
+            <>
+              {components.map((component) => (
+                <Col lg={4} md={6} key={component.id} className="component-card-col">
+                  <ComponentCard component={component} />
+                </Col>
+              ))}
+            </>
+          ) : (
+            <Col className="col">
+              <XOctagon />
+              <p id="empty-message">
+                No se han encontrado componentes de PC.
+              </p>
+            </Col>
           )}
-        </ul>
-        <div>
+        </div>
+        <div className="load-more-container">
           {components.length > 0 && hasNext && (
-            <button onClick={handleLoadMore} disabled={isLoadingMore} type="button" name="loadMore">
+            <Button onClick={handleLoadMore} disabled={isLoadingMore} type="button" name="loadMore" className="pcmod-button">
+              <Plus />
               {!isLoadingMore && (
-                "Cargar más componentes"
+                " Cargar más componentes"
               )}
-            </button>
+            </Button>
           )}
           {loadMoreError && (
             <p className="text-danger" role="alert">
