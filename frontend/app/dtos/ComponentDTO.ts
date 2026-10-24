@@ -1,3 +1,5 @@
+import type ImageDTO from "./ImageDTO";
+
 export default interface ComponentDTO {
   id: number;
   name: string;
@@ -6,4 +8,5 @@ export default interface ComponentDTO {
   brand: string;
   price: number;
   stock: number;
+  image: ImageDTO
 }

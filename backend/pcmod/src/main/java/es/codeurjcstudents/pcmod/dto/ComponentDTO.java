@@ -9,5 +9,6 @@ public record ComponentDTO(
     String type,
     String brand,
     BigDecimal price,
-    Integer stock) {
+    Integer stock,
+    ImageDTO image) {
 }

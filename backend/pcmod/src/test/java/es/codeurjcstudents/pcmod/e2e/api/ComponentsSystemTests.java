@@ -10,6 +10,10 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 @Tag("server-system")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -45,6 +49,21 @@ public class ComponentsSystemTests {
         .body("content[0].brand", equalTo("AMD"))
         .body("content[0].price", equalTo(350.0f))
         .body("content[0].stock", equalTo(5));
+  }
+
+  @Test
+  public void getComponentImage() throws IOException {
+    byte[] expectedImage;
+    try (InputStream imageResource = getClass().getResourceAsStream("/sample_images/ryzen-7.webp")) {
+      expectedImage = imageResource.readAllBytes();
+    }
+
+    byte[] actualImage = given().header("Content-Type", "application/json")
+        .when().get("/components/1/image")
+        .then().statusCode(200).contentType("image/jpeg")
+        .extract().asByteArray();
+
+    assertArrayEquals(expectedImage, actualImage);
   }
 
 }

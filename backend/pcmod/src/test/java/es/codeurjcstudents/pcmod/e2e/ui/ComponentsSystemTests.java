@@ -59,22 +59,37 @@ public class ComponentsSystemTests {
   }
 
   @Test
-  public void loadComponentsTest() throws InterruptedException {
+  public void loadComponentsTest() {
 
     driver.get("http://localhost:5173/components");
 
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name-1")));
-    String componentName = driver.findElement(By.id("name-1")).getText();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-1")));
+    String componentName = driver.findElement(By.id("component-1")).getText();
     assertThat(componentName).isEqualTo("AMD Ryzen 7 7800X3D");
 
-    assertThat(driver.findElements(By.id("name-11"))).isEmpty();
+    assertThat(driver.findElements(By.id("component-11"))).isEmpty();
 
     scrollToAndClick(By.name("loadMore"));
 
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name-11")));
-    String loadedComponentName = driver.findElement(By.id("name-11")).getText();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-11")));
+    String loadedComponentName = driver.findElement(By.id("component-11")).getText();
     assertThat(loadedComponentName).isEqualTo("Kingston FURY Beast");
 
+    assertThat(driver.findElements(By.name("loadMore"))).isEmpty();
+
+  }
+
+  @Test
+  public void loadEmptyComponentsTest() {
+
+    driver.get("http://localhost:5173/components/?page=2");
+
+    WebElement emptyMessageElement = wait.until(
+        ExpectedConditions.presenceOfElementLocated(By.id("empty-message")));
+    String emptyMessage = emptyMessageElement.getText();
+
+    assertThat(emptyMessage).isEqualTo("No se han encontrado componentes de PC.");
+    assertThat(driver.findElements(By.cssSelector("[id^='component-']"))).isEmpty();
     assertThat(driver.findElements(By.name("loadMore"))).isEmpty();
 
   }
