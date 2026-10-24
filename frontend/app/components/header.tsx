@@ -24,7 +24,7 @@ export default function Header() {
           <Image src="/Full_Logo.png" width="250" height="80" alt="Logo" />
         </Link>
 
-        <Link to="/components">Componentes</Link>
+        <Link id="components-link" to="/components">Componentes</Link>
 
         <div className="ms-auto">
           {user ? (

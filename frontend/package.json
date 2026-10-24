@@ -19,6 +19,7 @@
     "bootstrap": "^5.3.8",
     "isbot": "^5.1.36",
     "react": "^19.2.7",
+    "react-aria": "^3.53.1",
     "react-bootstrap": "^2.10.10",
     "react-bootstrap-icons": "^1.11.6",
     "react-dom": "^19.2.7",

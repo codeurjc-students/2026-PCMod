@@ -94,6 +94,16 @@ public class HeaderSystemTests {
   }
 
   @Test
+  public void componentsLinkNavigatesToComponentsPageTest() {
+
+    driver.get("http://localhost:5173/");
+    scrollToAndClick(By.id("components-link"));
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/components"));
+    assertThat(driver.findElement(By.id("components-title")).getText()).isEqualTo("Componentes:");
+
+  }
+
+  @Test
   public void userDropdownOptionsTest() {
 
     login("user@example.com", "userpass");

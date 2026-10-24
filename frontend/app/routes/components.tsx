@@ -57,7 +57,7 @@ export default function Components({ loaderData }: Route.ComponentProps) {
   return (
     <main className="main">
       <div className="container">
-        <h1>Componentes:</h1>
+        <h1 id="components-title">Componentes:</h1>
         <div id="list-components" className="row-components">
           {components.length > 0 ? (
             <>

@@ -10,10 +10,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -46,18 +44,8 @@ public class HomePageSystemTests {
     }
   }
 
-  private void scrollToAndClick(By locator) {
-    WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
-
-    new Actions(driver)
-        .scrollToElement(element)
-        .perform();
-
-    wait.until(ExpectedConditions.elementToBeClickable(element)).click();
-  }
-
   @Test
-  public void loadHomePage() throws InterruptedException {
+  public void loadHomePage() {
 
     driver.get("http://localhost:5173/");
 
@@ -85,15 +73,5 @@ public class HomePageSystemTests {
     assertThat(driver.findElements(By.name("componentsButton"))).isNotEmpty();
 
   }
-
-  @Test
-  public void navigateToComponentsPage() throws InterruptedException {
-
-    driver.get("http://localhost:5173/");
-
-    scrollToAndClick(By.name("componentsButton"));
-
-    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/components"));
-
-  }
+  
 }
