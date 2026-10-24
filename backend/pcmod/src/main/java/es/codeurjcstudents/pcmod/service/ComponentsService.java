@@ -9,6 +9,8 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.stereotype.Service;
 
 import es.codeurjcstudents.pcmod.dto.ComponentDTO;
@@ -22,11 +24,11 @@ public class ComponentsService {
 
   private final ComponentsRepository componentRepository;
 
-  @Autowired
-  private ComponentMapper componentMapper;
+  private final ComponentMapper componentMapper;
 
-  public ComponentsService(ComponentsRepository componentRepository) {
+  public ComponentsService(ComponentsRepository componentRepository, ComponentMapper componentMapper) {
     this.componentRepository = componentRepository;
+    this.componentMapper = componentMapper;
   }
 
   public Page<Component> findAll(Pageable pageable) {
@@ -39,6 +41,11 @@ public class ComponentsService {
 
   public List<Component> findTop3MoreRecent() {
     return componentRepository.findTop3ByOrderByIdDesc();
+  }
+
+  public Component getComponent(long id) {
+    return componentRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Componente no encontrado."));
   }
 
   public Resource getImageFile(long id) throws SQLException {
