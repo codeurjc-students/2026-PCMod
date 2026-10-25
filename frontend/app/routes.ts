@@ -7,5 +7,6 @@ export default [
     route("/register", "routes/register.tsx"),
     route("/me", "routes/profile.tsx"),
     route("/components", "routes/components.tsx"),
+    route("/components/:id", "routes/detail-component.tsx"),
   ]),
 ] satisfies RouteConfig;

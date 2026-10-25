@@ -56,3 +56,18 @@ export async function getRecentComponents(): Promise<ComponentDTO[]> {
 
   return [];
 }
+
+export async function getComponent(id: number): Promise<ComponentDTO> {
+
+  const baseUrl = getBaseUrl();
+
+  const url = new URL(`${API_URL}/${id}`, baseUrl);
+
+  const res = await fetch(url.toString());
+
+  if (!res.ok) {
+    throw new Error("Error fetching component");
+  }
+
+  return await res.json();
+}

@@ -116,4 +116,120 @@ public class ComponentsSystemTests {
     assertThat(errorMessage).isEqualTo("Hubo un problema al cargar más componentes. Por favor, pruebe de nuevo.");
 
   }
+
+  @Test
+  public void componentDetailRenderTest() {
+
+    driver.get("http://localhost:5173/components/1");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-stock")));
+    String componentStockMessage = driver.findElement(By.id("component-stock")).getText();
+    assertThat(componentStockMessage).isEqualTo("¡Últimas unidades!");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-name")));
+    String loadedComponentName = driver.findElement(By.id("component-name")).getText();
+    assertThat(loadedComponentName).isEqualTo("AMD Ryzen 7 7800X3D");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-description")));
+    String loadedComponentDescription = driver.findElement(By.id("component-description")).getText();
+    assertThat(loadedComponentDescription).contains("8 núcleos y 16 hilos ideales para gaming");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-brand-type")));
+    String loadedComponentBrandType = driver.findElement(By.id("component-brand-type")).getText();
+    assertThat(loadedComponentBrandType).isEqualTo("AMD | CPU");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-price")));
+    String loadedComponentPrice = driver.findElement(By.id("component-price")).getText();
+    assertThat(loadedComponentPrice).isEqualTo("350.00 €");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-reviews-title")));
+    String loadedComponentReviewsTitle = driver.findElement(By.id("component-reviews-title")).getText();
+    assertThat(loadedComponentReviewsTitle).isEqualTo("Reseñas del producto:");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-average-rating")));
+    String loadedComponentAverageRating = driver.findElement(By.id("component-average-rating")).getText();
+    assertThat(loadedComponentAverageRating).isEqualTo("Puntuación media: N/A");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-no-reviews")));
+    String loadedComponentNoReviews = driver.findElement(By.id("component-no-reviews")).getText();
+    assertThat(loadedComponentNoReviews).isEqualTo("No hay reseñas de este producto todavía.");
+
+  }
+
+  @Test
+  public void componentDetailRenderNoLastUnitsTest() {
+
+    driver.get("http://localhost:5173/components/3");
+        
+    assertThat(driver.findElements(By.id("component-stock"))).isEmpty();
+
+  }
+
+  @Test
+  public void componentDetailRenderLastUnitsTest() {
+
+    driver.get("http://localhost:5173/components/1");
+        
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-stock")));
+    String componentStockMessage = driver.findElement(By.id("component-stock")).getText();
+    assertThat(componentStockMessage).isEqualTo("¡Últimas unidades!");
+
+  }
+
+  @Test
+  public void componentDetailOptionsAsNonLoggedInTest() {
+
+    driver.get("http://localhost:5173/components/1");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("add-to-cart-button")));
+
+    assertThat(driver.findElements(By.id("add-to-cart-button"))).isNotEmpty();
+    assertThat(driver.findElements(By.id("edit-component-button"))).isEmpty();
+    assertThat(driver.findElements(By.id("delete-component-button"))).isEmpty();
+
+  }
+
+  @Test
+  public void componentDetailOptionsAsLoggedInNoAdminTest() {
+
+    driver.get("http://localhost:5173/login");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("user@example.com");
+    driver.findElement(By.id("password")).sendKeys("userpass");
+
+    scrollToAndClick(By.name("login-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/components/1");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("add-to-cart-button")));
+
+    assertThat(driver.findElements(By.id("add-to-cart-button"))).isNotEmpty();
+    assertThat(driver.findElements(By.id("edit-component-button"))).isEmpty();
+    assertThat(driver.findElements(By.id("delete-component-button"))).isEmpty();
+
+  }
+
+  @Test
+  public void componentDetailOptionsAsAdminTest() {
+
+    driver.get("http://localhost:5173/login");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("admin@example.com");
+    driver.findElement(By.id("password")).sendKeys("adminpass");
+
+    scrollToAndClick(By.name("login-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/components/1");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("add-to-cart-button")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("edit-component-button")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("delete-component-button")));
+
+    assertThat(driver.findElements(By.id("add-to-cart-button"))).isNotEmpty();
+    assertThat(driver.findElements(By.id("edit-component-button"))).isNotEmpty();
+    assertThat(driver.findElements(By.id("delete-component-button"))).isNotEmpty();
+
+  }
 }

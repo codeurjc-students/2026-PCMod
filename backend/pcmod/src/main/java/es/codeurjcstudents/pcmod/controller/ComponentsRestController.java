@@ -17,6 +17,7 @@ import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 
 import es.codeurjcstudents.pcmod.dto.ComponentDTO;
+import es.codeurjcstudents.pcmod.model.Component;
 import es.codeurjcstudents.pcmod.service.ComponentsService;
 
 @RestController
@@ -34,6 +35,14 @@ public class ComponentsRestController {
   @GetMapping("/recent")
   public List<ComponentDTO> findTop3MoreRecent() {
     return componentService.findTop3MoreRecent().stream().map(componentService::toDTO).toList();
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<ComponentDTO> getComponent (@PathVariable long id) {
+
+    Component component = componentService.getComponent(id);
+    
+    return ResponseEntity.ok(componentService.toDTO(component));
   }
 
   @GetMapping("/{id}/image")

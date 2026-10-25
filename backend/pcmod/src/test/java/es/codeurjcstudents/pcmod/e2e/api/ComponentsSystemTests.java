@@ -52,6 +52,28 @@ public class ComponentsSystemTests {
   }
 
   @Test
+  public void getComponent() {
+    given().header("Content-Type", "application/json")
+        .when().get("/components/1")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("id", notNullValue())
+        .body("name", equalTo("AMD Ryzen 7 7800X3D"))
+        .body("type", equalTo("CPU"))
+        .body("brand", equalTo("AMD"))
+        .body("price", equalTo(350.0f))
+        .body("stock", equalTo(5));
+  }
+
+  @Test
+  public void getComponentNotFound() {
+    given().header("Content-Type", "application/json")
+        .when().get("/components/12")
+        .then().statusCode(404).contentType(ContentType.JSON)
+        .body("error", equalTo("Not Found"))
+        .body("message", equalTo("Componente no encontrado."));
+  }
+
+  @Test
   public void getComponentImage() throws IOException {
     byte[] expectedImage;
     try (InputStream imageResource = getClass().getResourceAsStream("/sample_images/ryzen-7.webp")) {

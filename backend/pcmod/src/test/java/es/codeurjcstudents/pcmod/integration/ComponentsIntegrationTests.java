@@ -1,7 +1,9 @@
 package es.codeurjcstudents.pcmod.integration;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -18,7 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-
+import org.springframework.web.server.ResponseStatusException;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -86,6 +88,27 @@ public class ComponentsIntegrationTests {
     assertEquals(2, componentList.getNumberOfElements());
     assertEquals("AMD Ryzen 7 7800X3D", componentList.getContent().get(0).getName());
     assertEquals("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC", componentList.getContent().get(1).getName());
+  }
+
+  @Test
+  public void testGetComponent() {
+    Component component = componentsRepository.save(new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14));
+
+    Component loadedComponent = componentsService.getComponent(component.getId());
+
+    assertDoesNotThrow(() -> componentsService.getComponent(component.getId()));
+    assertEquals(component.getId(), loadedComponent.getId());
+    assertEquals(component.getName(), loadedComponent.getName());
+    assertEquals(component.getDescription(), loadedComponent.getDescription());
+    assertEquals(component.getType(), loadedComponent.getType());
+    assertEquals(component.getBrand(), loadedComponent.getBrand());
+    assertEquals(component.getPrice(), loadedComponent.getPrice());
+    assertEquals(component.getStock(), loadedComponent.getStock());
+  }
+
+  @Test
+  public void testGetComponentNotFound() {
+    assertThrows(ResponseStatusException.class, () -> componentsService.getComponent(99L));
   }
 
   @Test

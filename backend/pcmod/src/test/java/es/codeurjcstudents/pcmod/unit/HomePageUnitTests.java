@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
+import es.codeurjcstudents.pcmod.dto.ComponentMapper;
 import es.codeurjcstudents.pcmod.enums.ComponentType;
 import es.codeurjcstudents.pcmod.model.Component;
 import es.codeurjcstudents.pcmod.repository.ComponentsRepository;
@@ -23,7 +24,8 @@ public class HomePageUnitTests {
   public void testRecentComponentsLoad() {
 
     ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
-    ComponentsService componentsService = new ComponentsService(componentsRepository);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper);
 
     Component component1 = new Component("AMD Ryzen 7 7800X3D",
         "8 núcleos y 16 hilos ideales para gaming\r\n" + //
