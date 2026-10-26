@@ -4,6 +4,7 @@ import es.codeurjcstudents.pcmod.enums.ComponentType;
 
 import java.math.BigDecimal;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,7 +23,7 @@ public class Component {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id = null;
 
-  @OneToOne
+  @OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
   private Image image;
 
   @NotBlank(message = "El nombre del componente es obligatorio")

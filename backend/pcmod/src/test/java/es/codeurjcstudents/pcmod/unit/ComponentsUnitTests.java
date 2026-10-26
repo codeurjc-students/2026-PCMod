@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -109,6 +110,38 @@ public class ComponentsUnitTests {
 
     assertEquals(null, actualImage);
     verify(componentsRepository).findImageById(1L);
+  }
+
+  @Test
+  public void testDeleteComponent() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper);
+
+    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
+
+    componentsService.delete(1L);
+
+    verify(componentsRepository).deleteById(1L);
+
+  }
+
+  @Test
+  public void testDeleteNonExistentComponent() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.empty());
+
+    componentsService.delete(1L);
+
+    verify(componentsRepository,  never()).deleteById(1L);
+
   }
 
 }

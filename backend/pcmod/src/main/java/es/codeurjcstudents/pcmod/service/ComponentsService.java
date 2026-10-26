@@ -4,12 +4,12 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +56,19 @@ public class ComponentsService {
       return new InputStreamResource(imageOptional.get().getImageFile().getBinaryStream());
     }
     return null;
+
+  }
+
+  @PreAuthorize("hasRole('ADMIN')")
+  public void delete(long id) {
+
+    Optional<Component> deletedComponent = componentRepository.findById(id);
+
+    if (deletedComponent.isPresent()) {
+
+      componentRepository.deleteById(id);
+
+    }
 
   }
 }

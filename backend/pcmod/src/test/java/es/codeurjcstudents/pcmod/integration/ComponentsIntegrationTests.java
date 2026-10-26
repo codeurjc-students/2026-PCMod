@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -18,6 +19,13 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,7 +35,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import es.codeurjcstudents.pcmod.enums.ComponentType;
 import es.codeurjcstudents.pcmod.model.Component;
+import es.codeurjcstudents.pcmod.model.User;
 import es.codeurjcstudents.pcmod.repository.ComponentsRepository;
+import es.codeurjcstudents.pcmod.repository.UsersRepository;
 import es.codeurjcstudents.pcmod.service.ComponentsService;
 import es.codeurjcstudents.pcmod.service.ImageService;
 
@@ -61,6 +71,11 @@ public class ComponentsIntegrationTests {
   @Autowired
   private ImageService imageService;
 
+  @Autowired
+  private UsersRepository usersRepository;
+
+  private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
   @BeforeEach
   void setUp() {
     componentsRepository.deleteAll();
@@ -77,6 +92,14 @@ public class ComponentsIntegrationTests {
             "DisplayPort 2.1 y HDMI 2.1b hasta 8K\r\n" + //
             "Tensor Cores 5ª gen y Reflex 2 para IA avanzada",
         ComponentType.GPU, "Gigabyte", BigDecimal.valueOf(359.85), 2));
+
+    SecurityContextHolder.clearContext();
+    usersRepository.deleteAll();
+    usersRepository.save(new User("user1", "test", "userTest1", "c/testaddress", "testuser1@example.com",
+        passwordEncoder.encode("pass"), "REGISTERED_USER"));
+    usersRepository.save(new User("admin", "test", "adminTest1", "c/testaddress", "testadmin1@example.com",
+        passwordEncoder.encode("adminpass"), "REGISTERED_USER", "ADMIN"));
+  
   }
 
   @Test
@@ -127,6 +150,45 @@ public class ComponentsIntegrationTests {
     Resource actualImage = componentsService.getImageFile(1L);
 
     assertEquals(null, actualImage);
+  }
+
+  @Test
+  void deleteComponentAsNotLoggedIn() {
+
+    assertThrows(AuthenticationCredentialsNotFoundException.class, () -> componentsService.delete(1L));
+
+  }
+
+  @Test
+  void deleteComponentAsLoggedInNoAdmin() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    Component component = componentsRepository.findAll().get(0);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    assertThrows(AuthorizationDeniedException.class, () -> componentsService.delete(component.getId()));
+    assertEquals(2, componentsRepository.count());
+
+  }
+
+  @Test
+  void deleteComponentAsAdmin() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    Component component = componentsRepository.findAll().get(0);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    assertDoesNotThrow(() -> componentsService.delete(component.getId()));
+    assertEquals(1, componentsRepository.count());
+
   }
 
 }

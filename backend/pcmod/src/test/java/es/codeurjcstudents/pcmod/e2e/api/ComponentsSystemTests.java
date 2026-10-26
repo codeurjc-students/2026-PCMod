@@ -88,4 +88,58 @@ public class ComponentsSystemTests {
     assertArrayEquals(expectedImage, actualImage);
   }
 
+  @Test
+  public void deleteComponentAsNotLoggedIn() {
+
+    given()
+        .when().delete("components/1")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("status", equalTo(401))
+        .body("error", equalTo("Unauthorized"));
+  }
+
+  @Test
+  public void deleteComponentAsLoggedInNoAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/1")
+        .then().statusCode(403).contentType(ContentType.JSON)
+        .body("status", equalTo(403))
+        .body("error", equalTo("Forbidden"));
+  }
+
+  @Test
+  public void deleteComponentAsAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/1")
+        .then().statusCode(200);
+  }
+
 }
