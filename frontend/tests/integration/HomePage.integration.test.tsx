@@ -28,9 +28,9 @@ describe("HomePageIntegration", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("AMD Radeon RX 9060 XT DUAL WHITE")).toBeInTheDocument();
       expect(screen.getByText("Seagate BarraCuda 3.5")).toBeInTheDocument();
       expect(screen.getByText("Kingston FURY Beast")).toBeInTheDocument();
+      expect(screen.getByText("Corsair iCUE LINK 3500X RGB")).toBeInTheDocument();
     });
 
     expect(screen.queryByRole("button", { name: /Ver todos los componentes/i })).toBeInTheDocument();

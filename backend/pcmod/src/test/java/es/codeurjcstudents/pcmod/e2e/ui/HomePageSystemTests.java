@@ -57,10 +57,6 @@ public class HomePageSystemTests {
     String logoMessage = driver.findElement(By.id("logo")).getAttribute("alt");
     assertThat(logoMessage).isEqualTo("PCMod Logo");
 
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-9")));
-    String componentName9 = driver.findElement(By.id("component-9")).getText();
-    assertThat(componentName9).isEqualTo("AMD Radeon RX 9060 XT DUAL WHITE");
-
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-10")));
     String componentName10 = driver.findElement(By.id("component-10")).getText();
     assertThat(componentName10).isEqualTo("Seagate BarraCuda 3.5");
@@ -68,6 +64,10 @@ public class HomePageSystemTests {
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-11")));
     String componentName11 = driver.findElement(By.id("component-11")).getText();
     assertThat(componentName11).isEqualTo("Kingston FURY Beast");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-12")));
+    String componentName12 = driver.findElement(By.id("component-12")).getText();
+    assertThat(componentName12).isEqualTo("Corsair iCUE LINK 3500X RGB");
 
     wait.until(ExpectedConditions.presenceOfElementLocated(By.name("componentsButton")));
     assertThat(driver.findElements(By.name("componentsButton"))).isNotEmpty();

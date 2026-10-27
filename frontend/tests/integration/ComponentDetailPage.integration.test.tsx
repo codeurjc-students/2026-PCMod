@@ -201,7 +201,7 @@ describe("ComponentDetailPageIntegration", () => {
     const user = userEvent.setup();
     const RouterStub = createRoutesStub([
       { path: "/login", Component: Login },
-      { path: "/", Component: () => <Navigate to="/components/10" replace /> },
+      { path: "/", Component: () => <Navigate to="/components/8" replace /> },
       { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
       { path: "/components", Component: Components,
         loader: async ({ request }) => {
@@ -231,7 +231,7 @@ describe("ComponentDetailPageIntegration", () => {
     await user.click(await screen.findByRole("button", { name: /Eliminar componente/ }));
   
     await waitFor(() => {
-      expect(screen.queryByText("Seagate BarraCuda 3.5")).not.toBeInTheDocument();
+      expect(screen.queryByText("Intel Core i5-12400F")).not.toBeInTheDocument();
     });
 
   });

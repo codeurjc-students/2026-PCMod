@@ -164,6 +164,13 @@ public class DatabaseInitializer {
     setComponentImage(component11, "/sample_images/kingston-fury.jpg");
     componentsRepository.save(component11);
 
+    Component component12 = new Component("Corsair iCUE LINK 3500X RGB",
+        "ENSAMBLAJES SIN LÍMITES. No hace falta ocupar mucho espacio para montar un PC con un diseño de primera. El 3500X tiene espacio para la mayoría de tarjetas gráficas y refrigeradores de CPU grandes, radiadores de 360 mm e incluso placas base EATX, sin ocupar todo el escritorio. Para un diseño realmente impecable, el 3500X es compatible con las placas base ASUS BTF y MSI PROJECT ZERO, manteniendo las conexiones y cables ocultos.\r\n" + //
+        "INCLUYE VENTILADORES iCUE LINK RX RGB PERFORMANCE. Se incluye un iCUE LINK System Hub y tres ventiladores RX RGB, lo que hacen de este chasis una maravilla lista para montar dentro de un revolucionario ecosistema. iCUE LINK elimina el desorden de los cables y transforma su diseño en una elegante exposición.",
+        ComponentType.CASE, "Corsair", BigDecimal.valueOf(118.99), 5);
+    setComponentImage(component12, "/sample_images/corsair-icue-link.jpg");
+    componentsRepository.save(component12);
+
     // Sample Users
     userService.createUser(new User("user", "example", "user_example", "c/example_address 1", "user@example.com",
         userPasswordEncoded, "REGISTERED_USER"));

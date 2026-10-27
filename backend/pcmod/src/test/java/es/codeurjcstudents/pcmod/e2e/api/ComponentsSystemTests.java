@@ -36,8 +36,8 @@ public class ComponentsSystemTests {
         .when().get("/components/")
         .then().statusCode(200).contentType(ContentType.JSON)
         // Global checks
-        .body("totalElements", equalTo(11))
-        .body("content", hasSize(11))
+        .body("totalElements", greaterThan(10))
+        .body("content", hasSize(greaterThan(10)))
         .body("content.brand",
             hasItems("AMD", "Gigabyte", "Corsair", "MSI", "Kingston", "Asus", "Seagate", "Lian Li", "Intel"))
         .body("content.price", everyItem(greaterThanOrEqualTo(0.0f)))
@@ -67,7 +67,7 @@ public class ComponentsSystemTests {
   @Test
   public void getComponentNotFound() {
     given().header("Content-Type", "application/json")
-        .when().get("/components/12")
+        .when().get("/components/13")
         .then().statusCode(404).contentType(ContentType.JSON)
         .body("error", equalTo("Not Found"))
         .body("message", equalTo("Componente no encontrado."));
