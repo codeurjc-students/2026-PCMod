@@ -1,9 +1,11 @@
-import { Button, Col, Image } from "react-bootstrap";
-import { CartPlus, Image as ImageIcon, PencilSquare, Trash, XOctagon } from "react-bootstrap-icons";
+import { Button, Col, Image, Modal } from "react-bootstrap";
+import { ArrowLeft, CartPlus, Image as ImageIcon, PencilSquare, Trash, XOctagon } from "react-bootstrap-icons";
 import type { Route } from "./+types/detail-component";
 import type ComponentDTO from "~/dtos/ComponentDTO";
-import { getComponent } from "~/services/components-service";
+import { deleteComponent, getComponent } from "~/services/components-service";
 import { useUserStore } from "~/stores/user-store";
+import { useState } from "react";
+import { useNavigate } from "react-router";
 
 const API_URL = "/api/v1/components";
 
@@ -16,8 +18,21 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
   const component = loaderData;
   const price = component.price.toFixed(2);
   let { user } = useUserStore();
+  const navigate = useNavigate();
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  async function handleDeleteComponent() {
+    try {
+      await deleteComponent(component.id);
+      await navigate("/components");
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   return (
+    <>
       <main className="main">
         <div className="container">
           <section className="component-data">
@@ -53,7 +68,7 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
                     <Button className="btn-secondary" id="edit-component-button">
                       <PencilSquare />
                     </Button>
-                    <Button className="pcmod-danger-button" id="delete-component-button">
+                    <Button className="pcmod-danger-button" id="delete-component-button" onClick={() => setIsDeleteModalOpen(true)}>
                       <Trash />
                     </Button>
                   </>
@@ -71,6 +86,28 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
           </section>
         </div>
       </main>
+
+      <Modal show={isDeleteModalOpen} onHide={() => setIsDeleteModalOpen(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>¿Está seguro de que desea borrar este componente?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            Toda su información se perderá y no se podrá recuperar. Esta acción no se puede deshacer.
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button className="btn-secondary" onClick={() => setIsDeleteModalOpen(false)}>
+            <ArrowLeft aria-hidden="true" />
+            Cancelar
+          </Button>
+          <Button className="pcmod-danger-button" onClick={handleDeleteComponent}>
+            <Trash aria-hidden="true" />
+            Eliminar componente
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 
 }

@@ -2,6 +2,7 @@ package es.codeurjcstudents.pcmod.e2e.ui;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.Map;
 
@@ -17,12 +18,22 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import es.codeurjcstudents.pcmod.enums.ComponentType;
+import es.codeurjcstudents.pcmod.model.Component;
+import es.codeurjcstudents.pcmod.repository.ComponentsRepository;
 
 @Tag("client-system")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ComponentsSystemTests {
 
   private WebDriver driver;
   private WebDriverWait wait;
+
+  @Autowired
+  private ComponentsRepository componentsRepository;
 
   @BeforeEach
   public void setupTest() {
@@ -230,6 +241,108 @@ public class ComponentsSystemTests {
     assertThat(driver.findElements(By.id("add-to-cart-button"))).isNotEmpty();
     assertThat(driver.findElements(By.id("edit-component-button"))).isNotEmpty();
     assertThat(driver.findElements(By.id("delete-component-button"))).isNotEmpty();
+
+  }
+
+  @Test
+  public void deleteComponentTest() {
+    
+    Component component = new Component("Intel Core i7-12700K",
+        "12 núcleos y 20 hilos para un rendimiento máximo\r\n" + //
+            "Cache L3 de 25 MB\r\n" + //
+            "Compatible con memorias DDR4 y DDR5\r\n" + //
+            "Frecuencia base 3.6 GHz y turbo hasta 5.0 GHz",
+        ComponentType.CPU, "Intel", BigDecimal.valueOf(450.00), 5);
+    component = componentsRepository.save(component);
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("admin@example.com");
+    driver.findElement(By.id("password")).sendKeys("adminpass");
+
+    scrollToAndClick(By.name("login-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/components/" + component.getId());
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("delete-component-button")));
+    scrollToAndClick(By.id("delete-component-button"));
+    WebElement deleteModal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal.show")));
+    assertThat(deleteModal.findElement(By.className("modal-title")).getText())
+        .isEqualTo("¿Está seguro de que desea borrar este componente?");
+    assertThat(deleteModal.findElement(By.className("modal-body")).getText())
+        .contains("Toda su información se perderá y no se podrá recuperar.")
+        .contains("Esta acción no se puede deshacer.");
+    scrollToAndClick(By.cssSelector(".modal-footer .pcmod-danger-button"));
+
+    driver.get("http://localhost:5173/components?page=2");
+    assertThat(driver.getPageSource()).doesNotContain(component.getName());
+
+  }
+
+  @Test
+  public void cancelDeleteComponentTest() {
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("admin@example.com");
+    driver.findElement(By.id("password")).sendKeys("adminpass");
+
+    scrollToAndClick(By.name("login-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/components/1");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("delete-component-button")));
+    scrollToAndClick(By.id("delete-component-button"));
+    WebElement deleteModal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal.show")));
+    assertThat(deleteModal.findElement(By.className("modal-title")).getText())
+        .isEqualTo("¿Está seguro de que desea borrar este componente?");
+    assertThat(deleteModal.findElement(By.className("modal-body")).getText())
+        .contains("Toda su información se perderá y no se podrá recuperar.")
+        .contains("Esta acción no se puede deshacer.");
+    scrollToAndClick(By.cssSelector(".modal-footer .btn-secondary"));
+
+    driver.get("http://localhost:5173/components");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-1")));
+    assertThat(driver.findElement(By.id("component-1")).getText())
+      .isEqualTo("AMD Ryzen 7 7800X3D");
+
+  }
+
+  @Test
+  public void cancelDeleteComponentClosingModalTest() {
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("admin@example.com");
+    driver.findElement(By.id("password")).sendKeys("adminpass");
+
+    scrollToAndClick(By.name("login-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/components/1");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("delete-component-button")));
+    scrollToAndClick(By.id("delete-component-button"));
+    WebElement deleteModal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal.show")));
+    assertThat(deleteModal.findElement(By.className("modal-title")).getText())
+        .isEqualTo("¿Está seguro de que desea borrar este componente?");
+    assertThat(deleteModal.findElement(By.className("modal-body")).getText())
+        .contains("Toda su información se perderá y no se podrá recuperar.")
+        .contains("Esta acción no se puede deshacer.");
+    scrollToAndClick(By.cssSelector(".modal-header .btn-close"));
+
+    driver.get("http://localhost:5173/components");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-1")));
+    assertThat(driver.findElement(By.id("component-1")).getText())
+        .isEqualTo("AMD Ryzen 7 7800X3D");
 
   }
 }
