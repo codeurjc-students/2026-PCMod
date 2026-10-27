@@ -232,4 +232,98 @@ public class ComponentsSystemTests {
     assertThat(driver.findElements(By.id("delete-component-button"))).isNotEmpty();
 
   }
+
+  @Test
+  public void deleteComponentTest() {
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("admin@example.com");
+    driver.findElement(By.id("password")).sendKeys("adminpass");
+
+    scrollToAndClick(By.name("login-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/components/8");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("delete-component-button")));
+    scrollToAndClick(By.id("delete-component-button"));
+    WebElement deleteModal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal.show")));
+    assertThat(deleteModal.findElement(By.className("modal-title")).getText())
+        .isEqualTo("¿Está seguro de que desea borrar este componente?");
+    assertThat(deleteModal.findElement(By.className("modal-body")).getText())
+        .contains("Toda su información se perderá y no se podrá recuperar.")
+        .contains("Esta acción no se puede deshacer.");
+    scrollToAndClick(By.cssSelector(".modal-footer .pcmod-danger-button"));
+
+    driver.get("http://localhost:5173/components?page=0");
+    assertThat(driver.getPageSource()).doesNotContain("Intel Core i5-12400F");
+
+  }
+
+  @Test
+  public void cancelDeleteComponentTest() {
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("admin@example.com");
+    driver.findElement(By.id("password")).sendKeys("adminpass");
+
+    scrollToAndClick(By.name("login-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/components/1");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("delete-component-button")));
+    scrollToAndClick(By.id("delete-component-button"));
+    WebElement deleteModal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal.show")));
+    assertThat(deleteModal.findElement(By.className("modal-title")).getText())
+        .isEqualTo("¿Está seguro de que desea borrar este componente?");
+    assertThat(deleteModal.findElement(By.className("modal-body")).getText())
+        .contains("Toda su información se perderá y no se podrá recuperar.")
+        .contains("Esta acción no se puede deshacer.");
+    scrollToAndClick(By.cssSelector(".modal-footer .btn-secondary"));
+
+    driver.get("http://localhost:5173/components");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-1")));
+    assertThat(driver.findElement(By.id("component-1")).getText())
+      .isEqualTo("AMD Ryzen 7 7800X3D");
+
+  }
+
+  @Test
+  public void cancelDeleteComponentClosingModalTest() {
+
+    driver.get("http://localhost:5173/login");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys("admin@example.com");
+    driver.findElement(By.id("password")).sendKeys("adminpass");
+
+    scrollToAndClick(By.name("login-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/components/1");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("delete-component-button")));
+    scrollToAndClick(By.id("delete-component-button"));
+    WebElement deleteModal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".modal.show")));
+    assertThat(deleteModal.findElement(By.className("modal-title")).getText())
+        .isEqualTo("¿Está seguro de que desea borrar este componente?");
+    assertThat(deleteModal.findElement(By.className("modal-body")).getText())
+        .contains("Toda su información se perderá y no se podrá recuperar.")
+        .contains("Esta acción no se puede deshacer.");
+    scrollToAndClick(By.cssSelector(".modal-header .btn-close"));
+
+    driver.get("http://localhost:5173/components");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-1")));
+    assertThat(driver.findElement(By.id("component-1")).getText())
+        .isEqualTo("AMD Ryzen 7 7800X3D");
+
+  }
 }

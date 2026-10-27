@@ -34,9 +34,9 @@ public class HomePageSystemTests {
         // Global checks
         .body("size()", equalTo(3))
         // Specific checks
-        .body("[0].name", equalTo("Kingston FURY Beast"))
-        .body("[1].name", equalTo("Seagate BarraCuda 3.5"))
-        .body("[2].name", equalTo("AMD Radeon RX 9060 XT DUAL WHITE"));
+        .body("[0].name", equalTo("Corsair iCUE LINK 3500X RGB"))
+        .body("[1].name", equalTo("Kingston FURY Beast"))
+        .body("[2].name", equalTo("Seagate BarraCuda 3.5"));
   }
 
 }

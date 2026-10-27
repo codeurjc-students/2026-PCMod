@@ -71,3 +71,16 @@ export async function getComponent(id: number): Promise<ComponentDTO> {
 
   return await res.json();
 }
+
+export async function deleteComponent(id: number): Promise<void> {
+
+  const url = new URL(`${API_URL}/${id}`, getBaseUrl());
+  const response = await fetch(url.toString(), {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Error deleting component");
+  }
+
+}

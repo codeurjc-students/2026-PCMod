@@ -3,12 +3,15 @@ import { beforeEach, describe, it, expect, vi } from "vitest";
 import "@testing-library/jest-dom";
 import { createRoutesStub } from "react-router";
 import ComponentDetail, { clientLoader } from "~/routes/detail-component";
-import { getComponent } from "~/services/components-service";
+import { getComponent, deleteComponent, getComponents } from "~/services/components-service";
 import { reqIsLogged } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
+import userEvent from "@testing-library/user-event";
+import Components from "~/routes/components";
 
 vi.mock("~/services/components-service", () => ({
   getComponent: vi.fn(),
+  deleteComponent: vi.fn(),
 }));
 
 const component1 = {
@@ -167,6 +170,118 @@ describe("ComponentDetailPage", () => {
       expect(document.getElementById("delete-component-button")).toBeInTheDocument();
     });
 
+  });
+
+  it("deletes component", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => component1 },
+      { path: "/components",
+        Component: Components,
+        loader: async ({ request }) => {
+          const url = new URL(request.url);
+          const page = Number(url.searchParams.get("page") ?? 0);
+          const result = await getComponents(page);
+          return { items: result.items, hasNext: result.hasNext };
+        }
+      },
+    ]);
+  
+    vi.mocked(deleteComponent).mockResolvedValue();
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+  
+    render(<RouterStub initialEntries={["/components/1"]} />);
+  
+    await waitFor(() => {
+      expect(document.getElementById("delete-component-button")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("delete-component-button")!);
+  
+    expect(await screen.findByText("¿Está seguro de que desea borrar este componente?")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Cancelar/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Eliminar componente/ })).toBeInTheDocument();
+  
+    await user.click(await screen.findByRole("button", { name: /Eliminar componente/ }));
+  
+    await waitFor(() => {
+      expect(deleteComponent).toHaveBeenCalledWith(component1.id);
+      expect(screen.queryByText(component1.name)).not.toBeInTheDocument();
+    });
+  
+  });
+  
+  it("cancel component deletion", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => component1 },
+      { path: "/components",
+        Component: Components,
+        loader: async ({ request }) => {
+          const url = new URL(request.url);
+          const page = Number(url.searchParams.get("page") ?? 0);
+          const result = await getComponents(page);
+          return { items: result.items, hasNext: result.hasNext };
+        }
+      },
+    ]);
+  
+    vi.mocked(deleteComponent).mockResolvedValue();
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+  
+    render(<RouterStub initialEntries={["/components/1"]} />);
+  
+    await waitFor(() => {
+      expect(document.getElementById("delete-component-button")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("delete-component-button")!);
+  
+    expect(await screen.findByText("¿Está seguro de que desea borrar este componente?")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Cancelar/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Eliminar componente/ })).toBeInTheDocument();
+  
+    await user.click(await screen.findByRole("button", { name: /Cancelar/ }));
+  
+    await waitFor(() => {
+      expect(deleteComponent).not.toHaveBeenCalled();
+      expect(screen.queryByText(component1.name)).toBeInTheDocument();
+    });
+
+  });
+  
+  it("cancel component deletion with the close button", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => component1 },
+      { path: "/components",
+        Component: Components,
+        loader: async ({ request }) => {
+          const url = new URL(request.url);
+          const page = Number(url.searchParams.get("page") ?? 0);
+          const result = await getComponents(page);
+          return { items: result.items, hasNext: result.hasNext };
+        }
+      },
+    ]);
+  
+    vi.mocked(deleteComponent).mockResolvedValue();
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+  
+    render(<RouterStub initialEntries={["/components/1"]} />);
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-component-button")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("delete-component-button")!);
+
+    await user.click(await screen.findByRole("button", { name: "Close" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("¿Está seguro de que desea borrar este componente?")).not.toBeInTheDocument();
+      expect(deleteComponent).not.toHaveBeenCalled();
+    });
   });
 
   it("clientLoader returns the component", async () => {

@@ -1,5 +1,6 @@
 package es.codeurjcstudents.pcmod.controller;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,6 +53,13 @@ public class ComponentsRestController {
     MediaType mediaType = MediaTypeFactory.getMediaType(imageFile).orElse(MediaType.IMAGE_JPEG);
 
     return ResponseEntity.ok().contentType(mediaType).body(imageFile);
+  }
+
+  @DeleteMapping("/{id}")
+  public void deleteComponent(@PathVariable long id) {
+
+    componentService.delete(id);
+
   }
 
 }

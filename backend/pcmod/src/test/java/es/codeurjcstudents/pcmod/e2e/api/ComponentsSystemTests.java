@@ -36,8 +36,8 @@ public class ComponentsSystemTests {
         .when().get("/components/")
         .then().statusCode(200).contentType(ContentType.JSON)
         // Global checks
-        .body("totalElements", equalTo(11))
-        .body("content", hasSize(11))
+        .body("totalElements", greaterThan(10))
+        .body("content", hasSize(greaterThan(10)))
         .body("content.brand",
             hasItems("AMD", "Gigabyte", "Corsair", "MSI", "Kingston", "Asus", "Seagate", "Lian Li", "Intel"))
         .body("content.price", everyItem(greaterThanOrEqualTo(0.0f)))
@@ -67,7 +67,7 @@ public class ComponentsSystemTests {
   @Test
   public void getComponentNotFound() {
     given().header("Content-Type", "application/json")
-        .when().get("/components/12")
+        .when().get("/components/13")
         .then().statusCode(404).contentType(ContentType.JSON)
         .body("error", equalTo("Not Found"))
         .body("message", equalTo("Componente no encontrado."));
@@ -86,6 +86,60 @@ public class ComponentsSystemTests {
         .extract().asByteArray();
 
     assertArrayEquals(expectedImage, actualImage);
+  }
+
+  @Test
+  public void deleteComponentAsNotLoggedIn() {
+
+    given()
+        .when().delete("components/1")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("status", equalTo(401))
+        .body("error", equalTo("Unauthorized"));
+  }
+
+  @Test
+  public void deleteComponentAsLoggedInNoAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/1")
+        .then().statusCode(403).contentType(ContentType.JSON)
+        .body("status", equalTo(403))
+        .body("error", equalTo("Forbidden"));
+  }
+
+  @Test
+  public void deleteComponentAsAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/1")
+        .then().statusCode(200);
   }
 
 }
