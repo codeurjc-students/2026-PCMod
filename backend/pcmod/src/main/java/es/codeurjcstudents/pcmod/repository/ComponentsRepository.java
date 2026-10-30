@@ -16,4 +16,6 @@ public interface ComponentsRepository extends JpaRepository<Component, Long> {
   @Query("SELECT c.image from Component c WHERE c.id = :id")
   Optional<Image> findImageById(long id);
 
+  boolean existsByName(String name);
+
 }
