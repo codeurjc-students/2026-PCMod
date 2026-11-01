@@ -76,7 +76,7 @@ export default function ComponentForm({
             <div className="form-field">
               <FormLabel htmlFor="price" className="required-label" id="price-title">Precio:</FormLabel>
               <div className="price-input">
-                <FormControl type="number" disabled={isPending} className="form-control" name="price" id="price" min="0.00" step="0.01" required/>
+                <FormControl type="number" disabled={isPending} className="form-control" name="price" id="price" min="0.01" step="0.01" required/>
                 <span className="price-suffix" aria-hidden="true">€</span>
                 <div id="invalid-price" className="invalid-feedback">
                   Por favor, ingrese un precio válido.

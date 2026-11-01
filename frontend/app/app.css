@@ -397,6 +397,13 @@ body {
   font-family: var(--font-sans);
 }
 
+.pcmod-button:disabled {
+  background-color: var(--color-muted);
+  color: #ffffff;
+  opacity: 1;
+  transform: none;
+}
+
 .load-more-container {
   display: flex;
   flex-direction: column;

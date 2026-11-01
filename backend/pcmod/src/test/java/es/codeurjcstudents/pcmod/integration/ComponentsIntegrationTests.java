@@ -245,6 +245,24 @@ public class ComponentsIntegrationTests {
   }
 
   @Test
+  void validateBadNumComponentData() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+        
+    Component component = new Component("sampleComponent", "sampleDescription", ComponentType.CPU, "sampleBrand", BigDecimal.valueOf(-350.00), -5);
+
+    List<String> errors = componentsService.validateComponent(component);
+
+    assertTrue(errors.contains("El precio del producto ha de ser mayor de 0.00 €."));
+    assertTrue(errors.contains("El stock del producto ha de ser 0 o mayor."));
+
+  }
+
+  @Test
   void validateExistingComponentData() {
     User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
     SecurityContextHolder.getContext().setAuthentication(

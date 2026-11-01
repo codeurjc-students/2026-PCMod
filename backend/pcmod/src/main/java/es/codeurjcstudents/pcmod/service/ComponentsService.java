@@ -1,6 +1,7 @@
 package es.codeurjcstudents.pcmod.service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,8 +113,18 @@ public class ComponentsService {
     validateRequiredField(component.getDescription(), "La descripción es obligatoria.", errors);
     validateRequiredField(component.getBrand(), "La marca es obligatoria.", errors);
     validateRequiredField(component.getType().toString(), "El tipo es obligatoria.", errors);
-    validateRequiredField(component.getPrice().toString(), "El precio es obligatorio", errors);
-    validateRequiredField(component.getStock().toString(), "El stock es obligatorio", errors);
+    
+    if (component.getPrice() == null || component.getPrice().toString().isEmpty()) {
+      errors.add("El precio es obligatorio.");
+    } else {
+      validatePrice(component, errors);
+    }
+
+    if (component.getStock() == null || component.getStock().toString().isEmpty()) {
+      errors.add("El stock es obligatorio.");
+    } else {
+      validateStock(component, errors);
+    }
 
     return errors;
 
@@ -131,6 +142,22 @@ public class ComponentsService {
 
     if (componentRepository.existsByName(component.getName())) {
       errors.add("Ya existe un componente con ese nombre.");
+    }
+
+  }
+
+  public void validatePrice(Component component, List<String> errors) {
+    
+    if (component.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+      errors.add("El precio del producto ha de ser mayor de 0.00 €.");
+    }
+
+  }
+
+  public void validateStock(Component component, List<String> errors) {
+    
+    if (component.getStock() < 0) {
+      errors.add("El stock del producto ha de ser 0 o mayor.");
     }
 
   }

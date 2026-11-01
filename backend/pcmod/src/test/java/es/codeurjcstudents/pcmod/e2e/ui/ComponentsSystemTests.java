@@ -223,6 +223,18 @@ public class ComponentsSystemTests {
   }
 
   @Test
+  public void componentDetailRenderNoStockTest() {
+
+    driver.get("http://localhost:5173/components/4");
+        
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-stock")));
+    String componentStockMessage = driver.findElement(By.id("component-stock")).getText();
+    assertThat(componentStockMessage).isEqualTo("¡No hay stock!");
+    assertThat(driver.findElement(By.id("add-to-cart-button")).isEnabled()).isFalse();
+
+  }
+
+  @Test
   public void componentDetailOptionsAsNonLoggedInTest() {
 
     driver.get("http://localhost:5173/components/1");

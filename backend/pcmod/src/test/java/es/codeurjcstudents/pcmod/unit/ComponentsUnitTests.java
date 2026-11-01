@@ -243,6 +243,22 @@ public class ComponentsUnitTests {
   }
 
   @Test
+  public void testBadNumComponentValidation() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
+
+    Component component = new Component("sampleComponent", "sampleDescription", ComponentType.CPU, "sampleBrand", BigDecimal.valueOf(-153.97), -14);
+    List<String> errors = componentsService.validateComponent(component);
+
+    assertTrue(errors.contains("El precio del producto ha de ser mayor de 0.00 €."));
+    assertTrue(errors.contains("El stock del producto ha de ser 0 o mayor."));
+
+  }
+
+  @Test
   public void testExistingComponentValidation() {
 
     ComponentsRepository componentsRepository = mock(ComponentsRepository.class);

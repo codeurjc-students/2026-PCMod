@@ -74,6 +74,24 @@ describe("ComponentDetailPageIntegration", () => {
     });
   });
 
+  it("renders no stock warning when stock is 0", async () => {
+    const componentData = await clientLoader({ params: { id: "4" } } as Parameters<typeof clientLoader>[0]);
+
+    render(
+      <MemoryRouter>
+        <ComponentDetail
+          {...({ loaderData: componentData, params: {}, matches: [] } as any)}
+        />
+      </MemoryRouter>
+    ); 
+  
+    await waitFor(() => {
+      expect(screen.getByText("¡No hay stock!")).toBeInTheDocument();
+      expect(document.getElementById("add-to-cart-button")).toBeDisabled();
+    });
+
+  });
+
   it("shows only the component add to cart button for non-registered users", async () => {
     const componentData = await clientLoader({ params: { id: "1" } } as Parameters<typeof clientLoader>[0]);
 

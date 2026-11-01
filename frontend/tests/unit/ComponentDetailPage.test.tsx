@@ -36,6 +36,17 @@ const component2 = {
   image: null,
 };
 
+const component3 = {
+  id: 3,
+  name: "NVIDIA GeForce RTX 4090",
+  description: "Gráfica de alto rendimiento.",
+  type: "GPU",
+  brand: "NVIDIA",
+  price: 1150,
+  stock: 0,
+  image: null,
+};
+
 vi.mock("~/services/users-service", () => ({
   reqIsLogged: vi.fn(),
 }));
@@ -114,6 +125,23 @@ describe("ComponentDetailPage", () => {
 
     await waitFor(() => {
       expect(screen.queryByText("¡Últimas unidades!")).not.toBeInTheDocument();
+    });
+
+  });
+
+  it("renders no stock warning when stock is 0", async () => {
+      
+    vi.mocked(getComponent).mockResolvedValue(component3);
+
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => component3 },
+    ]);
+
+    render(<RouterStub initialEntries={["/components/3"]} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("¡No hay stock!")).toBeInTheDocument();
+      expect(document.getElementById("add-to-cart-button")).toBeDisabled();
     });
 
   });

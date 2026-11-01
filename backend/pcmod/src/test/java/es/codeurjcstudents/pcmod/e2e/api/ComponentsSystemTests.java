@@ -277,6 +277,40 @@ public class ComponentsSystemTests {
   }
 
   @Test
+  public void postBadNumComponentData() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+      given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "sampleComponent",
+              "description": "sampleDescription",
+              "type" : "CPU",
+              "brand" : "sampleBrand",
+              "price" : "-5",
+              "stock" : "-5"
+            }
+            """)
+        .when().post("/components/")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("status", equalTo(500))
+        .body("message", equalTo(
+            "Validación fallida:\n• El precio del producto ha de ser mayor de 0.00 €.\n• El stock del producto ha de ser 0 o mayor."));
+  }
+
+  @Test
   public void postBadFormatComponentData() {
     String authToken = given()
         .header("Content-Type", "application/json")
