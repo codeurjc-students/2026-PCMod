@@ -4,8 +4,9 @@ import ComponentForm from "~/components/componentsForm";
 import { ArrowLeft, ExclamationCircleFill } from "react-bootstrap-icons";
 import { Link, useNavigate } from "react-router";
 import { createComponent, addImage, getComponentTypes } from "~/services/components-service";
-import { getComponentFormValues, validateImage, handleFormSubmit } from "~/utils/component-form-utils";
+import { getComponentFormValues } from "~/utils/component-form-utils";
 import type { ComponentFormValues } from "~/utils/component-form-utils";
+import { validateImage, handleFormSubmit } from "~/utils/general-form-utils";
 import { requireAdminUser } from "~/services/route-guard";
 
 export async function clientLoader() {

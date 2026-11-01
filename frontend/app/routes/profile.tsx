@@ -7,8 +7,9 @@ import { CartX, Trash, Cart, ArrowLeft, PencilSquare, ExclamationCircleFill, Flo
 import { Button, FormControl, FormLabel, Image, Modal } from "react-bootstrap";
 import { useNavigate } from "react-router";
 import { useUserStore } from "~/stores/user-store";
-import { getUserFormValues, validateImage, handleFormSubmit } from "~/utils/user-form-utils";
+import { getUserFormValues } from "~/utils/user-form-utils";
 import type { UserFormValues } from "~/utils/user-form-utils";
+import { handleFormSubmit, validateImage } from "~/utils/general-form-utils";
 
 const API_URL = "/api/v1/users";
 
