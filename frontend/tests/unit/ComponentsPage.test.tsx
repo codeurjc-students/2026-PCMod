@@ -1,19 +1,48 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { reqIsLogged } from "~/services/users-service";
+import { useUserStore } from "~/stores/user-store";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import "@testing-library/jest-dom";
 import { getComponents } from "~/services/components-service";
 import Components, { clientLoader } from "~/routes/components";
 import { MemoryRouter, createRoutesStub } from "react-router";
+import ComponentsCreate from "~/routes/components-create";
 
 vi.mock("~/services/components-service", () => ({
   getComponents: vi.fn(),
 }));
 
+vi.mock("~/services/users-service", () => ({
+  reqIsLogged: vi.fn(),
+}));
+
+const userAccount = {
+  id: 1,
+  name: "User",
+  surname: "Example",
+  username: "user@example.com",
+  address: "User address",
+  email: "user@example.com",
+  roles: ["REGISTERED_USER"],
+};
+
+const adminAccount = {
+  id: 2,
+  name: "Admin",
+  surname: "Example",
+  username: "admin@example.com",
+  address: "Admin address",
+  email: "admin@example.com",
+  roles: ["REGISTERED_USER", "ADMIN"],
+};
+
 describe("ComponentsPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useUserStore.setState({ user: null });
+    vi.mocked(reqIsLogged).mockResolvedValue(null as never);
   });
 
   it("renders all components", async () => {
@@ -205,4 +234,55 @@ describe("ComponentsPage", () => {
     expect(getComponents).toHaveBeenCalledWith(1);
     expect(screen.getByRole("button", { name: /Cargar más componentes/i })).toBeInTheDocument();
   });
+
+  it("does not show create component button for no registered users", async () => {
+    const RouterStub = createRoutesStub([
+      { path: "/components", Component: Components, loader: () => ({ items: [], hasNext: false }) },
+      { path: "/components/create", Component: ComponentsCreate, loader: () => ({ componentTypes: ["CPU", "GPU", "RAM", "STORAGE", "MOTHERBOARD", "PSU", "CASE"] }) },
+    ]);
+
+    render(<RouterStub initialEntries={["/components"]} />);
+
+    await waitFor(() => {
+      expect(document.getElementById("create-component-button")).not.toBeInTheDocument();
+    });
+  });
+
+  it("does not show create component button when user is logged in as no admin", async () => {
+    const RouterStub = createRoutesStub([
+      { path: "/components", Component: Components, loader: () => ({ items: [], hasNext: false }) },
+      { path: "/components/create", Component: ComponentsCreate, loader: () => ({ componentTypes: ["CPU", "GPU", "RAM", "STORAGE", "MOTHERBOARD", "PSU", "CASE"] }) },
+    ]);
+
+    vi.mocked(reqIsLogged).mockResolvedValue(userAccount);
+    useUserStore.setState({ user: userAccount });
+
+    render(<RouterStub initialEntries={["/components"]} />);
+
+    await waitFor(() => {
+      expect(document.getElementById("create-component-button")).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows create component button when user is logged in as admin", async () => {
+    const RouterStub = createRoutesStub([
+      { path: "/components", Component: Components, loader: () => ({ items: [], hasNext: false }) },
+      { path: "/components/create", Component: ComponentsCreate, loader: () => ({ componentTypes: ["CPU", "GPU", "RAM", "STORAGE", "MOTHERBOARD", "PSU", "CASE"] }) },
+    ]);
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+
+    render(<RouterStub initialEntries={["/components"]} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: /Crear componente/i })).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole("link", { name: /Crear componente/i }));
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /Ingrese los datos del componente/i })).toBeInTheDocument();
+    });
+  });
+
 });

@@ -2,6 +2,9 @@ package es.codeurjcstudents.pcmod.e2e.ui;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
 
@@ -16,6 +19,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 @Tag("client-system")
@@ -58,6 +62,21 @@ public class ComponentsSystemTests {
 
   }
 
+  private void login(String email, String pass) {
+
+    driver.get("http://localhost:5173/login");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys(email);
+    driver.findElement(By.id("password")).sendKeys(pass);
+
+    scrollToAndClick(By.name("login-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+  }
+
   @Test
   public void loadComponentsTest() {
 
@@ -76,6 +95,39 @@ public class ComponentsSystemTests {
     assertThat(loadedComponentName).isEqualTo("Kingston FURY Beast");
 
     assertThat(driver.findElements(By.name("loadMore"))).isEmpty();
+
+  }
+
+  @Test
+  public void componentCreationOptionAsNonLoggedInTest() {
+
+    driver.get("http://localhost:5173/components");
+
+    assertThat(driver.findElements(By.id("create-component-button"))).isEmpty();
+
+  }
+
+  @Test
+  public void componentCreationOptionAsLoggedInNoAdminTest() {
+
+    login("user@example.com", "userpass");
+
+    driver.get("http://localhost:5173/components");
+
+    assertThat(driver.findElements(By.id("create-component-button"))).isEmpty();
+
+  }
+
+  @Test
+  public void componentCreationOptionAsAdminTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("create-component-button")));
+
+    assertThat(driver.findElements(By.id("create-component-button"))).isNotEmpty();
 
   }
 
@@ -186,14 +238,7 @@ public class ComponentsSystemTests {
   @Test
   public void componentDetailOptionsAsLoggedInNoAdminTest() {
 
-    driver.get("http://localhost:5173/login");
-
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
-    driver.findElement(By.id("email")).sendKeys("user@example.com");
-    driver.findElement(By.id("password")).sendKeys("userpass");
-
-    scrollToAndClick(By.name("login-button"));
+    login("user@example.com", "userpass");
 
     wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
 
@@ -210,16 +255,7 @@ public class ComponentsSystemTests {
   @Test
   public void componentDetailOptionsAsAdminTest() {
 
-    driver.get("http://localhost:5173/login");
-
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
-    driver.findElement(By.id("email")).sendKeys("admin@example.com");
-    driver.findElement(By.id("password")).sendKeys("adminpass");
-
-    scrollToAndClick(By.name("login-button"));
-
-    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+    login("admin@example.com", "adminpass");
 
     driver.get("http://localhost:5173/components/1");
 
@@ -234,17 +270,241 @@ public class ComponentsSystemTests {
   }
 
   @Test
+  public void componentCreateRenderTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/create");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("create-component-title")));
+    String registerTitle = driver.findElement(By.id("create-component-title")).getText();
+    assertThat(registerTitle).isEqualTo("Ingrese los datos del componente:");
+
+    assertThat(driver.findElements(By.id("error-message"))).isEmpty();
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name-title")));
+    assertThat(driver.findElement(By.id("name-title")).getText()).isEqualTo("Nombre:");
+    assertThat(driver.findElements(By.id("name"))).isNotEmpty();
+    assertThat(driver.findElement(By.id("invalid-name")).isDisplayed()).isFalse();
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("description-title")));
+    assertThat(driver.findElement(By.id("description-title")).getText()).isEqualTo("Descripción:");
+    assertThat(driver.findElements(By.id("description"))).isNotEmpty();
+    assertThat(driver.findElement(By.id("invalid-description")).isDisplayed()).isFalse();
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("brand-title")));
+    assertThat(driver.findElement(By.id("brand-title")).getText()).isEqualTo("Marca:");
+    assertThat(driver.findElements(By.id("brand"))).isNotEmpty();
+    assertThat(driver.findElement(By.id("invalid-brand")).isDisplayed()).isFalse();
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("type-title")));
+    assertThat(driver.findElement(By.id("type-title")).getText()).isEqualTo("Tipo de componente:");
+    assertThat(driver.findElements(By.id("type"))).isNotEmpty();
+    assertThat(driver.findElement(By.id("invalid-type")).isDisplayed()).isFalse();
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("price-title")));
+    assertThat(driver.findElement(By.id("price-title")).getText()).isEqualTo("Precio:");
+    assertThat(driver.findElements(By.id("price"))).isNotEmpty();
+    assertThat(driver.findElement(By.id("invalid-price")).isDisplayed()).isFalse();
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("stock-title")));
+    assertThat(driver.findElement(By.id("stock-title")).getText()).isEqualTo("Stock:");
+    assertThat(driver.findElements(By.id("stock"))).isNotEmpty();
+    assertThat(driver.findElement(By.id("invalid-stock")).isDisplayed()).isFalse();
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("image-title")));
+    assertThat(driver.findElement(By.id("image-title")).getText()).isEqualTo("Imagen del componente:");
+    assertThat(driver.findElements(By.id("image"))).isNotEmpty();
+    assertThat(driver.findElement(By.id("invalid-image")).isDisplayed()).isFalse();
+
+    assertThat(driver.findElements(By.name("save-component-button"))).isNotEmpty();
+    assertThat(driver.findElements(By.id("cancel-component-button"))).isNotEmpty();
+
+  }
+
+  @Test
+  public void createComponentTest() throws Exception {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/create");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    driver.findElement(By.id("name")).sendKeys("testComponent");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("description")));
+    driver.findElement(By.id("description")).sendKeys("testDescription");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("brand")));
+    driver.findElement(By.id("brand")).sendKeys("testBrand");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("type")));
+    Select select = new Select(driver.findElement(By.id("type")));
+    select.selectByValue("CPU");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("price")));
+    driver.findElement(By.id("price")).sendKeys("5");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("stock")));
+    driver.findElement(By.id("stock")).sendKeys("10");
+
+    String imagePath = Files.createTempFile("valid-image", ".png").toString();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("image")));
+    driver.findElement(By.id("image")).sendKeys(imagePath);
+
+    scrollToAndClick(By.name("save-component-button"));
+
+    wait.until(ExpectedConditions.urlMatches(".*/components/\\d+"));
+    
+    Files.deleteIfExists(Paths.get(imagePath));
+
+  }
+
+  @Test
+  public void createVoidComponentTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/create");
+
+    scrollToAndClick(By.name("save-component-button"));
+
+    assertThat(driver.findElement(By.id("invalid-name")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-name")).getText())
+        .isEqualTo("Por favor, ingrese un nombre válido.");
+    assertThat(driver.findElement(By.id("invalid-description")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-description")).getText())
+        .isEqualTo("Por favor, ingrese una descripción válida.");
+    assertThat(driver.findElement(By.id("invalid-brand")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-brand")).getText())
+        .isEqualTo("Por favor, ingrese una marca válida.");
+    assertThat(driver.findElement(By.id("invalid-type")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-type")).getText())
+        .isEqualTo("Por favor, seleccione un tipo válido.");
+    assertThat(driver.findElement(By.id("invalid-price")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-price")).getText())
+        .isEqualTo("Por favor, ingrese un precio válido.");
+    assertThat(driver.findElement(By.id("invalid-stock")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-stock")).getText())
+        .isEqualTo("Por favor, ingrese un stock válido.");
+    assertThat(driver.getCurrentUrl()).isEqualTo("http://localhost:5173/components/create");
+
+  }
+
+  @Test
+  public void createExistingComponentTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/create");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    driver.findElement(By.id("name")).sendKeys("Kingston NV3");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("description")));
+    driver.findElement(By.id("description")).sendKeys("testDescription");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("brand")));
+    driver.findElement(By.id("brand")).sendKeys("testBrand");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("type")));
+    Select select = new Select(driver.findElement(By.id("type")));
+    select.selectByValue("CPU");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("price")));
+    driver.findElement(By.id("price")).sendKeys("5");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("stock")));
+    driver.findElement(By.id("stock")).sendKeys("10");
+
+    scrollToAndClick(By.name("save-component-button"));
+
+    WebElement errorMessage = wait.until(
+        ExpectedConditions.visibilityOfElementLocated(By.id("error-message")));
+    assertThat(errorMessage.getText()).contains("Ya existe un componente con ese nombre.");
+    assertThat(driver.getCurrentUrl()).isEqualTo("http://localhost:5173/components/create");
+
+  }
+
+  @Test
+  public void createInvalidFormatComponentTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/create");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    driver.findElement(By.id("name")).sendKeys("testName");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("description")));
+    driver.findElement(By.id("description")).sendKeys("testDescription");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("brand")));
+    driver.findElement(By.id("brand")).sendKeys("testBrand");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("type")));
+    Select select = new Select(driver.findElement(By.id("type")));
+    select.selectByValue("CPU");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("price")));
+    driver.findElement(By.id("price")).sendKeys("bad_format");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("stock")));
+    driver.findElement(By.id("stock")).sendKeys("bad_format");
+
+    scrollToAndClick(By.name("save-component-button"));
+    
+    assertThat(driver.findElement(By.id("invalid-price")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-price")).getText())
+        .isEqualTo("Por favor, ingrese un precio válido.");
+    assertThat(driver.findElement(By.id("invalid-stock")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-stock")).getText())
+        .isEqualTo("Por favor, ingrese un stock válido.");
+    assertThat(driver.getCurrentUrl()).isEqualTo("http://localhost:5173/components/create");
+
+  }
+
+  @Test
+  public void createInvalidImageComponentTest() throws Exception {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/create");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    driver.findElement(By.id("name")).sendKeys("testName");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("description")));
+    driver.findElement(By.id("description")).sendKeys("testDescription");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("brand")));
+    driver.findElement(By.id("brand")).sendKeys("testBrand");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("type")));
+    Select select = new Select(driver.findElement(By.id("type")));
+    select.selectByValue("CPU");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("price")));
+    driver.findElement(By.id("price")).sendKeys("5");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("stock")));
+    driver.findElement(By.id("stock")).sendKeys("5");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("image")));
+    Path tempFile = Files.createTempFile("invalid-image", ".txt");
+    Files.writeString(tempFile, "invalid file content");
+    String imagePath = tempFile.toAbsolutePath().toString();
+    driver.findElement(By.id("image")).sendKeys(imagePath);
+
+    scrollToAndClick(By.name("save-component-button"));
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("error-message")));
+    assertThat(driver.findElement(By.id("error-message")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("error-message")).getText())
+        .isEqualTo("Hubo un error al subir la imagen. Solo se permiten imágenes JPEG, PNG y WebP.");
+    assertThat(driver.getCurrentUrl()).isEqualTo("http://localhost:5173/components/create");
+
+    Files.deleteIfExists(Paths.get(imagePath));
+
+  }
+
+  @Test
+  public void cancelCreateComponentTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/create");
+
+    scrollToAndClick(By.id("cancel-component-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/components"));
+
+  }
+
+  @Test
   public void deleteComponentTest() {
 
-    driver.get("http://localhost:5173/login");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
-    driver.findElement(By.id("email")).sendKeys("admin@example.com");
-    driver.findElement(By.id("password")).sendKeys("adminpass");
-
-    scrollToAndClick(By.name("login-button"));
-
-    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+    login("admin@example.com", "adminpass");
 
     driver.get("http://localhost:5173/components/8");
 
@@ -266,15 +526,7 @@ public class ComponentsSystemTests {
   @Test
   public void cancelDeleteComponentTest() {
 
-    driver.get("http://localhost:5173/login");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
-    driver.findElement(By.id("email")).sendKeys("admin@example.com");
-    driver.findElement(By.id("password")).sendKeys("adminpass");
-
-    scrollToAndClick(By.name("login-button"));
-
-    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+    login("admin@example.com", "adminpass");
 
     driver.get("http://localhost:5173/components/1");
 
@@ -298,16 +550,8 @@ public class ComponentsSystemTests {
   @Test
   public void cancelDeleteComponentClosingModalTest() {
 
-    driver.get("http://localhost:5173/login");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
-    driver.findElement(By.id("email")).sendKeys("admin@example.com");
-    driver.findElement(By.id("password")).sendKeys("adminpass");
-
-    scrollToAndClick(By.name("login-button"));
-
-    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
-
+    login("admin@example.com", "adminpass");
+    
     driver.get("http://localhost:5173/components/1");
 
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("delete-component-button")));

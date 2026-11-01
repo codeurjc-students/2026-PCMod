@@ -456,4 +456,14 @@ public class ComponentsSystemTests {
         .then().statusCode(200);
   }
 
+  @Test
+  public void loadComponentTypes() {
+    given()
+        .header("Content-Type", "application/json")
+        .when().get("/component-types")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("", hasSize(7))
+        .body("", hasItems("CPU", "GPU", "RAM", "STORAGE", "MOTHERBOARD", "PSU", "CASE"));
+  }
+
 }

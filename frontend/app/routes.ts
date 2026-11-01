@@ -8,5 +8,6 @@ export default [
     route("/me", "routes/profile.tsx"),
     route("/components", "routes/components.tsx"),
     route("/components/:id", "routes/detail-component.tsx"),
+    route("/components/create", "routes/components-create.tsx"),
   ]),
 ] satisfies RouteConfig;
