@@ -73,7 +73,7 @@ public class DatabaseInitializer {
             "Memoria interna: 16 GB\r\n" + //
             "Tipo de memoria interna: DDR4\r\n" + //
             "Velocidad de memoria del reloj: 3200 MHz",
-        ComponentType.RAM, "Corsair", BigDecimal.valueOf(149.95), 2);
+        ComponentType.RAM, "Corsair", BigDecimal.valueOf(149.95), 0);
     setComponentImage(component4, "/sample_images/corsair-vengeance.webp");
     componentsRepository.save(component4);
 

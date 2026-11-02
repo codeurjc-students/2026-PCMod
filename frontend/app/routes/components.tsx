@@ -5,6 +5,8 @@ import Col from "react-bootstrap/esm/Col";
 import ComponentCard from "~/components/componentCard";
 import { Button } from "react-bootstrap";
 import { Plus, XOctagon } from "react-bootstrap-icons";
+import { useUserStore } from "~/stores/user-store";
+import { Link } from "react-router";
 
 export async function clientLoader({ request }: Route.ClientLoaderArgs) {
 
@@ -21,6 +23,8 @@ export default function Components({ loaderData }: Route.ComponentProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState(false);
+
+  let { user } = useUserStore();
 
   useEffect(() => {
     setComponents(loaderData.items);
@@ -57,7 +61,15 @@ export default function Components({ loaderData }: Route.ComponentProps) {
   return (
     <main className="main">
       <div className="container">
-        <h1 id="components-title">Componentes:</h1>
+        <div className="components-header">
+          <h1 id="components-title">Componentes:</h1>
+          {user?.roles?.includes("ADMIN") && (
+            <Link to="/components/create" id="create-component-button" className="pcmod-button">
+              <Plus />
+              Crear componente
+            </Link>
+          )}
+        </div>
         <div id="list-components" className="row-components">
           {components.length > 0 ? (
             <>

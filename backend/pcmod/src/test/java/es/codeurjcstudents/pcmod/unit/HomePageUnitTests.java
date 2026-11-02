@@ -16,6 +16,7 @@ import es.codeurjcstudents.pcmod.enums.ComponentType;
 import es.codeurjcstudents.pcmod.model.Component;
 import es.codeurjcstudents.pcmod.repository.ComponentsRepository;
 import es.codeurjcstudents.pcmod.service.ComponentsService;
+import es.codeurjcstudents.pcmod.service.ImageService;
 
 @Tag("server-unit")
 public class HomePageUnitTests {
@@ -25,7 +26,8 @@ public class HomePageUnitTests {
 
     ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
     ComponentMapper componentMapper = mock(ComponentMapper.class);
-    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
     Component component1 = new Component("AMD Ryzen 7 7800X3D",
         "8 núcleos y 16 hilos ideales para gaming\r\n" + //

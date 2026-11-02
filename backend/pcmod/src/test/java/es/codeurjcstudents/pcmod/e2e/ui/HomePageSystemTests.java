@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -57,17 +58,14 @@ public class HomePageSystemTests {
     String logoMessage = driver.findElement(By.id("logo")).getAttribute("alt");
     assertThat(logoMessage).isEqualTo("PCMod Logo");
 
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-10")));
-    String componentName10 = driver.findElement(By.id("component-10")).getText();
-    assertThat(componentName10).isEqualTo("Seagate BarraCuda 3.5");
-
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-11")));
-    String componentName11 = driver.findElement(By.id("component-11")).getText();
-    assertThat(componentName11).isEqualTo("Kingston FURY Beast");
-
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-12")));
-    String componentName12 = driver.findElement(By.id("component-12")).getText();
-    assertThat(componentName12).isEqualTo("Corsair iCUE LINK 3500X RGB");
+    By recentComponentNames = By.cssSelector("h3[id^='component-']");
+    wait.until(ExpectedConditions.numberOfElementsToBe(recentComponentNames, 3));
+    assertThat(driver.findElements(recentComponentNames))
+      .extracting(WebElement::getText)
+      .containsExactly(
+        "testComponent",
+        "Corsair iCUE LINK 3500X RGB",
+        "Kingston FURY Beast");
 
     wait.until(ExpectedConditions.presenceOfElementLocated(By.name("componentsButton")));
     assertThat(driver.findElements(By.name("componentsButton"))).isNotEmpty();

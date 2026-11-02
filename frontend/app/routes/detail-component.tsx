@@ -47,8 +47,11 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
             )}
             </Col>
             <Col className="component-info" xs={12} md={8}>
-              {component.stock <= 5 && (
+              {component.stock <= 5 && component.stock > 0 && (
                 <h4 className="component-stock" id="component-stock">¡Últimas unidades!</h4>
+              )}
+              {component.stock === 0 && (
+                <h4 className="component-stock" id="component-stock">¡No hay stock!</h4>
               )}
               <h1 id="component-name">{component.name}</h1>
               <p className="component-description" id="component-description">
@@ -59,9 +62,11 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
               </h4>
               <h4 id="component-price">{price} €</h4>
               <div className="component-actions">
-                <Button className="pcmod-button" id="add-to-cart-button">
+                <Button className="pcmod-button" id="add-to-cart-button" disabled={component.stock === 0}>
                   <CartPlus />
-                  <span> Añadir al carrito</span>
+                  <span>
+                    {component.stock === 0 ? 'No hay stock' : 'Añadir al carrito'}
+                  </span>
                 </Button>
                 {user?.roles?.includes("ADMIN") && (
                   <>

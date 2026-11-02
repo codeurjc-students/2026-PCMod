@@ -1,11 +1,24 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import fetchCookie from "fetch-cookie";
+import { CookieJar } from "tough-cookie";
 import { describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach } from "vitest";
 import "@testing-library/jest-dom";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router";
+import { createRoutesStub, MemoryRouter, Navigate } from "react-router";
 import Components, { clientLoader } from "~/routes/components";
+import Login from "~/routes/login";
+import ComponentsCreate from "~/routes/components-create";
 
 describe("ComponentsPageIntegration", () => {
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", fetchCookie(globalThis.fetch, new CookieJar()));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
   it("renders initial components and checks load more functionality", async () => {
 
@@ -114,6 +127,72 @@ describe("ComponentsPageIntegration", () => {
     expect(screen.getByRole("button", { name: /Cargar más componentes/i })).toBeInTheDocument();
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     fetchSpy.mockRestore();
+  });
+
+  it("does not show the component create button for non-registered users", async () => {
+    render(
+        <MemoryRouter>
+          <Components
+            {...({
+              loaderData: {
+                items: [],
+                hasNext: false,
+              },
+              params: {},
+              matches: [],
+            } as any)}
+          />
+        </MemoryRouter>
+      );
+  
+      await waitFor(() => {
+        expect(document.getElementById("create-component-button")).not.toBeInTheDocument();
+      });
+    });
+
+
+it("does not show the component create button for registered users no admin", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components" replace /> },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(() => {
+      expect(document.getElementById("create-component-button")).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows the component create button for admin users", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components" replace /> },
+      { path: "/components", Component: Components, loader: () => ({ items: [], hasNext: false }) },
+      { path: "/components/create", Component: ComponentsCreate, loader: () => ({ componentTypes: ["CPU", "GPU", "RAM", "STORAGE", "MOTHERBOARD", "PSU", "CASE"] }) },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: /Crear componente/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("link", { name: /Crear componente/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /Ingrese los datos del componente/i })).toBeInTheDocument();
+    });
   });
 
 });

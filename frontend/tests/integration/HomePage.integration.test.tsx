@@ -28,7 +28,6 @@ describe("HomePageIntegration", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Seagate BarraCuda 3.5")).toBeInTheDocument();
       expect(screen.getByText("Kingston FURY Beast")).toBeInTheDocument();
       expect(screen.getByText("Corsair iCUE LINK 3500X RGB")).toBeInTheDocument();
     });

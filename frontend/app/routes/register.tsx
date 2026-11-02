@@ -5,8 +5,9 @@ import { ArrowLeft, BoxArrowInRight, ExclamationCircleFill, PersonPlus } from "r
 import { Link, useNavigate } from "react-router";
 import { register, addImage } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
-import { getUserFormValues, validateImage, handleFormSubmit } from "~/utils/user-form-utils";
+import { getUserFormValues } from "~/utils/user-form-utils";
 import type { UserFormValues } from "~/utils/user-form-utils";
+import { validateImage, handleFormSubmit } from "~/utils/general-form-utils";
 
 export default function Register() {
 
