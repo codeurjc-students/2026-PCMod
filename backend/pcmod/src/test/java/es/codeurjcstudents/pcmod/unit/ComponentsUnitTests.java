@@ -8,8 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -18,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 
 import javax.sql.rowset.serial.SerialBlob;
@@ -66,7 +69,8 @@ public class ComponentsUnitTests {
     ImageService imageService = mock(ImageService.class);
     ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
-    Component componentToReturn = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
+    Component componentToReturn = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos",
+        ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
 
     when(componentsRepository.findById(1L)).thenReturn(Optional.of(componentToReturn));
 
@@ -130,7 +134,8 @@ public class ComponentsUnitTests {
     ImageService imageService = mock(ImageService.class);
     ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
-    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
+    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU,
+        "Intel", BigDecimal.valueOf(153.97), 14);
 
     when(componentsRepository.save(any(Component.class))).thenReturn(component);
 
@@ -184,7 +189,8 @@ public class ComponentsUnitTests {
     ImageService imageService = mock(ImageService.class);
     ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
-    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
+    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU,
+        "Intel", BigDecimal.valueOf(153.97), 14);
 
     when(componentsRepository.existsByName("Intel i5 12400F")).thenReturn(true);
 
@@ -201,8 +207,9 @@ public class ComponentsUnitTests {
     ImageService imageService = mock(ImageService.class);
     ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
-    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
-    List<String> errors = componentsService.validateComponent(component);
+    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU,
+        "Intel", BigDecimal.valueOf(153.97), 14);
+    List<String> errors = componentsService.validateComponent(component, null);
 
     assertTrue(errors.isEmpty());
 
@@ -217,7 +224,7 @@ public class ComponentsUnitTests {
     ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
     Component component = new Component("", "", ComponentType.CPU, "", BigDecimal.valueOf(153.97), 14);
-    List<String> errors = componentsService.validateComponent(component);
+    List<String> errors = componentsService.validateComponent(component, null);
 
     assertTrue(errors.contains("El nombre del componente es obligatorio."));
     assertTrue(errors.contains("La descripción es obligatoria."));
@@ -234,7 +241,7 @@ public class ComponentsUnitTests {
     ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
     Component component = new Component(null, null, ComponentType.CPU, null, BigDecimal.valueOf(153.97), 14);
-    List<String> errors = componentsService.validateComponent(component);
+    List<String> errors = componentsService.validateComponent(component, null);
 
     assertTrue(errors.contains("El nombre del componente es obligatorio."));
     assertTrue(errors.contains("La descripción es obligatoria."));
@@ -250,8 +257,9 @@ public class ComponentsUnitTests {
     ImageService imageService = mock(ImageService.class);
     ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
-    Component component = new Component("sampleComponent", "sampleDescription", ComponentType.CPU, "sampleBrand", BigDecimal.valueOf(-153.97), -14);
-    List<String> errors = componentsService.validateComponent(component);
+    Component component = new Component("sampleComponent", "sampleDescription", ComponentType.CPU, "sampleBrand",
+        BigDecimal.valueOf(-153.97), -14);
+    List<String> errors = componentsService.validateComponent(component, null);
 
     assertTrue(errors.contains("El precio del producto ha de ser mayor de 0.00 €."));
     assertTrue(errors.contains("El stock del producto ha de ser 0 o mayor."));
@@ -266,10 +274,11 @@ public class ComponentsUnitTests {
     ImageService imageService = mock(ImageService.class);
     ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
-    Component component = new Component("Intel i5 12400F", "Procesado de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
+    Component component = new Component("Intel i5 12400F", "Procesado de 6 núcleos y 12 hilos", ComponentType.CPU,
+        "Intel", BigDecimal.valueOf(153.97), 14);
     when(componentsRepository.existsByName("Intel i5 12400F")).thenReturn(true);
 
-    List<String> errors = componentsService.validateComponent(component);
+    List<String> errors = componentsService.validateComponent(component, null);
 
     assertTrue(errors.contains("Ya existe un componente con ese nombre."));
 
@@ -283,8 +292,9 @@ public class ComponentsUnitTests {
     ImageService imageService = mock(ImageService.class);
     ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
-    Component component = new Component("Intel i5 12400F", "Procesado de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
-        
+    Component component = new Component("Intel i5 12400F", "Procesado de 6 núcleos y 12 hilos", ComponentType.CPU,
+        "Intel", BigDecimal.valueOf(153.97), 14);
+
     Resource expectedImage = new ClassPathResource("/sample_images/i5-12400f.webp");
     MockMultipartFile imageFile = new MockMultipartFile(
         "imageFile", "user.png", "image/png", expectedImage.getInputStream());
@@ -303,13 +313,14 @@ public class ComponentsUnitTests {
 
   @Test
   public void testAddImageWithInvalidFile() throws IOException {
-    
+
     ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
     ComponentMapper componentMapper = mock(ComponentMapper.class);
     ImageService imageService = mock(ImageService.class);
     ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
-    Component component = new Component("Intel i5 12400F", "Procesado de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
+    Component component = new Component("Intel i5 12400F", "Procesado de 6 núcleos y 12 hilos", ComponentType.CPU,
+        "Intel", BigDecimal.valueOf(153.97), 14);
     when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
 
     MockMultipartFile invalidTypeImage = new MockMultipartFile(
@@ -321,6 +332,44 @@ public class ComponentsUnitTests {
   }
 
   @Test
+  public void testUpdateImageFile() throws Exception {
+
+    ComponentsRepository componentRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentService = new ComponentsService(componentRepository, componentMapper, imageService);
+
+    Resource originalResource = new ClassPathResource("/sample_images/rtx-5060.jpg");
+    MockMultipartFile originalImageFile = new MockMultipartFile("imageFile", "rtx-5060.jpg", "image/jpg",
+        originalResource.getInputStream());
+    Image originalImage = new Image(new SerialBlob(originalImageFile.getInputStream().readAllBytes()));
+    originalImage.setId(1L);
+
+    Resource newResource = new ClassPathResource("/sample_images/rx-9060.jpg");
+    MockMultipartFile newImageFile = new MockMultipartFile("imageFile", "rx-9060.jpg", "image/jpg",
+        newResource.getInputStream());
+    Image newImage = new Image(new SerialBlob(newImageFile.getInputStream().readAllBytes()));
+    newImage.setId(2L);
+
+    when(imageService.createImage(any(InputStream.class))).thenReturn(originalImage);
+    when(imageService.replaceImageFile(anyLong(), any(InputStream.class))).thenReturn(newImage);
+
+    Component component = new Component("sampleName", "sampleDescription", ComponentType.GPU, "sampleBrand",
+        BigDecimal.valueOf(5.00), 7);
+    when(componentRepository.findById(1L)).thenReturn(java.util.Optional.of(component));
+    when(componentRepository.save(component)).thenReturn(component);
+    componentService.addComponentImage(1L, originalImageFile);
+
+    Image actualImage = componentService.addComponentImage(1L, newImageFile);
+
+    verify(componentRepository, times(2)).save(component);
+
+    assertArrayEquals(newResource.getInputStream().readAllBytes(),
+        actualImage.getImageFile().getBinaryStream().readAllBytes());
+
+  }
+
+  @Test
   public void testDeleteComponent() {
 
     ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
@@ -328,7 +377,8 @@ public class ComponentsUnitTests {
     ImageService imageService = mock(ImageService.class);
     ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
 
-    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
+    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU,
+        "Intel", BigDecimal.valueOf(153.97), 14);
 
     when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
 
@@ -350,7 +400,159 @@ public class ComponentsUnitTests {
 
     componentsService.delete(1L);
 
-    verify(componentsRepository,  never()).deleteById(1L);
+    verify(componentsRepository, never()).deleteById(1L);
+
+  }
+
+  @Test
+  public void testUpdate() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
+
+    Component originalComponent = new Component("originalComponent", "originalDescription",
+        ComponentType.CPU, "originalBrand", BigDecimal.valueOf(100.00), 5);
+
+    Component updatedComponent = new Component("updatedComponent", "updatedDescription",
+        ComponentType.GPU, "updatedBrand", BigDecimal.valueOf(200.00), 10);
+
+    when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(originalComponent));
+    when(componentsRepository.save(any(Component.class))).thenReturn(originalComponent);
+
+    Component componentSaved = componentsService.updateComponent(updatedComponent, 1L);
+
+    assertEquals(updatedComponent.getName(), componentSaved.getName());
+    assertEquals(updatedComponent.getDescription(), componentSaved.getDescription());
+    assertEquals(updatedComponent.getBrand(), componentSaved.getBrand());
+    assertEquals(updatedComponent.getType(), componentSaved.getType());
+    assertEquals(updatedComponent.getPrice(), componentSaved.getPrice());
+    assertEquals(updatedComponent.getStock(), componentSaved.getStock());
+    verify(componentsRepository).save(any(Component.class));
+
+  }
+
+  @Test
+  public void testVoidUpdate() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
+
+    Component originalComponent = new Component("originalComponent", "originalDescription",
+        ComponentType.CPU, "originalBrand", BigDecimal.valueOf(100.00), 5);
+    Component component = new Component("", "", ComponentType.CPU, "", BigDecimal.valueOf(100.00), 5);
+
+    when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(originalComponent));
+
+    assertThrows(IllegalArgumentException.class, () -> componentsService.updateComponent(component, 1L));
+    verify(componentsRepository, never()).save(any(Component.class));
+
+  }
+
+  @Test
+  public void testNullUpdate() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
+
+    Component originalComponent = new Component("originalComponent", "originalDescription",
+        ComponentType.CPU, "originalBrand", BigDecimal.valueOf(100.00), 5);
+    Component component = new Component(null, null, ComponentType.CPU, null, BigDecimal.valueOf(100.00), 10);
+
+    when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(originalComponent));
+
+    assertThrows(IllegalArgumentException.class, () -> componentsService.updateComponent(component, 1L));
+    verify(componentsRepository, never()).save(any(Component.class));
+
+  }
+
+  @Test
+  public void testExistingUpdate() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
+
+    Component originalComponent = new Component("originalComponent", "originalDescription",
+        ComponentType.CPU, "originalBrand", BigDecimal.valueOf(100.00), 5);
+    when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(originalComponent));
+
+    Component updatedComponent = new Component("existingComponent", "updatedDescription",
+        ComponentType.GPU, "updatedBrand", BigDecimal.valueOf(200.00), 10);
+
+    when(componentsRepository.existsByName("existingComponent")).thenReturn(true);
+
+    assertThrows(IllegalArgumentException.class, () -> componentsService.updateComponent(updatedComponent, 1L));
+    verify(componentsRepository, never()).save(any(Component.class));
+
+  }
+
+  @Test
+  public void testBadFormatUpdate() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
+
+    Component component = new Component("sampleName", "sampleDescription", ComponentType.CPU, "sampleBrand",
+        BigDecimal.valueOf(-5.00), -5);
+    when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(component));
+
+    assertThrows(IllegalArgumentException.class, () -> componentsService.updateComponent(component, 1L));
+    verify(componentsRepository, never()).save(any(Component.class));
+  }
+
+  @Test
+  public void testUpdateValidation() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
+
+    Component originalComponent = new Component("originalComponent", "originalDescription",
+        ComponentType.CPU, "originalBrand", BigDecimal.valueOf(100.00), 5);
+
+    Component updatedComponent = new Component("updatedComponent", "updatedDescription",
+        ComponentType.GPU, "updatedBrand", BigDecimal.valueOf(200.00), 10);
+
+    when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(originalComponent));
+
+    List<String> errors = componentsService.validateComponent(updatedComponent, 1L);
+
+    assertTrue(errors.isEmpty());
+
+  }
+
+  @Test
+  public void testExistingUpdateValidation() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
+
+    Component originalComponent = new Component("originalComponent", "originalDescription",
+        ComponentType.CPU, "originalBrand", BigDecimal.valueOf(100.00), 5);
+
+    Component updatedComponent = new Component("updatedComponent", "updatedDescription",
+        ComponentType.GPU, "updatedBrand", BigDecimal.valueOf(200.00), 10);
+
+    when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(originalComponent));
+
+    when(componentsRepository.existsByName("updatedComponent")).thenReturn(true);
+
+    List<String> errors = componentsService.validateComponent(updatedComponent, 1L);
+
+    assertTrue(errors.contains("Ya existe un componente con ese nombre."));
+    verify(componentsRepository).existsByName("updatedComponent");
 
   }
 

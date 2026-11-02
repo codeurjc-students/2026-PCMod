@@ -46,12 +46,12 @@ public class SecurityConfig {
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) {
     return authConfig.getAuthenticationManager();
   }
 
   @Bean
-  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  SecurityFilterChain securityFilterChain(HttpSecurity http) {
 
     http.authenticationProvider(authenticationProvider());
 
@@ -61,6 +61,7 @@ public class SecurityConfig {
     http.authorizeHttpRequests(authorize -> authorize
         .requestMatchers(HttpMethod.POST, "/api/v1/components/**").hasRole("ADMIN")
         .requestMatchers(HttpMethod.DELETE, "/api/v1/components/**").hasRole("ADMIN")
+        .requestMatchers(HttpMethod.PUT, "/api/v1/components/**").hasRole("ADMIN")
         .requestMatchers(HttpMethod.GET, "/api/v1/users/**").hasRole("REGISTERED_USER")
         .requestMatchers(HttpMethod.POST, "/api/v1/users/*/image").hasRole("REGISTERED_USER")
         .requestMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasRole("REGISTERED_USER")
