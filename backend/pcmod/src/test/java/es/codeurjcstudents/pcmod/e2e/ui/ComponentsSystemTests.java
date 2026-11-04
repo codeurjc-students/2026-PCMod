@@ -2,6 +2,7 @@ package es.codeurjcstudents.pcmod.e2e.ui;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -580,6 +581,207 @@ public class ComponentsSystemTests {
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-1")));
     assertThat(driver.findElement(By.id("component-1")).getText())
         .isEqualTo("AMD Ryzen 7 7800X3D");
+
+  }
+
+  @Test
+  public void componentUpdateRenderTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/5/update");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("update-component-title")));
+    String updateTitle = driver.findElement(By.id("update-component-title")).getText();
+    assertThat(updateTitle).isEqualTo("Ingrese los datos del componente:");
+
+    assertThat(driver.findElement(By.id("name")).getAttribute("value")).isEqualTo("MAG A650BN");
+    assertThat(driver.findElement(By.id("description")).getAttribute("value")).contains("Potencia total: 650 W");
+    assertThat(driver.findElement(By.id("brand")).getAttribute("value")).isEqualTo("MSI");
+    Select typeSelect = new Select(driver.findElement(By.id("type")));
+    assertThat(typeSelect.getFirstSelectedOption().getText()).isEqualTo("Fuente de alimentación");
+    assertThat(driver.findElement(By.id("price")).getAttribute("value")).isEqualTo(BigDecimal.valueOf(55.90).toString());
+    assertThat(driver.findElement(By.id("stock")).getAttribute("value")).isEqualTo("20");
+
+    assertThat(driver.findElements(By.name("save-component-button"))).isNotEmpty();
+    assertThat(driver.findElements(By.id("cancel-component-button"))).isNotEmpty();
+
+  }
+
+  @Test
+  public void updateComponentTest() throws Exception {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/5/update");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    driver.findElement(By.id("name")).clear();
+    driver.findElement(By.id("name")).sendKeys("testUpdateComponent");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("description")));
+    driver.findElement(By.id("description")).clear();
+    driver.findElement(By.id("description")).sendKeys("testUpdateDescription");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("brand")));
+    driver.findElement(By.id("brand")).clear();
+    driver.findElement(By.id("brand")).sendKeys("testUpdateBrand");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("type")));
+    Select select = new Select(driver.findElement(By.id("type")));
+    select.selectByValue("CPU");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("price")));
+    driver.findElement(By.id("price")).clear();
+    driver.findElement(By.id("price")).sendKeys("5");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("stock")));
+    driver.findElement(By.id("stock")).clear();
+    driver.findElement(By.id("stock")).sendKeys("10");
+
+    String imagePath = Files.createTempFile("valid-image", ".png").toString();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("image")));
+    driver.findElement(By.id("image")).sendKeys(imagePath);
+
+    scrollToAndClick(By.name("save-component-button"));
+
+    wait.until(ExpectedConditions.urlMatches("http://localhost:5173/components/5"));
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-name")));
+    String loadedComponentName = driver.findElement(By.id("component-name")).getText();
+    assertThat(loadedComponentName).isEqualTo("testUpdateComponent");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-description")));
+    String loadedComponentDescription = driver.findElement(By.id("component-description")).getText();
+    assertThat(loadedComponentDescription).contains("testUpdateDescription");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-brand-type")));
+    String loadedComponentBrandType = driver.findElement(By.id("component-brand-type")).getText();
+    assertThat(loadedComponentBrandType).isEqualTo("testUpdateBrand | CPU");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-price")));
+    String loadedComponentPrice = driver.findElement(By.id("component-price")).getText();
+    assertThat(loadedComponentPrice).isEqualTo("5.00 €");
+    
+    Files.deleteIfExists(Paths.get(imagePath));
+
+  }
+
+  @Test
+  public void updateVoidComponentTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/5/update");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    driver.findElement(By.id("name")).clear();
+    driver.findElement(By.id("description")).clear();
+    driver.findElement(By.id("brand")).clear();
+    Select select = new Select(driver.findElement(By.id("type")));
+    select.selectByValue("");
+    driver.findElement(By.id("price")).clear();
+    driver.findElement(By.id("stock")).clear();
+
+    scrollToAndClick(By.name("save-component-button"));
+
+    assertThat(driver.findElement(By.id("invalid-name")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-name")).getText())
+        .isEqualTo("Por favor, ingrese un nombre válido.");
+    assertThat(driver.findElement(By.id("invalid-description")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-description")).getText())
+        .isEqualTo("Por favor, ingrese una descripción válida.");
+    assertThat(driver.findElement(By.id("invalid-brand")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-brand")).getText())
+        .isEqualTo("Por favor, ingrese una marca válida.");
+    assertThat(driver.findElement(By.id("invalid-type")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-type")).getText())
+        .isEqualTo("Por favor, seleccione un tipo válido.");
+    assertThat(driver.findElement(By.id("invalid-price")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-price")).getText())
+        .isEqualTo("Por favor, ingrese un precio válido.");
+    assertThat(driver.findElement(By.id("invalid-stock")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-stock")).getText())
+        .isEqualTo("Por favor, ingrese un stock válido.");
+    assertThat(driver.getCurrentUrl()).isEqualTo("http://localhost:5173/components/5/update");
+
+  }
+
+  @Test
+  public void updateExistingComponentTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/5/update");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    driver.findElement(By.id("name")).clear();
+    driver.findElement(By.id("name")).sendKeys("Kingston NV3");
+
+    scrollToAndClick(By.name("save-component-button"));
+
+    WebElement errorMessage = wait.until(
+        ExpectedConditions.visibilityOfElementLocated(By.id("error-message")));
+    assertThat(errorMessage.getText()).contains("Ya existe un componente con ese nombre.");
+    assertThat(driver.getCurrentUrl()).isEqualTo("http://localhost:5173/components/5/update");
+
+  }
+
+  @Test
+  public void updateInvalidFormatComponentTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/5/update");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("price")));
+    driver.findElement(By.id("price")).clear();
+    driver.findElement(By.id("price")).sendKeys("-5.00");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("stock")));
+    driver.findElement(By.id("stock")).clear();
+    driver.findElement(By.id("stock")).sendKeys("-10");
+
+    scrollToAndClick(By.name("save-component-button"));
+    
+    assertThat(driver.findElement(By.id("invalid-price")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-price")).getText())
+        .isEqualTo("Por favor, ingrese un precio válido.");
+    assertThat(driver.findElement(By.id("invalid-stock")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-stock")).getText())
+        .isEqualTo("Por favor, ingrese un stock válido.");
+    assertThat(driver.getCurrentUrl()).isEqualTo("http://localhost:5173/components/5/update");
+
+  }
+
+  @Test
+  public void updateInvalidImageComponentTest() throws Exception {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/5/update");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("image")));
+    Path tempFile = Files.createTempFile("invalid-image", ".txt");
+    Files.writeString(tempFile, "invalid file content");
+    String imagePath = tempFile.toAbsolutePath().toString();
+    driver.findElement(By.id("image")).sendKeys(imagePath);
+
+    scrollToAndClick(By.name("save-component-button"));
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("error-message")));
+    assertThat(driver.findElement(By.id("error-message")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("error-message")).getText())
+        .isEqualTo("Hubo un error al subir la imagen. Solo se permiten imágenes JPEG, PNG y WebP.");
+    assertThat(driver.getCurrentUrl()).isEqualTo("http://localhost:5173/components/5/update");
+
+    Files.deleteIfExists(Paths.get(imagePath));
+
+  }
+
+  @Test
+  public void cancelUpdateComponentTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/5/update");
+
+    scrollToAndClick(By.id("cancel-component-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/components/5"));
+
+
 
   }
 }

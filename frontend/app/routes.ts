@@ -9,5 +9,6 @@ export default [
     route("/components", "routes/components.tsx"),
     route("/components/:id", "routes/detail-component.tsx"),
     route("/components/create", "routes/components-create.tsx"),
+    route("/components/:id/update", "routes/components-update.tsx"),
   ]),
 ] satisfies RouteConfig;
