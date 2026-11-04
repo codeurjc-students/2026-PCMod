@@ -5,7 +5,7 @@ import type ComponentDTO from "~/dtos/ComponentDTO";
 import { deleteComponent, getComponent } from "~/services/components-service";
 import { useUserStore } from "~/stores/user-store";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const API_URL = "/api/v1/components";
 
@@ -70,9 +70,9 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
                 </Button>
                 {user?.roles?.includes("ADMIN") && (
                   <>
-                    <Button className="btn-secondary" id="edit-component-button">
+                    <Link to={`/components/${component.id}/update`} className="btn-secondary" id="edit-component-button">
                       <PencilSquare />
-                    </Button>
+                    </Link>
                     <Button className="pcmod-danger-button" id="delete-component-button" onClick={() => setIsDeleteModalOpen(true)}>
                       <Trash />
                     </Button>

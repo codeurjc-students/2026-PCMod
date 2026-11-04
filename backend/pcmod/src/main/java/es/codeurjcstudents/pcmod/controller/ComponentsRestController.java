@@ -4,8 +4,10 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,10 +51,10 @@ public class ComponentsRestController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<ComponentDTO> getComponent (@PathVariable long id) {
+  public ResponseEntity<ComponentDTO> getComponent(@PathVariable long id) {
 
     Component component = componentService.getComponent(id);
-    
+
     return ResponseEntity.ok(componentService.toDTO(component));
   }
 
@@ -68,15 +70,15 @@ public class ComponentsRestController {
   @PostMapping("/")
   public ResponseEntity<ComponentDTO> createComponent(@RequestBody ComponentDTO componentDTO) {
 
-      Component component = componentService.toDomain(componentDTO);
-      componentService.save(component);
+    Component component = componentService.toDomain(componentDTO);
+    componentService.save(component);
 
-      URI location = fromCurrentRequest().path("/{id}").buildAndExpand(component.getId()).toUri();
+    URI location = fromCurrentRequest().path("/{id}").buildAndExpand(component.getId()).toUri();
 
-      return ResponseEntity.created(location).body(componentService.toDTO(component));
+    return ResponseEntity.created(location).body(componentService.toDTO(component));
   }
 
-  @PostMapping("/{id}/image")
+  @RequestMapping(value = "/{id}/image", method = { RequestMethod.POST, RequestMethod.PUT })
   public ResponseEntity<ImageDTO> addComponentImage(@PathVariable long id, @RequestParam MultipartFile imageFile)
       throws IOException {
 
@@ -91,6 +93,18 @@ public class ComponentsRestController {
   public void deleteComponent(@PathVariable long id) {
 
     componentService.delete(id);
+
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<ComponentDTO> updateUser(@RequestBody ComponentDTO updatedData, @PathVariable long id) {
+
+    Component newComponentData = componentService.toDomain(updatedData);
+    Component updatedComponent = componentService.updateComponent(newComponentData, id);
+
+    URI location = fromCurrentRequest().buildAndExpand(updatedComponent.getId()).toUri();
+
+    return ResponseEntity.created(location).body(componentService.toDTO(updatedComponent));
 
   }
 

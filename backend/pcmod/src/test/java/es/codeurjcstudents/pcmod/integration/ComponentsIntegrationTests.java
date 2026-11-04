@@ -3,6 +3,7 @@ package es.codeurjcstudents.pcmod.integration;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -102,7 +103,7 @@ public class ComponentsIntegrationTests {
         passwordEncoder.encode("pass"), "REGISTERED_USER"));
     usersRepository.save(new User("admin", "test", "adminTest1", "c/testaddress", "testadmin1@example.com",
         passwordEncoder.encode("adminpass"), "REGISTERED_USER", "ADMIN"));
-  
+
   }
 
   @Test
@@ -118,7 +119,8 @@ public class ComponentsIntegrationTests {
 
   @Test
   public void testGetComponent() {
-    Component component = componentsRepository.save(new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14));
+    Component component = componentsRepository.save(new Component("Intel i5 12400F",
+        "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14));
 
     Component loadedComponent = componentsService.getComponent(component.getId());
 
@@ -156,8 +158,9 @@ public class ComponentsIntegrationTests {
   }
 
   @Test
-  void postComponentAsNoRegisteresUser() {
-    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
+  void postComponentAsNoRegisteredUser() {
+    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU,
+        "Intel", BigDecimal.valueOf(153.97), 14);
     assertThrows(AuthenticationCredentialsNotFoundException.class, () -> componentsService.save(component));
   }
 
@@ -170,7 +173,8 @@ public class ComponentsIntegrationTests {
                 .password("").authorities("ROLE_REGISTERED_USER").build(),
             null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
 
-    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
+    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU,
+        "Intel", BigDecimal.valueOf(153.97), 14);
     assertThrows(AuthorizationDeniedException.class, () -> componentsService.save(component));
 
   }
@@ -184,7 +188,8 @@ public class ComponentsIntegrationTests {
                 .password("").authorities("ROLE_ADMIN").build(),
             null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
 
-    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
+    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU,
+        "Intel", BigDecimal.valueOf(153.97), 14);
     assertDoesNotThrow(() -> componentsService.save(component));
 
   }
@@ -197,10 +202,11 @@ public class ComponentsIntegrationTests {
             org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
                 .password("").authorities("ROLE_ADMIN").build(),
             null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
-        
-    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
 
-    List<String> errors = componentsService.validateComponent(component);
+    Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU,
+        "Intel", BigDecimal.valueOf(153.97), 14);
+
+    List<String> errors = componentsService.validateComponent(component, null);
 
     assertTrue(errors.isEmpty());
 
@@ -214,10 +220,10 @@ public class ComponentsIntegrationTests {
             org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
                 .password("").authorities("ROLE_ADMIN").build(),
             null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
-        
+
     Component component = new Component("", "", ComponentType.CPU, "", BigDecimal.valueOf(153.97), 14);
 
-    List<String> errors = componentsService.validateComponent(component);
+    List<String> errors = componentsService.validateComponent(component, null);
 
     assertTrue(errors.contains("El nombre del componente es obligatorio."));
     assertTrue(errors.contains("La descripción es obligatoria."));
@@ -233,10 +239,10 @@ public class ComponentsIntegrationTests {
             org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
                 .password("").authorities("ROLE_ADMIN").build(),
             null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
-        
+
     Component component = new Component(null, null, ComponentType.CPU, null, BigDecimal.valueOf(153.97), 14);
 
-    List<String> errors = componentsService.validateComponent(component);
+    List<String> errors = componentsService.validateComponent(component, null);
 
     assertTrue(errors.contains("El nombre del componente es obligatorio."));
     assertTrue(errors.contains("La descripción es obligatoria."));
@@ -252,10 +258,11 @@ public class ComponentsIntegrationTests {
             org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
                 .password("").authorities("ROLE_ADMIN").build(),
             null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
-        
-    Component component = new Component("sampleComponent", "sampleDescription", ComponentType.CPU, "sampleBrand", BigDecimal.valueOf(-350.00), -5);
 
-    List<String> errors = componentsService.validateComponent(component);
+    Component component = new Component("sampleComponent", "sampleDescription", ComponentType.CPU, "sampleBrand",
+        BigDecimal.valueOf(-350.00), -5);
+
+    List<String> errors = componentsService.validateComponent(component, null);
 
     assertTrue(errors.contains("El precio del producto ha de ser mayor de 0.00 €."));
     assertTrue(errors.contains("El stock del producto ha de ser 0 o mayor."));
@@ -270,10 +277,11 @@ public class ComponentsIntegrationTests {
             org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
                 .password("").authorities("ROLE_ADMIN").build(),
             null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
-        
-    Component component = new Component("AMD Ryzen 7 7800X3D", "Procesador de 8 núcleos y 16 hilos", ComponentType.CPU, "AMD", BigDecimal.valueOf(350.00), 5);
 
-    List<String> errors = componentsService.validateComponent(component);
+    Component component = new Component("AMD Ryzen 7 7800X3D", "Procesador de 8 núcleos y 16 hilos", ComponentType.CPU,
+        "AMD", BigDecimal.valueOf(350.00), 5);
+
+    List<String> errors = componentsService.validateComponent(component, null);
 
     assertTrue(errors.contains("Ya existe un componente con ese nombre."));
 
@@ -287,8 +295,8 @@ public class ComponentsIntegrationTests {
         resource.getInputStream());
     Component component = componentsRepository.findAll().get(0);
 
-    assertThrows(AuthenticationCredentialsNotFoundException.class, 
-      () -> componentsService.addComponentImage(component.getId(), imageFile));
+    assertThrows(AuthenticationCredentialsNotFoundException.class,
+        () -> componentsService.addComponentImage(component.getId(), imageFile));
 
   }
 
@@ -306,7 +314,8 @@ public class ComponentsIntegrationTests {
         expectedImage.getInputStream());
 
     Component component = componentsRepository.findAll().get(0);
-    assertThrows(AuthorizationDeniedException.class, () -> componentsService.addComponentImage(component.getId(), imageFile));
+    assertThrows(AuthorizationDeniedException.class,
+        () -> componentsService.addComponentImage(component.getId(), imageFile));
 
   }
 
@@ -326,8 +335,8 @@ public class ComponentsIntegrationTests {
     Component component = componentsRepository.findAll().get(0);
     Image savedComponentImage = componentsService.addComponentImage(component.getId(), imageFile);
 
-    assertArrayEquals(expectedImage.getInputStream().readAllBytes(), 
-      savedComponentImage.getImageFile().getBinaryStream().readAllBytes());
+    assertArrayEquals(expectedImage.getInputStream().readAllBytes(),
+        savedComponentImage.getImageFile().getBinaryStream().readAllBytes());
   }
 
   @Test
@@ -343,7 +352,8 @@ public class ComponentsIntegrationTests {
         "image", "image.txt", "text/plain", new byte[1024]);
     Component component = componentsRepository.findAll().get(0);
 
-    assertThrows(IllegalArgumentException.class, () -> componentsService.addComponentImage(component.getId(), invalidTypeImage));
+    assertThrows(IllegalArgumentException.class,
+        () -> componentsService.addComponentImage(component.getId(), invalidTypeImage));
 
   }
 
@@ -384,6 +394,256 @@ public class ComponentsIntegrationTests {
     assertDoesNotThrow(() -> componentsService.delete(component.getId()));
     assertEquals(1, componentsRepository.count());
 
+  }
+
+  @Test
+  void updateImageAsNoRegisteredUser() throws IOException {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    Component component = componentsRepository.findAll().get(0);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User
+                .withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Resource originalResource = new ClassPathResource("/sample_images/rtx-5060.jpg");
+    MockMultipartFile originalImageFile = new MockMultipartFile("imageFile", "rtx-5060.jpg", "image/jpeg",
+        originalResource.getInputStream());
+    componentsService.addComponentImage(component.getId(), originalImageFile);
+
+    SecurityContextHolder.clearContext();
+
+    Resource newResource = new ClassPathResource("/sample_images/rx-9060.jpg");
+    MockMultipartFile newImageFile = new MockMultipartFile("imageFile", "rx-9060.jpg", "image/jpeg",
+        newResource.getInputStream());
+
+    assertThrows(AuthenticationCredentialsNotFoundException.class,
+        () -> componentsService.addComponentImage(component.getId(), newImageFile));
+
+  }
+
+  @Test
+  void updateImageAsRegisteredUserNoAdmin() throws IOException {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    Component component = componentsRepository.findAll().get(0);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User
+                .withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Resource originalResource = new ClassPathResource("/sample_images/rtx-5060.jpg");
+    MockMultipartFile originalImageFile = new MockMultipartFile("imageFile", "rtx-5060.jpg", "image/jpeg",
+        originalResource.getInputStream());
+    componentsService.addComponentImage(component.getId(), originalImageFile);
+
+    SecurityContextHolder.clearContext();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User
+                .withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    Resource newResource = new ClassPathResource("/sample_images/rx-9060.jpg");
+    MockMultipartFile newImageFile = new MockMultipartFile("imageFile", "rx-9060.jpg", "image/jpeg",
+        newResource.getInputStream());
+
+    assertThrows(AuthorizationDeniedException.class,
+        () -> componentsService.addComponentImage(component.getId(), newImageFile));
+
+  }
+
+  @Test
+  void updateImagesAsAdmin() throws IOException, SQLException {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    Component component = componentsRepository.findAll().get(0);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Resource originalResource = new ClassPathResource("/sample_images/rtx-5060.jpg");
+    MockMultipartFile originalImageFile = new MockMultipartFile("imageFile", "rtx-5060.jpg", "image/jpeg",
+        originalResource.getInputStream());
+    Image originalImage = componentsService.addComponentImage(component.getId(), originalImageFile);
+
+    Resource newResource = new ClassPathResource("/sample_images/rx-9060.jpg");
+    MockMultipartFile newImageFile = new MockMultipartFile("imageFile", "rx-9060.jpg", "image/jpeg",
+        newResource.getInputStream());
+
+    Image newImage = componentsService.addComponentImage(component.getId(), newImageFile);
+
+    assertNotEquals(originalImage.getImageFile().getBinaryStream().readAllBytes(),
+        newImage.getImageFile().getBinaryStream().readAllBytes());
+
+  }
+
+  @Test
+  void updateComponentAsNoRegisteredUser() {
+    Component component = componentsRepository.findAll().get(0);
+
+    Component updatedComponent = new Component("sampleName", "sampleDescription", ComponentType.CPU, "sampleBrand",
+        BigDecimal.valueOf(100.00), 5);
+
+    assertThrows(AuthenticationCredentialsNotFoundException.class,
+        () -> componentsService.updateComponent(updatedComponent, component.getId()));
+  }
+
+  @Test
+  void updateComponentAsRegisteredUserNoAdmin() {
+    Component component = componentsRepository.findAll().get(0);
+
+    Component updatedComponent = new Component("sampleName", "sampleDescription", ComponentType.CPU, "sampleBrand",
+        BigDecimal.valueOf(100.00), 5);
+
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    assertThrows(AuthorizationDeniedException.class,
+        () -> componentsService.updateComponent(updatedComponent, component.getId()));
+  }
+
+  @Test
+  void updateComponentAsAdmin() {
+    Component component = componentsRepository.findAll().get(0);
+
+    Component updatedComponent = new Component("sampleName", "sampleDescription", ComponentType.CPU, "sampleBrand",
+        BigDecimal.valueOf(100.00), 5);
+
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component savedComponent = componentsService.updateComponent(updatedComponent, component.getId());
+
+    assertEquals("sampleName", savedComponent.getName());
+    assertEquals("sampleDescription", savedComponent.getDescription());
+    assertEquals(ComponentType.CPU, savedComponent.getType());
+    assertEquals("sampleBrand", savedComponent.getBrand());
+    assertEquals(BigDecimal.valueOf(100.00), savedComponent.getPrice());
+    assertEquals(5, savedComponent.getStock());
+  }
+
+  @Test
+  void updateVoidComponent() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    Component component = componentsRepository.findAll().get(0);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component updatedComponent = new Component("", "", ComponentType.CPU, "", BigDecimal.valueOf(100.00), 5);
+
+    assertThrows(IllegalArgumentException.class,
+        () -> componentsService.updateComponent(updatedComponent, component.getId()));
+  }
+
+  @Test
+  void updateNullComponent() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    Component component = componentsRepository.findAll().get(0);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component updatedComponent = new Component(null, null, ComponentType.CPU, null, BigDecimal.valueOf(100.00), 5);
+
+    assertThrows(IllegalArgumentException.class,
+        () -> componentsService.updateComponent(updatedComponent, component.getId()));
+  }
+
+  @Test
+  void updateExistingComponent() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    Component component = componentsRepository.findAll().get(0);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component updatedComponent = new Component("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC", "sampleDescription",
+        ComponentType.CPU, "sampleBrand", BigDecimal.valueOf(100.00), 5);
+
+    assertThrows(IllegalArgumentException.class,
+        () -> componentsService.updateComponent(updatedComponent, component.getId()));
+  }
+
+  @Test
+  void updateBadFormatComponent() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    Component component = componentsRepository.findAll().get(0);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component updatedComponent = new Component("sampleName", "sampleDescription", ComponentType.CPU, "sampleBrand",
+        BigDecimal.valueOf(-100.00), -5);
+
+    assertThrows(IllegalArgumentException.class,
+        () -> componentsService.updateComponent(updatedComponent, component.getId()));
+  }
+
+  @Test
+  void updateValidation() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    Component originalComponent = componentsRepository.findAll().get(0);
+    Component updatedComponent = new Component("sampleName", "sampleDescription", ComponentType.CPU, "sampleBrand",
+        BigDecimal.valueOf(100.00), 5);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    List<String> errors = componentsService.validateComponent(updatedComponent, originalComponent.getId());
+
+    assertTrue(errors.isEmpty());
+  }
+
+  @Test
+  void updateExistingValidationComponent() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    Component originalComponent = componentsRepository.findAll().get(0);
+    Component updatedComponent = new Component("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC", "sampleDescription",
+        ComponentType.CPU, "sampleBrand", BigDecimal.valueOf(100.00), 5);
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    List<String> errors = componentsService.validateComponent(updatedComponent, originalComponent.getId());
+
+    assertTrue(errors.contains("Ya existe un componente con ese nombre."));
   }
 
 }

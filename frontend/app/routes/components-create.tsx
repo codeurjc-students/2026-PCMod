@@ -1,90 +1,40 @@
-import { useActionState, useEffect, useRef, useState } from "react";
-import type { SubmitEvent } from "react";
-import ComponentForm from "~/components/componentsForm";
+import { useNavigate, Link } from "react-router";
 import { ArrowLeft, ExclamationCircleFill } from "react-bootstrap-icons";
-import { Link, useNavigate } from "react-router";
-import { createComponent, addImage, getComponentTypes } from "~/services/components-service";
-import { getComponentFormValues } from "~/utils/component-form-utils";
+import ComponentForm from "~/components/componentsForm";
+import { useComponentForm } from "~/hooks/use-component-form";
+import { createComponent, addImage } from "~/services/components-service";
 import type { ComponentFormValues } from "~/utils/component-form-utils";
-import { validateImage, handleFormSubmit } from "~/utils/general-form-utils";
 import { requireAdminUser } from "~/services/route-guard";
 
 export async function clientLoader() {
-    return await requireAdminUser();
+  return await requireAdminUser();
 }
 
 export default function ComponentsCreate() {
-
   const navigate = useNavigate();
-  const [wasValidated, setWasValidated] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [, formAction, isPending] = useActionState(
-    createComponentAction,
-    { name: "", description: "", type: "", brand: "", price: 0.00, stock: 0 },
-  );
-  const [componentTypes, setComponentTypes] = useState<string[]>([]);
 
-  const componentTypeLabels: Record<string, string> = {
-    CPU: "Procesador",
-    GPU: "Tarjeta gráfica",
-    RAM: "Memoria RAM",
-    STORAGE: "Almacenamiento",
-    MOTHERBOARD: "Placa base",
-    PSU: "Fuente de alimentación",
-    CASE: "Caja"
+  const initialState: ComponentFormValues = {
+    name: "",
+    description: "",
+    type: "",
+    brand: "",
+    price: 0,
+    stock: 0,
   };
 
-  useEffect(() => {
-    async function loadComponentTypes() {
-      try {
-        const types = await getComponentTypes();
-        setComponentTypes(types);
-      } catch (error) {
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : "Error al cargar los tipos de componentes."
-        );
-      }
-    }
-    void loadComponentTypes();
-  }, []); 
-
-  async function createComponentAction(_prevState: ComponentFormValues, formData: FormData) {
-    const { name, description, type, brand, price, stock } = getComponentFormValues(formData);
-    const image = formData.get("image") as File | null;
-
-    const imageError = validateImage(image);
-    if (imageError) {
-      setErrorMessage(imageError);
-      return { name, description, type, brand, price, stock };
-    }
-
-    try {
-      const component = await createComponent(name, description, type, brand, price, stock);
+  const form = useComponentForm({
+    initialState,
+    defaultErrorMessage: "Hubo un error al crear el componente. Por favor, inténtalo de nuevo.",
+    submitAction: async (values, image) => {
+      const component = await createComponent(values.name, values.description, values.type, values.brand, values.price, values.stock);
 
       if (image && image.size > 0) {
         await addImage(component.id, image);
       }
 
       await navigate(`/components/${component.id}`);
-    } catch (error) {
-      console.log(error);
-
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Hubo un error al crear el componente. Por favor, inténtalo de nuevo.",
-      );
-    }
-
-    return { name, description, type, brand, price, stock };
-  }
-
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    handleFormSubmit(event, formAction, setWasValidated);
-  }
+    },
+  });
 
   return (
     <main className="main">
@@ -99,24 +49,25 @@ export default function ComponentsCreate() {
             Ingrese los datos del componente:
           </h3>
 
-          {errorMessage && (
+          {form.errorMessage && (
             <div className="error-message-text">
               <strong>
                 <ExclamationCircleFill /> Error:
               </strong>
               <p id="error-message" className="mb-0 mt-1">
-                {errorMessage}
+                {form.errorMessage}
               </p>
             </div>
           )}
 
           <ComponentForm
-            onSubmit={handleSubmit}
-            isPending={isPending}
-            wasValidated={wasValidated}
-            componentTypes={componentTypes}
-            componentTypeLabels={componentTypeLabels}
-            formRef={formRef}
+            onSubmit={form.handleSubmit}
+            isPending={form.isPending}
+            wasValidated={form.wasValidated}
+            componentTypes={form.componentTypes}
+            componentTypeLabels={form.componentTypeLabels}
+            formRef={form.formRef}
+            submitLabel="Guardar componente"
           />
         </div>
       </div>

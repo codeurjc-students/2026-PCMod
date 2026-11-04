@@ -94,7 +94,7 @@ public class ComponentsSystemTests {
         .header("Content-Type", "application/json")
         .body("""
             {
-              "name": "AMD Ryzen 5 9600X",    
+              "name": "AMD Ryzen 5 9600X",
               "description": "El AMD Ryzen 5 9600X destaca por su arquitectura de 4 nm y el nuevo socket AM5.",
               "type" : "CPU",
               "brand" : "AMD",
@@ -153,7 +153,7 @@ public class ComponentsSystemTests {
         .then().statusCode(200).contentType(ContentType.JSON)
         .extract().cookie("AuthToken");
 
-      given()
+    given()
         .cookie("AuthToken", authToken)
         .header("Content-Type", "application/json")
         .body("""
@@ -257,7 +257,7 @@ public class ComponentsSystemTests {
         .then().statusCode(200).contentType(ContentType.JSON)
         .extract().cookie("AuthToken");
 
-      given()
+    given()
         .cookie("AuthToken", authToken)
         .header("Content-Type", "application/json")
         .body("""
@@ -290,7 +290,7 @@ public class ComponentsSystemTests {
         .then().statusCode(200).contentType(ContentType.JSON)
         .extract().cookie("AuthToken");
 
-      given()
+    given()
         .cookie("AuthToken", authToken)
         .header("Content-Type", "application/json")
         .body("""
@@ -324,7 +324,7 @@ public class ComponentsSystemTests {
         .then().statusCode(200).contentType(ContentType.JSON)
         .extract().cookie("AuthToken");
 
-      given()
+    given()
         .cookie("AuthToken", authToken)
         .header("Content-Type", "application/json")
         .body("""
@@ -488,6 +488,297 @@ public class ComponentsSystemTests {
         .cookie("AuthToken", authToken)
         .when().delete("components/1")
         .then().statusCode(200);
+  }
+
+  @Test
+  public void putComponentAsNoLoggedIn() {
+
+    given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "sampleNamePUT",
+              "description": "samepleDescriptionPUT",
+              "type" : "CPU",
+              "brand" : "sampleBrandPUT",
+              "price" : 100.00,
+              "stock" : 5
+            }
+            """)
+        .when().put("components/5")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("error", equalTo("Unauthorized"));
+  }
+
+  @Test
+  public void putComponentAsRegisteredUserNoAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "sampleNamePUT",
+              "description": "samepleDescriptionPUT",
+              "type" : "CPU",
+              "brand" : "sampleBrandPUT",
+              "price" : 100.00,
+              "stock" : 5
+            }
+            """)
+        .when().put("components/5")
+        .then().statusCode(403).contentType(ContentType.JSON)
+        .body("error", equalTo("Forbidden"));
+  }
+
+  @Test
+  public void putComponentAsAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "sampleNamePUT",
+              "description": "sampleDescriptionPUT",
+              "type" : "CPU",
+              "brand" : "MSI",
+              "price" : 100.00,
+              "stock" : 5
+            }
+            """)
+        .when().put("components/5")
+        .then().statusCode(201).contentType(ContentType.JSON)
+        .body("id", notNullValue())
+        .body("name", equalTo("sampleNamePUT"))
+        .body("description", equalTo("sampleDescriptionPUT"))
+        .body("type", equalTo("CPU"))
+        .body("brand", equalTo("MSI"))
+        .body("price", equalTo(100.00F))
+        .body("stock", equalTo(5));
+  }
+
+  @Test
+  public void putVoidComponent() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "",
+              "description": "",
+              "type": "CPU",
+              "brand" : "",
+              "price": "",
+              "stock": ""
+            }
+            """)
+        .when().put("components/5")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("message", equalTo(
+            "Validación fallida:\n• El nombre del componente es obligatorio.\n• La descripción es obligatoria.\n• La marca es obligatoria.\n• El precio es obligatorio.\n• El stock es obligatorio."));
+  }
+
+  @Test
+  public void putNullComponent() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": null,
+              "description": null,
+              "type": "CPU",
+              "brand" : null,
+              "price": null,
+              "stock": null
+            }
+            """)
+        .when().put("components/5")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("message", equalTo(
+            "Validación fallida:\n• El nombre del componente es obligatorio.\n• La descripción es obligatoria.\n• La marca es obligatoria.\n• El precio es obligatorio.\n• El stock es obligatorio."));
+  }
+
+  @Test
+  public void putExistingComponent() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "Kingston NV3",
+              "description": "samepleDescriptionPUT",
+              "type" : "CPU",
+              "brand" : "sampleBrandPUT",
+              "price" : 100.00,
+              "stock" : 5
+            }
+            """)
+        .when().put("components/5")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("status", equalTo(500))
+        .body("message", equalTo("Validación fallida:\n• Ya existe un componente con ese nombre."));
+  }
+
+  @Test
+  public void putBadFormatComponent() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "sampleNamePUT",
+              "description": "samepleDescriptionPUT",
+              "type" : "CPU",
+              "brand" : "sampleBrandPUT",
+              "price" : -100.00,
+              "stock" : -5
+            }
+            """)
+        .when().put("components/5")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("status", equalTo(500))
+        .body("message", equalTo(
+            "Validación fallida:\n• El precio del producto ha de ser mayor de 0.00 €.\n• El stock del producto ha de ser 0 o mayor."));
+  }
+
+  @Test
+  public void putComponentImageAsNoLoggedIn() throws IOException {
+    byte[] updatedImage;
+    try (InputStream imageResource = getClass().getResourceAsStream("/sample_images/rtx-5060.jpg")) {
+      updatedImage = imageResource.readAllBytes();
+    }
+
+    given()
+        .multiPart("imageFile", "rtx-5060.jpg", updatedImage, "image/jpeg")
+        .when().put("components/5/image")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("error", equalTo("Unauthorized"));
+  }
+
+  @Test
+  public void putComponentImageAsRegisteredUserNoAdmin() throws IOException {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    byte[] updatedImage;
+    try (InputStream imageResource = getClass().getResourceAsStream("/sample_images/rtx-5060.jpg")) {
+      updatedImage = imageResource.readAllBytes();
+    }
+
+    given()
+        .cookie("AuthToken", authToken)
+        .multiPart("imageFile", "rtx-5060.jpg", updatedImage, "image/jpeg")
+        .when().put("components/5/image")
+        .then().statusCode(403).contentType(ContentType.JSON)
+        .body("error", equalTo("Forbidden"));
+  }
+
+  @Test
+  public void putComponentImageAsAdmin() throws IOException {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    byte[] updatedImage;
+    try (InputStream imageResource = getClass().getResourceAsStream("/sample_images/rtx-5060.jpg")) {
+      updatedImage = imageResource.readAllBytes();
+    }
+
+    given()
+        .cookie("AuthToken", authToken)
+        .multiPart("imageFile", "rtx-5060.jpg", updatedImage, "image/jpeg")
+        .when().put("components/5/image")
+        .then().statusCode(201).contentType(ContentType.JSON);
+
   }
 
   @Test
