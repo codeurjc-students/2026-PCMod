@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
 
 import es.codeurjcstudents.pcmod.model.Component;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ReviewMapper.class})
 public interface ComponentMapper {
 
   ComponentDTO toDTO(Component component);
