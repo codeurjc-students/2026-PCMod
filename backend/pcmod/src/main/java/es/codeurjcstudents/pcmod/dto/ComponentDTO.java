@@ -12,5 +12,6 @@ public record ComponentDTO(
     BigDecimal price,
     Integer stock,
     List<ReviewDTO> reviews,
+    Double averageRating,
     ImageDTO image) {
 }

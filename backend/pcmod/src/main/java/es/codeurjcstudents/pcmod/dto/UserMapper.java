@@ -10,6 +10,8 @@ public interface UserMapper {
 
   UserDTO toDTO(User user);
 
+  UserPublicDTO toPublicDTO(User user);
+
   @Mapping(target = "encodedPassword", ignore = true)
   @Mapping(target = "reviews", ignore = true)
   User toDomainFromFullDTO(UserFullDTO userFullDTO);

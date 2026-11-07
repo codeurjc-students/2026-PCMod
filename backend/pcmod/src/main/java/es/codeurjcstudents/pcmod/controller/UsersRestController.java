@@ -28,6 +28,7 @@ import es.codeurjcstudents.pcmod.dto.ImageDTO;
 import es.codeurjcstudents.pcmod.dto.UserDTO;
 import es.codeurjcstudents.pcmod.dto.UserFullDTO;
 import es.codeurjcstudents.pcmod.dto.UserMapper;
+import es.codeurjcstudents.pcmod.dto.UserPublicDTO;
 import es.codeurjcstudents.pcmod.model.Image;
 import es.codeurjcstudents.pcmod.model.User;
 import es.codeurjcstudents.pcmod.service.ImageService;
@@ -54,7 +55,7 @@ public class UsersRestController {
 
     if (principal != null) {
 
-      User user = usersService.getUser(Long.parseLong(principal.getName())).orElseThrow();
+      User user = usersService.getUser(Long.parseLong(principal.getName()));
       return userMapper.toDTO(user);
 
     } else {
@@ -62,6 +63,14 @@ public class UsersRestController {
       throw new NoSuchElementException();
 
     }
+  }
+
+  @GetMapping("/{id}/public")
+  public UserPublicDTO getPublicUser(@PathVariable long id) {
+
+    User userPublic = usersService.getUser(id);
+    return userMapper.toPublicDTO(userPublic);
+    
   }
 
   @GetMapping("/{id}/image")

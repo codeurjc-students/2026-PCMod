@@ -71,6 +71,21 @@ public class Component {
     review.setComponent(this);
   }
 
+  public double getAverageRating() {
+
+    if (reviews == null || reviews.isEmpty()) {
+      return 0.0;
+    }
+
+    double sum = 0.00;
+    for (Review review : reviews) {
+      sum += review.getRating();
+    }
+
+    return Math.round((sum / reviews.size()) * 100.0) / 100.0;
+
+  }
+
   public Long getId() {
     return id;
   }

@@ -9,6 +9,7 @@ export default interface ComponentDTO {
   brand: string;
   price: number;
   stock: number;
+  averageRating: number;
   reviews: ReviewDTO[];
   image: ImageDTO
 }

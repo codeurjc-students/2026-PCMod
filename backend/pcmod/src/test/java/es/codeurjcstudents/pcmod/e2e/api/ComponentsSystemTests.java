@@ -42,17 +42,26 @@ public class ComponentsSystemTests {
             hasItems("AMD", "Gigabyte", "Corsair", "MSI", "Kingston", "Asus", "Seagate", "Lian Li", "Intel"))
         .body("content.price", everyItem(greaterThanOrEqualTo(0.0f)))
         .body("content.stock", everyItem(greaterThanOrEqualTo(0)))
-        // Specific checks (e.g., First Component)
+        // Specific checks without reviews(e.g., First Component)
         .body("content[0].id", notNullValue())
         .body("content[0].name", equalTo("AMD Ryzen 7 7800X3D"))
         .body("content[0].type", equalTo("CPU"))
         .body("content[0].brand", equalTo("AMD"))
         .body("content[0].price", equalTo(350.0f))
-        .body("content[0].stock", equalTo(5));
+        .body("content[0].stock", equalTo(5))
+        .body("content[0].reviews", empty())
+        // Specific checks with reviews(e.g., Second Component)
+        .body("content[1].id", notNullValue())
+        .body("content[1].name", equalTo("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC"))
+        .body("content[1].type", equalTo("GPU"))
+        .body("content[1].brand", equalTo("Gigabyte"))
+        .body("content[1].price", equalTo(359.85f))
+        .body("content[1].stock", equalTo(2))
+        .body("content[1].reviews", not(empty()));
   }
 
   @Test
-  public void getComponent() {
+  public void getComponentWithoutReviews() {
     given().header("Content-Type", "application/json")
         .when().get("/components/1")
         .then().statusCode(200).contentType(ContentType.JSON)
@@ -61,7 +70,22 @@ public class ComponentsSystemTests {
         .body("type", equalTo("CPU"))
         .body("brand", equalTo("AMD"))
         .body("price", equalTo(350.0f))
-        .body("stock", equalTo(5));
+        .body("stock", equalTo(5))
+        .body("reviews", empty());
+  }
+
+  @Test
+  public void getComponentWithReviews() {
+    given().header("Content-Type", "application/json")
+        .when().get("/components/2")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("id", notNullValue())
+        .body("name", equalTo("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC"))
+        .body("type", equalTo("GPU"))
+        .body("brand", equalTo("Gigabyte"))
+        .body("price", equalTo(359.85f))
+        .body("stock", equalTo(2))
+        .body("reviews", not(empty()));
   }
 
   @Test

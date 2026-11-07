@@ -7,5 +7,5 @@ public record ReviewDTO(
     Integer rating,
     String date,
     Long componentId,
-    Long userId) {
+    UserPublicDTO user) {
 }

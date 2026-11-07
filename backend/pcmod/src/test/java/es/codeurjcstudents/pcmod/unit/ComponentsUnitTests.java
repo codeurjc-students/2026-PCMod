@@ -37,6 +37,7 @@ import es.codeurjcstudents.pcmod.dto.ComponentMapper;
 import es.codeurjcstudents.pcmod.enums.ComponentType;
 import es.codeurjcstudents.pcmod.model.Component;
 import es.codeurjcstudents.pcmod.model.Image;
+import es.codeurjcstudents.pcmod.model.Review;
 import es.codeurjcstudents.pcmod.repository.ComponentsRepository;
 import es.codeurjcstudents.pcmod.service.ComponentsService;
 import es.codeurjcstudents.pcmod.service.ImageService;
@@ -63,7 +64,7 @@ public class ComponentsUnitTests {
   }
 
   @Test
-  public void testGetComponent() {
+  public void testGetComponentWithoutReviews() {
     ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
     ComponentMapper componentMapper = mock(ComponentMapper.class);
     ImageService imageService = mock(ImageService.class);
@@ -77,6 +78,27 @@ public class ComponentsUnitTests {
     Component component = componentsService.getComponent(1L);
 
     assertEquals(componentToReturn, component);
+    assertTrue(component.getReviews().isEmpty());
+    verify(componentsRepository).findById(1L);
+  }
+
+  @Test
+  public void testGetComponentWithReviews() {
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
+
+    Component componentToReturn = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos",
+        ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14);
+    Review review = new Review("sample_title", "sample_message", 5);
+    componentToReturn.addReview(review);
+    when(componentsRepository.findById(1L)).thenReturn(Optional.of(componentToReturn));
+
+    Component component = componentsService.getComponent(1L);
+
+    assertEquals(componentToReturn, component);
+    assertTrue(component.getReviews().contains(review));
     verify(componentsRepository).findById(1L);
   }
 

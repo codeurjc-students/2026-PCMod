@@ -146,7 +146,27 @@ public class UsersSystemTests {
   }
 
   @Test
-  public void getOwnImage() throws IOException {
+  public void getPublicUser() {
+    given()
+        .header("Content-Type", "application/json")
+        .when().get("users/1/public")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("id", equalTo(1))
+        .body("username", equalTo("user_example"));
+  }
+
+  @Test
+  public void getNonExistingPublicUser() {
+    given()
+        .header("Content-Type", "application/json")
+        .when().get("users/99/public")
+        .then().statusCode(404).contentType(ContentType.JSON)
+        .body("error", equalTo("Not Found"))
+        .body("message", equalTo("Usuario no encontrado."));
+  }
+
+  @Test
+  public void getUserImage() throws IOException {
     String authToken = given()
         .header("Content-Type", "application/json")
         .body("""
@@ -170,9 +190,13 @@ public class UsersSystemTests {
         .when().post("users/1/image")
         .then().statusCode(201).contentType(ContentType.JSON);
 
+    given()
+        .cookie("AuthToken", authToken)
+        .when().post("auth/logout")
+        .then().statusCode(200).contentType(ContentType.JSON);
+
     byte[] actualImage = given()
         .header("Content-Type", "application/json")
-        .cookie("AuthToken", authToken)
         .when().get("users/1/image")
         .then().statusCode(200).contentType(MediaType.IMAGE_JPEG_VALUE)
         .extract().asByteArray();
@@ -181,19 +205,7 @@ public class UsersSystemTests {
   }
 
   @Test
-  public void getOwnVoidImage() throws IOException {
-    String authToken = given()
-        .header("Content-Type", "application/json")
-        .body("""
-            {
-                "username": "user@example.com",
-                "password": "userpass"
-            }
-            """)
-        .when().post("auth/login")
-        .then().statusCode(200).contentType(ContentType.JSON)
-        .extract().cookie("AuthToken");
-
+  public void getVoidUserImage() throws IOException {
     byte[] expectedImage;
     try (InputStream imageResource = getClass().getResourceAsStream("/sample_images/empty-profile-image.jpg")) {
       expectedImage = imageResource.readAllBytes();
@@ -201,62 +213,11 @@ public class UsersSystemTests {
 
     byte[] actualImage = given()
         .header("Content-Type", "application/json")
-        .cookie("AuthToken", authToken)
         .when().get("users/1/image")
         .then().statusCode(200).contentType(MediaType.IMAGE_JPEG_VALUE)
         .extract().asByteArray();
 
     assertArrayEquals(expectedImage, actualImage);
-  }
-
-  @Test
-  public void getOtherUserImageAsNoAdmin() {
-    String authToken = given()
-        .header("Content-Type", "application/json")
-        .body("""
-            {
-                "username": "user@example.com",
-                "password": "userpass"
-            }
-            """)
-        .when().post("auth/login")
-        .then().statusCode(200).contentType(ContentType.JSON)
-        .extract().cookie("AuthToken");
-
-    given()
-        .header("Content-Type", "application/json")
-        .cookie("AuthToken", authToken)
-        .when().get("users/2/image")
-        .then().statusCode(403).contentType(ContentType.JSON)
-        .body("status", equalTo(403))
-        .body("error", equalTo("Forbidden"));
-  }
-
-  @Test
-  public void getImagesAsAdmin() {
-    String authToken = given()
-        .header("Content-Type", "application/json")
-        .body("""
-            {
-                "username": "admin@example.com",
-                "password": "adminpass"
-            }
-            """)
-        .when().post("auth/login")
-        .then().statusCode(200).contentType(ContentType.JSON)
-        .extract().cookie("AuthToken");
-
-    given()
-        .header("Content-Type", "application/json")
-        .cookie("AuthToken", authToken)
-        .when().get("users/1/image")
-        .then().statusCode(200).contentType(MediaType.IMAGE_JPEG_VALUE);
-
-    given()
-        .header("Content-Type", "application/json")
-        .cookie("AuthToken", authToken)
-        .when().get("users/2/image")
-        .then().statusCode(200).contentType(MediaType.IMAGE_JPEG_VALUE);
   }
 
   @Test

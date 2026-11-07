@@ -1,5 +1,6 @@
 import type ImageDTO from "~/dtos/ImageDTO";
 import type UserDTO from "~/dtos/UserDTO";
+import type UserPublicDTO from "~/dtos/UserPublicDTO";
 
 const API_USERS_URL = "/api/v1/users";
 const API_AUTH_URL = "/api/v1/auth";
@@ -102,6 +103,19 @@ export async function getUser(): Promise<UserDTO> {
 
   if (!res.ok) {
     throw new Error("Hubo un error al cargar la página de perfil");
+  }
+
+  return await res.json();
+
+}
+
+export async function getPublicUser(id: number): Promise<UserPublicDTO> {
+
+  const url = new URL(`${API_USERS_URL}/${id}/public`, getBaseUrl());
+  const res = await fetch(url.toString());
+
+  if (!res.ok) {
+    throw new Error("Hubo un error al cargar el usuario.");
   }
 
   return await res.json();

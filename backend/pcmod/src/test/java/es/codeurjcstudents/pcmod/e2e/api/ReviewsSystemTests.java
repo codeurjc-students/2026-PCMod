@@ -38,7 +38,8 @@ public class ReviewsSystemTests {
         .body("content[0].title", equalTo("Buena gráfica, aunque con cosas a mejorar."))
         .body("content[0].rating", equalTo(4))
         .body("content[0].componentId", equalTo(2))
-        .body("content[0].userId", equalTo(1));
+        .body("content[0].user.id", equalTo(1))
+        .body("content[0].user.username", equalTo("user_example"));
   }
 
   @Test 

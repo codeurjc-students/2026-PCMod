@@ -7,6 +7,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -69,7 +70,7 @@ public class UsersUnitTests {
 
     when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
 
-    User actualUser = usersService.getUser(1L).orElseThrow();
+    User actualUser = usersService.getUser(1L);
 
     assertEquals(user, actualUser);
     verify(usersRepository).findById(1L);
@@ -84,8 +85,8 @@ public class UsersUnitTests {
 
     when(usersRepository.findById(1L)).thenReturn(java.util.Optional.empty());
 
-    assertThrows(NoSuchElementException.class, () -> {
-      usersService.getUser(1L).orElseThrow();
+    assertThrows(ResponseStatusException.class, () -> {
+      usersService.getUser(1L);
     });
 
   }

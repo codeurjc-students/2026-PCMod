@@ -9,6 +9,7 @@ import ComponentDetail, { clientLoader } from "~/routes/detail-component";
 import Login from "~/routes/login";
 import Components from "~/routes/components";
 import { getComponents } from "~/services/components-service";
+import { getPublicUser } from "~/services/users-service";
 
 describe("ComponentDetailPageIntegration", () => {
 
@@ -21,25 +22,63 @@ describe("ComponentDetailPageIntegration", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders the component detail page", async () => {
-    const componentData = await clientLoader({ params: { id: "1" } } as Parameters<typeof clientLoader>[0]);
+  it("renders the component detail page without reviews", async () => {
+    const loadedData = await clientLoader({ params: { id: "1" } } as Parameters<typeof clientLoader>[0]);
 
     render(
       <MemoryRouter>
         <ComponentDetail
-          {...({ loaderData: componentData, params: {}, matches: [] } as any)}
+          {...({ loaderData: loadedData, params: {}, matches: [] } as any)}
         />
       </MemoryRouter>,
     );
 
     await waitFor(() => {
-      expect(screen.getByText(componentData.name)).toBeInTheDocument();
+      expect(screen.getByText(loadedData.component.name)).toBeInTheDocument();
       expect(screen.getByRole("paragraph")).toHaveTextContent("8 núcleos y 16 hilos ideales para gaming");
-      expect(screen.getByText(`${componentData.price.toFixed(2)} €`)).toBeInTheDocument();
-      expect(screen.getByRole("heading", { name: `${componentData.brand} | ${componentData.type}` })).toBeInTheDocument();
+      expect(screen.getByText(`${loadedData.component.price.toFixed(2)} €`)).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: `${loadedData.component.brand} | ${loadedData.component.type}` })).toBeInTheDocument();
       expect(screen.getByText("Reseñas del producto:")).toBeInTheDocument();
       expect(screen.getByText("No hay reseñas de este producto todavía.")).toBeInTheDocument();
+      expect(document.getElementById("loadMore")).not.toBeInTheDocument();
     });
+  });
+
+  it("renders the component detail page with reviews", async () => {
+    const loadedData = await clientLoader({ params: { id: "2" } } as Parameters<typeof clientLoader>[0]);
+
+    render(
+      <MemoryRouter>
+        <ComponentDetail
+          {...({ loaderData: loadedData, params: {}, matches: [] } as any)}
+        />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(loadedData.component.name)).toBeInTheDocument();
+      expect(screen.getByRole("paragraph")).toHaveTextContent("Ray Tracing y DLSS 4 para gaming fluido");
+      expect(screen.getByText(`${loadedData.component.price.toFixed(2)} €`)).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: `${loadedData.component.brand} | ${loadedData.component.type}` })).toBeInTheDocument();
+      expect(screen.getByText("Reseñas del producto:")).toBeInTheDocument();
+      expect(document.getElementById("component-average-rating")).toHaveTextContent("Puntuación media: ★★★★☆ 3.5/5 (2 reseña(s))");
+      expect(screen.getByText("user_example")).toBeInTheDocument();
+      expect(screen.getByText("Buena gráfica, aunque con cosas a mejorar.")).toBeInTheDocument();
+      expect(screen.getByText("Valoración del producto: ★★★★☆ 4/5")).toBeInTheDocument();
+      expect(screen.getByText("admin_example")).toBeInTheDocument();
+      expect(screen.getByText("Tarjeta gráfica bastante mejorable.")).toBeInTheDocument();
+      expect(screen.getByText("Valoración del producto: ★★★☆☆ 3/5")).toBeInTheDocument();
+      expect(document.getElementById("loadMore")).not.toBeInTheDocument();
+    });
+  });
+
+  it("gets public user info", async () => {
+
+    const publicUser = await getPublicUser(1);
+
+    expect(publicUser.id).toBe(1);
+    expect(publicUser.username).toBe("user_example");
+
   });
 
   it("renders the last units warning when stock is low", async () => {

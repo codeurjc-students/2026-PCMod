@@ -29,7 +29,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-
+import org.springframework.web.server.ResponseStatusException;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -93,10 +93,46 @@ public class UsersIntegrationTests {
 
   }
 
+  @Test 
+  void getUser() {
+    User user = usersRepository.save(new User("user3", "test", "userTest3", "c/testaddress", "testuser3@example.com",
+        passwordEncoder.encode("pass"), "REGISTERED_USER"));
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    User loadedUser = usersService.getUser(user.getId());
+
+    assertEquals("user3", loadedUser.getName());
+    assertEquals("test", loadedUser.getSurname());
+    assertEquals("userTest3", loadedUser.getUsername());
+    assertEquals("c/testaddress", loadedUser.getAddress());
+    assertEquals("testuser3@example.com", loadedUser.getEmail());
+    assertDoesNotThrow(() -> usersService.getUser(user.getId()));
+
+  }
+
+  @Test 
+  void getNonExistingUser() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    assertThrows(ResponseStatusException.class, () -> usersService.getUser(99L));
+
+  }
+
   @Test
   void getUserAsNotLoggedIn() {
 
-    assertThrows(AuthenticationCredentialsNotFoundException.class, () -> usersService.getUser(1L));
+    assertThrows(ResponseStatusException.class, () -> usersService.getUser(1L));
 
   }
 
@@ -126,7 +162,7 @@ public class UsersIntegrationTests {
                 .password("").authorities("ROLE_REGISTERED_USER").build(),
             null, List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
 
-    assertThrows(AuthorizationDeniedException.class, () -> usersService.getUser(2L));
+    assertThrows(ResponseStatusException.class, () -> usersService.getUser(2L));
 
   }
 
@@ -147,7 +183,7 @@ public class UsersIntegrationTests {
   }
 
   @Test
-  void getOwnImage() throws IOException, SQLException {
+  void getUserImage() throws IOException, SQLException {
     Resource expectedImage = new ClassPathResource("/sample_images/user.png");
     MockMultipartFile imageFile = new MockMultipartFile("imageFile", "user.png", "image/png",
         expectedImage.getInputStream());
@@ -160,6 +196,8 @@ public class UsersIntegrationTests {
             null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
     usersService.addUserImage(user.getId(), imageFile);
 
+    SecurityContextHolder.clearContext();
+
     Resource actualImage = usersService.getImageFile(user.getId());
 
     assertArrayEquals(expectedImage.getInputStream().readAllBytes(), actualImage.getInputStream().readAllBytes());
@@ -167,45 +205,14 @@ public class UsersIntegrationTests {
   }
 
   @Test
-  void getOwnVoidImage() throws IOException, SQLException {
+  void getUserVoidImage() throws IOException, SQLException {
     Resource expectedImage = new ClassPathResource("/sample_images/empty-profile-image.jpg");
 
     User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
-    SecurityContextHolder.getContext().setAuthentication(
-        new UsernamePasswordAuthenticationToken(
-            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
-                .password("").authorities("ROLE_REGISTERED_USER").build(),
-            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
 
     Resource actualImage = usersService.getImageFile(user.getId());
 
     assertArrayEquals(expectedImage.getInputStream().readAllBytes(), actualImage.getInputStream().readAllBytes());
-  }
-
-  @Test
-  void getOtherUserImageAsNoAdmin() {
-    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
-    SecurityContextHolder.getContext().setAuthentication(
-        new UsernamePasswordAuthenticationToken(
-            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
-                .password("").authorities("ROLE_REGISTERED_USER").build(),
-            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
-
-    assertThrows(AuthorizationDeniedException.class, () -> usersService.getImageFile(2L));
-  }
-
-  @Test
-  void getImagesAsAdmin() {
-    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
-    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
-    SecurityContextHolder.getContext().setAuthentication(
-        new UsernamePasswordAuthenticationToken(
-            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
-                .password("").authorities("ROLE_ADMIN").build(),
-            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
-
-    assertDoesNotThrow(() -> usersService.getImageFile(user.getId()));
-    assertDoesNotThrow(() -> usersService.getImageFile(admin.getId()));
   }
 
   @Test

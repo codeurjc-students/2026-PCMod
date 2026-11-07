@@ -8,11 +8,10 @@ import org.mapstruct.Mapping;
 
 import es.codeurjcstudents.pcmod.model.Review;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = UserMapper.class)
 public interface ReviewMapper {
 
   @Mapping(target = "componentId", source = "component.id")
-  @Mapping(target = "userId", source = "user.id")
   ReviewDTO toDTO(Review review);
 
   List<ReviewDTO> toDTOs(Collection<Review> reviews);

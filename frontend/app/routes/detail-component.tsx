@@ -1,26 +1,50 @@
 import { Button, Col, Image, Modal } from "react-bootstrap";
-import { ArrowLeft, CartPlus, Image as ImageIcon, PencilSquare, Trash, XOctagon } from "react-bootstrap-icons";
+import { ArrowLeft, CartPlus, Image as ImageIcon, PencilSquare, Plus, Trash, XOctagon } from "react-bootstrap-icons";
 import type { Route } from "./+types/detail-component";
-import type ComponentDTO from "~/dtos/ComponentDTO";
 import { deleteComponent, getComponent } from "~/services/components-service";
 import { useUserStore } from "~/stores/user-store";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import ReviewCard from "~/components/reviewCard";
+import type ReviewDTO from "~/dtos/ReviewDTO";
+import { getReviews } from "~/services/reviews-service";
 
 const API_URL = "/api/v1/components";
 
-export async function clientLoader({params}: Route.ClientLoaderArgs): Promise<ComponentDTO> {
-  return await getComponent(Number(params.id));
+export async function clientLoader({params}: Route.ClientLoaderArgs) {
+  const component = await getComponent(Number(params.id));
+  const reviews = await getReviews(component.id, 0);
+  return { component, reviews };
+}
+
+function convertRatingToStars(rating: number) {
+  const ratingFormatted = rating.toFixed(0);
+  const filled = "★".repeat(Number(ratingFormatted));
+  const empty = "☆".repeat(5 - Number(ratingFormatted));
+  return filled + empty;
 }
 
 export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
 
-  const component = loaderData;
+  const component = loaderData.component;
   const price = component.price.toFixed(2);
   let { user } = useUserStore();
   const navigate = useNavigate();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [reviews, setReviews] = useState<ReviewDTO[]>(loaderData.reviews.items);
+  const [hasNext, setHasNext] = useState(loaderData.reviews.hasNext);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState(false);
+  
+  useEffect(() => {
+    setReviews(loaderData.reviews.items);
+    setHasNext(loaderData.reviews.hasNext);
+    setCurrentPage(1);
+    setIsLoadingMore(false);
+    setLoadMoreError(false);
+  }, [loaderData]);
 
   async function handleDeleteComponent() {
     try {
@@ -30,6 +54,29 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
       console.error(error);
     }
   }
+
+  const handleLoadMore = async () => {
+    if (isLoadingMore || !hasNext) {
+      return;
+    }
+
+    setIsLoadingMore(true);
+    setLoadMoreError(false);
+
+    try {
+      const result = await getReviews(component.id, currentPage);
+      setReviews((previousReviews) => [...previousReviews, ...result.items]);
+      setHasNext(result.hasNext);
+
+      if (result.hasNext) {
+        setCurrentPage((previousPage) => previousPage + 1);
+      }
+    } catch {
+      setLoadMoreError(true);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   return (
     <>
@@ -83,10 +130,35 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
           </section>
           <section className="component-reviews">
             <h2 id="component-reviews-title">Reseñas del producto:</h2>
-            <h3 id="component-average-rating">Puntuación media: N/A</h3>
+            <h3 id="component-average-rating">Puntuación media: <span className="rating-stars">{convertRatingToStars(component.averageRating)}</span> {component.averageRating}/5 ({component.reviews.length} reseña(s))</h3>
             <div className="reviews-list">
-              <XOctagon />
-              <h4 id="component-no-reviews"> No hay reseñas de este producto todavía.</h4>
+              {reviews.length > 0 ? (
+                <>
+                  {reviews.map((review) => (
+                    <ReviewCard key={review.id} review={review} />
+                  ))}
+                  <div className="load-more-container">
+                    {loadMoreError && (
+                      <p className="text-danger" role="alert">
+                        Hubo un problema al cargar más reseñas. Por favor, pruebe de nuevo.
+                      </p>
+                    )}
+                    {hasNext && (
+                      <Button onClick={handleLoadMore} disabled={isLoadingMore} type="button" id="loadMore" name="loadMore" className="pcmod-button">
+                        <Plus />
+                        {!isLoadingMore && " Cargar más reseñas"}
+                      </Button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <XOctagon />
+                  <h4 id="component-no-reviews">
+                    No hay reseñas de este producto todavía.
+                  </h4>
+                </>
+              )}
             </div>
           </section>
         </div>
