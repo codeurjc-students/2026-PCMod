@@ -13,6 +13,7 @@ import es.codeurjcstudents.pcmod.enums.ComponentType;
 import es.codeurjcstudents.pcmod.model.Component;
 import es.codeurjcstudents.pcmod.model.User;
 import es.codeurjcstudents.pcmod.model.Image;
+import es.codeurjcstudents.pcmod.model.Review;
 import es.codeurjcstudents.pcmod.repository.ComponentsRepository;
 import jakarta.annotation.PostConstruct;
 
@@ -30,6 +31,9 @@ public class DatabaseInitializer {
 
   @Autowired
   private UsersService userService;
+
+  @Autowired
+  private ReviewsService reviewsService;
 
   @Autowired
   private ImageService imageService;
@@ -172,12 +176,31 @@ public class DatabaseInitializer {
     componentsRepository.save(component12);
 
     // Sample Users
+
     userService.createUser(new User("user", "example", "user_example", "c/example_address 1", "user@example.com",
         userPasswordEncoded, "REGISTERED_USER"));
     userService.createUser(
         new User("admin", "example", "admin_example", "c/example_address 5", "admin@example.com", adminPasswordEncoded,
             "REGISTERED_USER", "ADMIN"));
 
+    // Sample Reviews
+
+    Review review1 = new Review("Buena gráfica, aunque con cosas a mejorar.",
+    "La RTX 5060 me ha parecido una tarjeta gráfica bastante buena en relación calidad-precio.\nOfrece un rendimiento excelente en juegos a 1080p, permitiendo jugar con gráficos altos o ultra y disfrutar de una experiencia fluida.",
+    4);
+    reviewsService.createReview(Long.valueOf(1), Long.valueOf(2), review1);
+    Review review2 = new Review("Tarjeta gráfica bastante mejorable.",
+    "La gráfica rinde bien en 1080p, pero con los juegos actuales sus 8 GB de VRAM se quedan cortos.\nPor el mismo precio hay mejores opciones en el mercado, aunque suponga perder tecnologías exclusivas de NVIDIA.", 
+    3);
+    reviewsService.createReview(Long.valueOf(2), Long.valueOf(2), review2);
+    Review review3 = new Review("SSD de calidad y buena relación calidad-precio.",
+    "El Kingston NV3 de 1 TB me parece un SSD bastante interesante por su relación calidad-precio.\nOfrece velocidades de lectura y escritura rápidas gracias a su conexión NVMe PCIe 4.0, lo que permite reducir los tiempos de carga del sistema operativo, programas y videojuegos.", 
+    5);
+    reviewsService.createReview(Long.valueOf(1), Long.valueOf(3), review3);
+    Review review4 = new Review("Memoria RAM fiable.",
+    "Las Corsair Vengeance LPX 2x8 GB me parecen una muy buena opción para montar o actualizar un PC.\nSus 16 GB de memoria RAM ofrecen un rendimiento más que suficiente para jugar a la mayoría de videojuegos y realizar tareas cotidianas sin problemas.", 
+    4);
+    reviewsService.createReview(Long.valueOf(1), Long.valueOf(4), review4);
   }
 
   // Auxiliar functions

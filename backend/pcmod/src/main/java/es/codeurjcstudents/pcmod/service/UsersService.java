@@ -9,10 +9,12 @@ import java.util.Optional;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import es.codeurjcstudents.pcmod.dto.UserDTO;
 import es.codeurjcstudents.pcmod.dto.UserFullDTO;
@@ -44,12 +46,11 @@ public class UsersService {
     return userRepository.save(user);
   }
 
-  @PreAuthorize("hasRole('ADMIN') or principal.username == #id.toString()")
-  public Optional<User> getUser(long id) {
-    return userRepository.findById(id);
+  public User getUser(long id) {
+    return userRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
   }
 
-  @PreAuthorize("hasRole('ADMIN') or principal.username == #id.toString()")
   public Resource getImageFile(long id) throws SQLException {
 
     Optional<Image> imageOptional = userRepository.findImageById(id);

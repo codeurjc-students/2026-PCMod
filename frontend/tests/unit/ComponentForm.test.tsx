@@ -45,6 +45,8 @@ const component = {
   brand: "testBrand",
   price: 10,
   stock: 5,
+  averageRating: 0,
+  reviews: []
 };
 
 describe("ComponentForm", () => {
@@ -100,6 +102,8 @@ describe("ComponentForm", () => {
       brand: "testBrand",
       price: 10,
       stock: 5,
+      averageRating: 0,
+      reviews: []
     });
     vi.mocked(addImage).mockResolvedValue({} as Awaited<ReturnType<typeof addImage>>);
 
@@ -108,14 +112,19 @@ describe("ComponentForm", () => {
       { path: "/components/:id", 
         Component: ComponentDetail, 
         loader: async ({ params }) => {
-          return {
-            id: Number(params.id),
-            name: "testComponent",
-            description: "testDescription",
-            type: "CPU",
-            brand: "testBrand",
-            price: 10,
-            stock: 5,
+          return { 
+            component: {
+              id: Number(params.id),
+              name: "testComponent",
+              description: "testDescription",
+              type: "CPU",
+              brand: "testBrand",
+              price: 10,
+              stock: 5,
+              averageRating: 0,
+              reviews: []
+            },
+            reviews: { items: [], hasNext: false}
           };
         }
       }
@@ -353,6 +362,8 @@ describe("ComponentForm", () => {
       brand: "testOriginalBrand",
       price: 15,
       stock: 10,
+      averageRating: 0,
+      reviews: []
     });
     
     vi.mocked(updateComponent).mockResolvedValue(component);
@@ -363,14 +374,19 @@ describe("ComponentForm", () => {
       { path: "/components/:id", 
         Component: ComponentDetail, 
         loader: async ({ params }) => {
-          return {
-            id: Number(params.id),
-            name: "testComponent",
-            description: "testDescription",
-            type: "CPU",
-            brand: "testBrand",
-            price: 10,
-            stock: 5,
+          return { 
+            component: {
+              id: Number(params.id),
+              name: "testComponent",
+              description: "testDescription",
+              type: "CPU",
+              brand: "testBrand",
+              price: 10,
+              stock: 5,
+              averageRating: 0,
+              reviews: []
+            },
+            reviews: { items: [], hasNext: false}
           };
         }
       }

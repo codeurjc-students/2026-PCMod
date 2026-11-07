@@ -676,10 +676,17 @@ body {
   font-weight: 400;
 }
 
+.rating-stars {
+  color: var(--color-brand);
+  font-size: 1.15em;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
 .reviews-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   gap: 0.65rem;
   padding-top: 1.25rem;
@@ -689,6 +696,7 @@ body {
 }
 
 .reviews-list svg {
+  align-self: center;
   flex: 0 0 auto;
   font-size: 1.3rem;
 }
@@ -698,6 +706,102 @@ body {
   color: var(--color-muted);
   font-size: 0.95rem;
   font-weight: 400;
+}
+
+.review-card {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.3fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1.25rem;
+  color: var(--color-ink);
+  background-color: #fffaf6;
+  border: 1px solid var(--color-line);
+  border-left: 4px solid var(--color-principal);
+  border-radius: 8px;
+  text-align: left;
+  box-shadow: 0 4px 12px rgb(84 37 20 / 6%);
+}
+
+.review-card .user-info {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
+  align-items: center;
+  gap: 0.1rem 0.75rem;
+  min-width: 0;
+}
+
+.review-card .user-info img {
+  grid-row: span 2;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border: 2px solid var(--color-line);
+}
+
+.review-card .usernameReview,
+.review-card .dateReview,
+.review-card .review-content h3,
+.review-card .review-content h4 {
+  margin: 0;
+}
+
+.review-card .usernameReview {
+  min-width: 0;
+  color: var(--color-ink);
+  font-size: 1rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.review-card .dateReview {
+  color: var(--color-muted);
+  font-weight: 400;
+}
+
+.review-card .review-content {
+  min-width: 0;
+}
+
+.review-card .review-content h3 {
+  margin-bottom: 0.55rem;
+  color: var(--color-ink);
+  font-size: 1.15rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.review-card .review-content h4 {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.review-card .review-content h4[id^="review-valoration-"] {
+  margin-top: 0.9rem;
+  color: var(--color-brand-dark);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.review-card .review-content .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-top: 1rem;
+  margin-right: 0.5rem;
+  padding: 0.45rem;
+  border-radius: 6px;
+}
+
+.reviews-list>.load-more-container {
+  align-items: center;
+  padding-top: 0.25rem;
 }
 
 /* Modal */

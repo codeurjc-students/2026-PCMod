@@ -1,6 +1,7 @@
 package es.codeurjcstudents.pcmod.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record ComponentDTO(
     Long id,
@@ -10,5 +11,7 @@ public record ComponentDTO(
     String brand,
     BigDecimal price,
     Integer stock,
+    List<ReviewDTO> reviews,
+    Double averageRating,
     ImageDTO image) {
 }

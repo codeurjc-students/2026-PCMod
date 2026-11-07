@@ -3,6 +3,8 @@ package es.codeurjcstudents.pcmod.model;
 import es.codeurjcstudents.pcmod.enums.ComponentType;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,6 +14,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -46,6 +49,9 @@ public class Component {
   @NotNull(message = "El stock del componente es obligatorio")
   private Integer stock;
 
+  @OneToMany(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Review> reviews = new ArrayList<>();
+
   public Component() {
   }
 
@@ -57,6 +63,27 @@ public class Component {
     this.brand = brand;
     this.price = price;
     this.stock = stock;
+    this.reviews = new ArrayList<>();
+  }
+
+  public void addReview(Review review) {
+    reviews.add(review);
+    review.setComponent(this);
+  }
+
+  public double getAverageRating() {
+
+    if (reviews == null || reviews.isEmpty()) {
+      return 0.0;
+    }
+
+    double sum = 0.00;
+    for (Review review : reviews) {
+      sum += review.getRating();
+    }
+
+    return Math.round((sum / reviews.size()) * 100.0) / 100.0;
+
   }
 
   public Long getId() {
@@ -121,5 +148,13 @@ public class Component {
 
   public void setStock(Integer stock) {
     this.stock = stock;
+  }
+
+  public List<Review> getReviews() {
+    return reviews;
+  }
+
+  public void setReviews(List<Review> reviews) {
+    this.reviews = reviews;
   }
 }

@@ -1,4 +1,5 @@
 import type ImageDTO from "./ImageDTO";
+import type ReviewDTO from "./ReviewDTO";
 
 export default interface ComponentDTO {
   id: number;
@@ -8,5 +9,7 @@ export default interface ComponentDTO {
   brand: string;
   price: number;
   stock: number;
+  averageRating: number;
+  reviews: ReviewDTO[];
   image: ImageDTO
 }

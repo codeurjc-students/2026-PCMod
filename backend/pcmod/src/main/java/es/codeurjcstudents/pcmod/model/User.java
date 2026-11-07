@@ -1,5 +1,6 @@
 package es.codeurjcstudents.pcmod.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -9,6 +10,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 @Entity(name = "UserTable")
@@ -36,6 +38,9 @@ public class User {
   @ElementCollection(fetch = FetchType.EAGER)
   private List<String> roles;
 
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Review> reviews = new ArrayList<>();
+
   public User() {
   }
 
@@ -47,7 +52,13 @@ public class User {
     this.address = address;
     this.email = email;
     this.encodedPassword = encodedPassword;
+    this.reviews = new ArrayList<>();
     this.roles = List.of(roles);
+  }
+
+  public void addReview(Review review) {
+    reviews.add(review);
+    review.setUser(this);
   }
 
   public Long getId() {
@@ -120,6 +131,14 @@ public class User {
 
   public void setRoles(List<String> roles) {
     this.roles = roles;
+  }
+
+  public List<Review> getReviews() {
+    return reviews;
+  }
+
+  public void setReviews(List<Review> reviews) {
+    this.reviews = reviews;
   }
 
 }

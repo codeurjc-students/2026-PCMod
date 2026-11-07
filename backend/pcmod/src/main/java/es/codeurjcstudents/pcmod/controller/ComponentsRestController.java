@@ -97,7 +97,7 @@ public class ComponentsRestController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<ComponentDTO> updateUser(@RequestBody ComponentDTO updatedData, @PathVariable long id) {
+  public ResponseEntity<ComponentDTO> updateComponent(@RequestBody ComponentDTO updatedData, @PathVariable long id) {
 
     Component newComponentData = componentService.toDomain(updatedData);
     Component updatedComponent = componentService.updateComponent(newComponentData, id);
