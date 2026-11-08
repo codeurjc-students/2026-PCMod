@@ -59,13 +59,14 @@ public class SecurityConfig {
         .exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedHandlerJwt));
 
     http.authorizeHttpRequests(authorize -> authorize
-        .requestMatchers(HttpMethod.POST, "/api/v1/components/**").hasRole("ADMIN")
-        .requestMatchers(HttpMethod.DELETE, "/api/v1/components/**").hasRole("ADMIN")
-        .requestMatchers(HttpMethod.PUT, "/api/v1/components/**").hasRole("ADMIN")
+        .requestMatchers(HttpMethod.DELETE, "/api/v1/components/*/reviews/*").hasRole("REGISTERED_USER")
         .requestMatchers(HttpMethod.GET, "/api/v1/users/me").hasRole("REGISTERED_USER")
         .requestMatchers(HttpMethod.POST, "/api/v1/users/*/image").hasRole("REGISTERED_USER")
         .requestMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasRole("REGISTERED_USER")
         .requestMatchers(HttpMethod.PUT, "/api/v1/users/**").hasRole("REGISTERED_USER")
+        .requestMatchers(HttpMethod.POST, "/api/v1/components/**").hasRole("ADMIN")
+        .requestMatchers(HttpMethod.DELETE, "/api/v1/components/**").hasRole("ADMIN")
+        .requestMatchers(HttpMethod.PUT, "/api/v1/components/**").hasRole("ADMIN")
         .anyRequest().permitAll());
 
     http.formLogin(formLogin -> formLogin.disable());

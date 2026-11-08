@@ -3,8 +3,11 @@ package es.codeurjcstudents.pcmod.e2e.api;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
@@ -12,9 +15,10 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @Tag("server-system")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ReviewsSystemTests {
-    
+
   @LocalServerPort
   private int port;
 
@@ -22,14 +26,15 @@ public class ReviewsSystemTests {
   public void setup() {
     RestAssured.port = port;
     RestAssured.baseURI = "https://localhost";
-    RestAssured.basePath = "/api/v1/components";
+    RestAssured.basePath = "/api/v1/";
     RestAssured.useRelaxedHTTPSValidation();
   }
 
-  @Test 
-  public void getReviewsByComponentId(){
-      given().header("Content-Type", "application/json")
-        .when().get("/2/reviews/")
+  @Test
+  @Order(1)
+  public void getReviewsByComponentId() {
+    given().header("Content-Type", "application/json")
+        .when().get("components/2/reviews/")
         .then().statusCode(200).contentType(ContentType.JSON)
         // Global checks
         .body("totalElements", equalTo(2))
@@ -42,14 +47,159 @@ public class ReviewsSystemTests {
         .body("content[0].user.username", equalTo("user_example"));
   }
 
-  @Test 
-  public void getZeroReviewsByComponentId(){
-      given().header("Content-Type", "application/json")
-        .when().get("/1/reviews/")
+  @Test
+  @Order(2)
+  public void getZeroReviewsByComponentId() {
+    given().header("Content-Type", "application/json")
+        .when().get("components/1/reviews/")
         .then().statusCode(200).contentType(ContentType.JSON)
         // Global checks
         .body("content", empty())
         .body("totalElements", equalTo(0))
         .body("totalPages", equalTo(0));
   }
+
+  @Test
+  @Order(3)
+  public void deleteReviewAsNotLoggedIn() {
+
+    given()
+        .when().delete("components/2/reviews/1")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("status", equalTo(401))
+        .body("error", equalTo("Unauthorized"));
+  }
+
+  @Test
+  @Order(4)
+  public void deleteOwnReview() {
+
+    given().header("Content-Type", "application/json")
+        .when().get("components/2/reviews/")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("totalElements", equalTo(2));
+
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/2/reviews/1")
+        .then().statusCode(200);
+
+    given().header("Content-Type", "application/json")
+        .when().get("components/2/reviews/")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("totalElements", equalTo(1));
+
+  }
+
+  @Test
+  @Order(5)
+  public void deleteOtherReviewAsNoAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/2/reviews/2")
+        .then().statusCode(403).contentType(ContentType.JSON)
+        .body("error", equalTo("Forbidden"));
+  }
+
+  @Test
+  @Order(6)
+  public void deleteReviewsAsAdmin() {
+
+    given().header("Content-Type", "application/json")
+        .when().get("components/2/reviews/")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("totalElements", equalTo(1));
+
+    given().header("Content-Type", "application/json")
+        .when().get("components/3/reviews/")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("totalElements", equalTo(1));
+
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/2/reviews/2")
+        .then().statusCode(200);
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/3/reviews/3")
+        .then().statusCode(200);
+
+    given().header("Content-Type", "application/json")
+        .when().get("components/2/reviews/")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("totalElements", equalTo(0));
+
+    given().header("Content-Type", "application/json")
+        .when().get("components/3/reviews/")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body("totalElements", equalTo(0));
+
+  }
+
+  @Test
+  @Order(7)
+  public void deleteReviewWithWrongComponentId() {
+
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/2/reviews/4")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("message", equalTo("La reseña no pertenece a ese componente."));
+
+  }
+
 }
