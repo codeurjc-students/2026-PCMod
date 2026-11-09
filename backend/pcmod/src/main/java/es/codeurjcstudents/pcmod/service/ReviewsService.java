@@ -1,8 +1,12 @@
 package es.codeurjcstudents.pcmod.service;
 
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -49,6 +53,30 @@ public class ReviewsService {
 
   public Page<Review> findAllByComponent(long id, Pageable pageable) {
     return reviewRepository.findAllByComponentId(id, pageable);
+  }
+
+  @PreAuthorize("hasRole('ADMIN') or @reviewsService.isOwner(#reviewId, principal.username)")
+  public void delete(long componentId, long reviewId) {
+    
+    Optional<Review> reviewToDelete = reviewRepository.findById(reviewId);
+
+    if ((reviewToDelete.isPresent()) && (reviewToDelete.get().getComponent().getId() != componentId)) {
+      throw new NoSuchElementException("La reseña no pertenece a ese componente.");
+    }
+
+    if (reviewToDelete.isPresent()) {
+
+      reviewRepository.deleteById(reviewId);
+
+    }
+    
+  }
+
+  public boolean isOwner(long reviewId, String usernameId) {
+
+    Optional<Review> review = reviewRepository.findById(reviewId);
+
+    return review.isPresent() && (review.get().getUser().getId().equals(Long.valueOf(usernameId)));
   }
 
   public ReviewDTO toDTO(Review review) {

@@ -976,6 +976,15 @@ body {
   .purchases-data {
     min-height: 300px;
   }
+
+  .review-card {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .review-card .user-info {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
 }
 
 /* Component Card */

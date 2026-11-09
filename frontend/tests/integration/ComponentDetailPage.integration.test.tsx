@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import fetchCookie from "fetch-cookie";
 import userEvent from "@testing-library/user-event";
-import { createRoutesStub, MemoryRouter, Navigate } from "react-router";
+import { createMemoryRouter, createRoutesStub, Navigate, RouterProvider } from "react-router";
 import { beforeEach, afterEach, describe, it, expect, vi } from "vitest";
 import "@testing-library/jest-dom";
 import { CookieJar } from "tough-cookie";
@@ -10,12 +10,13 @@ import Login from "~/routes/login";
 import Components from "~/routes/components";
 import { getComponents } from "~/services/components-service";
 import { getPublicUser } from "~/services/users-service";
+import { useUserStore } from "~/stores/user-store";
 
 describe("ComponentDetailPageIntegration", () => {
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchCookie(globalThis.fetch, new CookieJar()));
-
+    useUserStore.setState({ user: null, loginError: null });
   });
 
   afterEach(() => {
@@ -25,13 +26,17 @@ describe("ComponentDetailPageIntegration", () => {
   it("renders the component detail page without reviews", async () => {
     const loadedData = await clientLoader({ params: { id: "1" } } as Parameters<typeof clientLoader>[0]);
 
-    render(
-      <MemoryRouter>
-        <ComponentDetail
-          {...({ loaderData: loadedData, params: {}, matches: [] } as any)}
-        />
-      </MemoryRouter>,
+    const router = createMemoryRouter(
+      [{
+          path: "/components/:id",
+          element: <ComponentDetail loaderData={loadedData} />,
+      }],
+      {
+        initialEntries: ["/components/1"],
+      }
     );
+
+    render(<RouterProvider router={router} />);
 
     await waitFor(() => {
       expect(screen.getByText(loadedData.component.name)).toBeInTheDocument();
@@ -47,13 +52,17 @@ describe("ComponentDetailPageIntegration", () => {
   it("renders the component detail page with reviews", async () => {
     const loadedData = await clientLoader({ params: { id: "2" } } as Parameters<typeof clientLoader>[0]);
 
-    render(
-      <MemoryRouter>
-        <ComponentDetail
-          {...({ loaderData: loadedData, params: {}, matches: [] } as any)}
-        />
-      </MemoryRouter>,
+    const router = createMemoryRouter(
+      [{
+          path: "/components/:id",
+          element: <ComponentDetail loaderData={loadedData} />,
+      }],
+      {
+        initialEntries: ["/components/2"],
+      }
     );
+
+    render(<RouterProvider router={router} />);
 
     await waitFor(() => {
       expect(screen.getByText(loadedData.component.name)).toBeInTheDocument();
@@ -84,13 +93,17 @@ describe("ComponentDetailPageIntegration", () => {
   it("renders the last units warning when stock is low", async () => {
     const componentData = await clientLoader({ params: { id: "1" } } as Parameters<typeof clientLoader>[0]);
 
-    render(
-      <MemoryRouter>
-        <ComponentDetail
-          {...({ loaderData: componentData, params: {}, matches: [] } as any)}
-        />
-      </MemoryRouter>
+    const router = createMemoryRouter(
+      [{
+          path: "/components/:id",
+          element: <ComponentDetail loaderData={componentData} />,
+      }],
+      {
+        initialEntries: ["/components/1"],
+      }
     );
+
+    render(<RouterProvider router={router} />);
 
     await waitFor(() => {
       expect(screen.getByText("¡Últimas unidades!")).toBeInTheDocument();
@@ -100,13 +113,17 @@ describe("ComponentDetailPageIntegration", () => {
   it("does not render the last units warning when stock is not low", async () => {
     const componentData = await clientLoader({ params: { id: "3" } } as Parameters<typeof clientLoader>[0]);
 
-    render(
-      <MemoryRouter>
-        <ComponentDetail
-          {...({ loaderData: componentData, params: {}, matches: [] } as any)}
-        />
-      </MemoryRouter>
+    const router = createMemoryRouter(
+      [{
+          path: "/components/:id",
+          element: <ComponentDetail loaderData={componentData} />,
+      }],
+      {
+        initialEntries: ["/components/1"],
+      }
     );
+
+    render(<RouterProvider router={router} />);
 
     await waitFor(() => {
       expect(screen.queryByText("¡Últimas unidades!")).not.toBeInTheDocument();
@@ -116,13 +133,17 @@ describe("ComponentDetailPageIntegration", () => {
   it("renders no stock warning when stock is 0", async () => {
     const componentData = await clientLoader({ params: { id: "4" } } as Parameters<typeof clientLoader>[0]);
 
-    render(
-      <MemoryRouter>
-        <ComponentDetail
-          {...({ loaderData: componentData, params: {}, matches: [] } as any)}
-        />
-      </MemoryRouter>
-    ); 
+    const router = createMemoryRouter(
+      [{
+          path: "/components/:id",
+          element: <ComponentDetail loaderData={componentData} />,
+      }],
+      {
+        initialEntries: ["/components/1"],
+      }
+    );
+
+    render(<RouterProvider router={router} />);
   
     await waitFor(() => {
       expect(screen.getByText("¡No hay stock!")).toBeInTheDocument();
@@ -134,13 +155,17 @@ describe("ComponentDetailPageIntegration", () => {
   it("shows only the component add to cart button for non-registered users", async () => {
     const componentData = await clientLoader({ params: { id: "1" } } as Parameters<typeof clientLoader>[0]);
 
-    render(
-      <MemoryRouter>
-        <ComponentDetail
-          {...({ loaderData: componentData, params: {}, matches: [] } as any)}
-        />
-      </MemoryRouter>
+    const router = createMemoryRouter(
+      [{
+          path: "/components/:id",
+          element: <ComponentDetail loaderData={componentData} />,
+      }],
+      {
+        initialEntries: ["/components/1"],
+      }
     );
+
+    render(<RouterProvider router={router} />);
 
     await waitFor(() => {
       expect(document.getElementById("add-to-cart-button")).toBeInTheDocument();
@@ -289,6 +314,168 @@ describe("ComponentDetailPageIntegration", () => {
   
     await waitFor(() => {
       expect(screen.queryByText("Intel Core i5-12400F")).not.toBeInTheDocument();
+    });
+
+  });
+
+  it("it does not show the review delete button for non-registered users", async () => {
+
+    const componentData = await clientLoader({ params: { id: "2" } } as Parameters<typeof clientLoader>[0]);
+
+    const router = createMemoryRouter(
+      [{
+          path: "/components/:id",
+          element: <ComponentDetail loaderData={componentData} />,
+      }],
+      {
+        initialEntries: ["/components/2"],
+      }
+    );
+
+    render(<RouterProvider router={router} />);
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).not.toBeInTheDocument();
+      expect(document.getElementById("delete-review-button-2")).not.toBeInTheDocument();
+    });
+
+  });
+
+  it("shows only the delete review button for logged-in non-admin users for own reviews", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/2" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
+      expect(document.getElementById("delete-review-button-2")).not.toBeInTheDocument();
+    });
+
+  });
+
+  it("shows the review delete button for admin users for all reviews", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/2" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
+      expect(document.getElementById("delete-review-button-2")).toBeInTheDocument();
+    });
+
+  });
+
+  it("cancel review deletion", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/2" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("delete-review-button-1")!);
+
+    expect(await screen.findByText("¿Está seguro de que desea borrar esta reseña?")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Cancelar/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Eliminar reseña/ })).toBeInTheDocument();
+
+    await user.click(await screen.findByRole("button", { name: /Cancelar/ }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Buena gráfica, aunque con cosas a mejorar.")).toBeInTheDocument();
+    });
+
+  });
+
+  it("cancel review deletion with the close button", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/2" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("delete-review-button-1")!);
+
+    expect(await screen.findByText("¿Está seguro de que desea borrar esta reseña?")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Cancelar/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Eliminar reseña/ })).toBeInTheDocument();
+
+    await user.click(await screen.findByRole("button", { name: "Close" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Buena gráfica, aunque con cosas a mejorar.")).toBeInTheDocument();
+    });
+  });
+
+  it("deletes review", async () => {
+    
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/2" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("delete-review-button-1")!);
+
+    expect(await screen.findByText("¿Está seguro de que desea borrar esta reseña?")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Cancelar/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Eliminar reseña/ })).toBeInTheDocument();
+
+    await user.click(await screen.findByRole("button", { name: /Eliminar reseña/ }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Buena gráfica, aunque con cosas a mejorar.")).not.toBeInTheDocument();
     });
 
   });

@@ -1,10 +1,13 @@
 package es.codeurjcstudents.pcmod.integration;
 
 import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -154,4 +161,90 @@ public class ReviewsIntegrationTests {
     assertEquals(0, reviewsList.getTotalPages());
 
   }
+
+  @Test
+  void deleteReviewAsNotLoggedIn() {
+
+    Component component = componentsRepository.findAll().getFirst();
+    Review review = reviewsRepository.findAll().getFirst();
+
+    assertThrows(AuthenticationCredentialsNotFoundException.class,
+        () -> reviewsService.delete(component.getId(), review.getId()));
+
+  }
+
+  @Test
+  void deleteOwnReview() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    Component component = componentsRepository.findAll().getFirst();
+    Review review = reviewsRepository.findAll().getFirst();
+
+    assertDoesNotThrow(() -> reviewsService.delete(component.getId(), review.getId()));
+    assertEquals(1, reviewsRepository.count());
+
+  }
+
+  @Test
+  void deleteOtherReviewAsLoggedIn() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    Component component = componentsRepository.findAll().getFirst();
+    Review review = reviewsRepository.findAll().getLast();
+
+    assertThrows(AuthorizationDeniedException.class, () -> reviewsService.delete(component.getId(), review.getId()));
+    assertEquals(2, reviewsRepository.count());
+
+  }
+
+  @Test
+  void deleteReviewsAsAdmin() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component component = componentsRepository.findAll().getFirst();
+    Review reviewUser = reviewsRepository.findAll().getFirst();
+    Review reviewAdmin = reviewsRepository.findAll().getLast();
+
+    assertDoesNotThrow(() -> reviewsService.delete(component.getId(), reviewUser.getId()));
+    assertDoesNotThrow(() -> reviewsService.delete(component.getId(), reviewAdmin.getId()));
+    assertEquals(0, reviewsRepository.count());
+
+  }
+
+  @Test
+  void deleteReviewOfWrongComponent() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component component = componentsRepository.findAll().getLast();
+    Review review = reviewsRepository.findAll().getFirst();
+
+    assertThrows(NoSuchElementException.class, () -> reviewsService.delete(component.getId(), review.getId()));
+    assertEquals(0, reviewsRepository.count());
+
+  }
+
 }
