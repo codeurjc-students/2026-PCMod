@@ -4,14 +4,14 @@ import type { Route } from "./+types/detail-component";
 import { deleteComponent, getComponent } from "~/services/components-service";
 import { useUserStore } from "~/stores/user-store";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useRevalidator } from "react-router";
 import ReviewCard from "~/components/reviewCard";
 import type ReviewDTO from "~/dtos/ReviewDTO";
 import { getReviews } from "~/services/reviews-service";
 
 const API_URL = "/api/v1/components";
 
-export async function clientLoader({params}: Route.ClientLoaderArgs) {
+export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const component = await getComponent(Number(params.id));
   const reviews = await getReviews(component.id, 0);
   return { component, reviews };
@@ -30,6 +30,7 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
   const price = component.price.toFixed(2);
   let { user } = useUserStore();
   const navigate = useNavigate();
+  const revalidator = useRevalidator();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [reviews, setReviews] = useState<ReviewDTO[]>(loaderData.reviews.items);
@@ -37,7 +38,7 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState(false);
-  
+
   useEffect(() => {
     setReviews(loaderData.reviews.items);
     setHasNext(loaderData.reviews.hasNext);
@@ -78,20 +79,24 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
     }
   };
 
+  async function handleDeleteReview() {
+    await revalidator.revalidate();
+  }
+
   return (
     <>
       <main className="main">
         <div className="container">
           <section className="component-data">
             <Col className="component-image" id="component-image" xs={12} md={4}>
-            {component.image ? (
-              <Image
-                src={`${API_URL}/${component.id}/image`}
-                alt={component.name}
-              />
-            ) : (
-              <ImageIcon />
-            )}
+              {component.image ? (
+                <Image
+                  src={`${API_URL}/${component.id}/image`}
+                  alt={component.name}
+                />
+              ) : (
+                <ImageIcon />
+              )}
             </Col>
             <Col className="component-info" xs={12} md={8}>
               {component.stock <= 5 && component.stock > 0 && (
@@ -135,7 +140,7 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
               {reviews.length > 0 ? (
                 <>
                   {reviews.map((review) => (
-                    <ReviewCard key={review.id} review={review} />
+                    <ReviewCard key={review.id} review={review} onDelete={handleDeleteReview} />
                   ))}
                   <div className="load-more-container">
                     {loadMoreError && (

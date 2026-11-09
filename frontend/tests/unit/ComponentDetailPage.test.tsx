@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, it, expect, vi } from "vitest";
 import "@testing-library/jest-dom";
-import { createRoutesStub, MemoryRouter } from "react-router";
+import { createMemoryRouter, createRoutesStub, RouterProvider } from "react-router";
 import ComponentDetail, { clientLoader } from "~/routes/detail-component";
 import { getComponent, deleteComponent, getComponents } from "~/services/components-service";
-import { getReviews } from "~/services/reviews-service";
+import { deleteReview, getReviews } from "~/services/reviews-service";
 import { reqIsLogged, getPublicUser } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
 import userEvent from "@testing-library/user-event";
@@ -17,11 +17,17 @@ vi.mock("~/services/components-service", () => ({
 
 vi.mock("~/services/reviews-service", () => ({
   getReviews: vi.fn(),
+  deleteReview: vi.fn()
 }));
 
 const userPublic1 = {
   id: 1,
   username: "user_example"
+}
+
+const adminPublic1 = {
+  id: 2,
+  username: "admin_example"
 }
 
 const review1 = {
@@ -32,6 +38,16 @@ const review1 = {
   date: "2026-11-07",
   componentId: 2,
   user: userPublic1
+}
+
+const review2 = {
+  id: 2,
+  title: "sample_title2",
+  message: "sample_message2",
+  rating: 5,
+  date: "2026-11-07",
+  componentId: 2,
+  user: adminPublic1
 }
 
 const component1 = {
@@ -109,7 +125,7 @@ describe("ComponentDetailPage", () => {
   it("renders the component detail page without reviews", async () => {
 
     const RouterStub = createRoutesStub([
-      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext:false } })},
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext: false } }) },
     ]);
 
     render(<RouterStub initialEntries={["/components/1"]} />);
@@ -117,7 +133,7 @@ describe("ComponentDetailPage", () => {
     await waitFor(() => {
       expect(screen.getByText(component1.name)).toBeInTheDocument();
       expect(screen.getByText(component1.description)).toBeInTheDocument();
-      expect(screen.getByText(component1.price.toFixed(2).toString()  + " €")).toBeInTheDocument();
+      expect(screen.getByText(component1.price.toFixed(2).toString() + " €")).toBeInTheDocument();
       expect(screen.getByRole("heading", { name: /AMD\s*\|\s*CPU/ })).toBeInTheDocument();
       expect(screen.getByText("Reseñas del producto:")).toBeInTheDocument();
       expect(document.getElementById("component-average-rating")).toHaveTextContent("Puntuación media: ☆☆☆☆☆ 0/5 (0 reseña(s))");
@@ -130,7 +146,7 @@ describe("ComponentDetailPage", () => {
   it("renders the component detail page with reviews", async () => {
 
     const RouterStub = createRoutesStub([
-      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1], hasNext:true} })},
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1], hasNext: true } }) },
     ]);
 
     render(<RouterStub initialEntries={["/components/2"]} />);
@@ -138,7 +154,7 @@ describe("ComponentDetailPage", () => {
     await waitFor(() => {
       expect(screen.getByText(component2.name)).toBeInTheDocument();
       expect(screen.getByText(component2.description)).toBeInTheDocument();
-      expect(screen.getByText(component2.price.toFixed(2).toString()  + " €")).toBeInTheDocument();
+      expect(screen.getByText(component2.price.toFixed(2).toString() + " €")).toBeInTheDocument();
       expect(screen.getByRole("heading", { name: /Intel\s*\|\s*CPU/ })).toBeInTheDocument();
       expect(screen.getByText("Reseñas del producto:")).toBeInTheDocument();
       expect(document.getElementById("component-average-rating")).toHaveTextContent("Puntuación media: ★★★★★ 5/5 (1 reseña(s))");
@@ -159,16 +175,28 @@ describe("ComponentDetailPage", () => {
       hasNext: false,
     });
 
-    render(
-      <MemoryRouter>
-        <ComponentDetail
-          loaderData={{
-            component: component2,
-            reviews: { items: [review1], hasNext:true},
-          } as any}
-        />
-      </MemoryRouter>,
+    const router = createMemoryRouter(
+      [{
+          path: "/components/:id",
+          element: (
+            <ComponentDetail
+              loaderData={{
+                component: component2,
+                reviews: {
+                  items: [review1],
+                  hasNext: true,
+                },
+              } as any}
+            />
+          ),
+        },
+      ],
+      {
+        initialEntries: ["/components/2"],
+      },
     );
+
+    render(<RouterProvider router={router} />);
 
     const loadMoreButton = screen.getByRole("button", { name: /Cargar más reseñas/i });
     await user.click(loadMoreButton);
@@ -185,16 +213,28 @@ describe("ComponentDetailPage", () => {
 
     vi.mocked(getReviews).mockRejectedValueOnce(new Error("Network error"));
 
-    render(
-      <MemoryRouter>
-        <ComponentDetail
-          loaderData={{
-            component: component2,
-            reviews: { items: [review1], hasNext:true},
-          } as any}
-        />
-      </MemoryRouter>,
+    const router = createMemoryRouter(
+      [{
+          path: "/components/:id",
+          element: (
+            <ComponentDetail
+              loaderData={{
+                component: component2,
+                reviews: {
+                  items: [review1],
+                  hasNext: true,
+                },
+              } as any}
+            />
+          ),
+        },
+      ],
+      {
+        initialEntries: ["/components/2"],
+      },
     );
+
+    render(<RouterProvider router={router} />);
 
     await user.click(screen.getByRole("button", { name: /Cargar más reseñas/i }));
 
@@ -213,7 +253,7 @@ describe("ComponentDetailPage", () => {
     vi.mocked(getComponent).mockResolvedValue(component2);
 
     const RouterStub = createRoutesStub([
-      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [], hasNext:false } }) },
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [], hasNext: false } }) },
     ]);
 
     render(<RouterStub initialEntries={["/components/2"]} />);
@@ -228,7 +268,7 @@ describe("ComponentDetailPage", () => {
     vi.mocked(getComponent).mockResolvedValue(component1);
 
     const RouterStub = createRoutesStub([
-      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext:false } }) },
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext: false } }) },
     ]);
 
     render(<RouterStub initialEntries={["/components/1"]} />);
@@ -244,7 +284,7 @@ describe("ComponentDetailPage", () => {
     vi.mocked(getComponent).mockResolvedValue(component3);
 
     const RouterStub = createRoutesStub([
-      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component3, reviews: { items: [], hasNext:false } }) },
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component3, reviews: { items: [], hasNext: false } }) },
     ]);
 
     render(<RouterStub initialEntries={["/components/3"]} />);
@@ -259,7 +299,7 @@ describe("ComponentDetailPage", () => {
   it("shows only the component add to cart button for non-registered users", async () => {
     
     const RouterStub = createRoutesStub([
-      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext:false } })},
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext: false } }) },
     ]);
 
     render(<RouterStub initialEntries={["/components/1"]} />);
@@ -275,7 +315,7 @@ describe("ComponentDetailPage", () => {
   it("shows only the component add to cart button for logged-in non-admin users", async () => {
       
     const RouterStub = createRoutesStub([
-      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext:false } })},
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext: false } }) },
     ]);
 
     vi.mocked(reqIsLogged).mockResolvedValue(userAccount);
@@ -294,7 +334,7 @@ describe("ComponentDetailPage", () => {
   it("shows the component edit and delete buttons for admin users", async () => {
     
     const RouterStub = createRoutesStub([
-      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext:false } })},
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext: false } }) },
     ]);
 
     vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
@@ -313,8 +353,9 @@ describe("ComponentDetailPage", () => {
   it("deletes component", async () => {
     const user = userEvent.setup();
     const RouterStub = createRoutesStub([
-      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext:false } }) },
-      { path: "/components",
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext: false } }) },
+      {
+        path: "/components",
         Component: Components,
         loader: async ({ request }) => {
           const url = new URL(request.url);
@@ -352,8 +393,9 @@ describe("ComponentDetailPage", () => {
   it("cancel component deletion", async () => {
     const user = userEvent.setup();
     const RouterStub = createRoutesStub([
-      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext:false } }) },
-      { path: "/components",
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext: false } }) },
+      {
+        path: "/components",
         Component: Components,
         loader: async ({ request }) => {
           const url = new URL(request.url);
@@ -391,8 +433,9 @@ describe("ComponentDetailPage", () => {
   it("cancel component deletion with the close button", async () => {
     const user = userEvent.setup();
     const RouterStub = createRoutesStub([
-      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext:false } }) },
-      { path: "/components",
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component1, reviews: { items: [], hasNext: false } }) },
+      {
+        path: "/components",
         Component: Components,
         loader: async ({ request }) => {
           const url = new URL(request.url);
@@ -476,6 +519,149 @@ describe("ComponentDetailPage", () => {
     expect(publicUser.id).toBe(1);
     expect(publicUser.username).toBe("sample_username");
 
+  });
+
+  it("it does not show the review delete button for non-registered users", async () => {
+
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1, review2], hasNext: false } }) },
+    ]);
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).not.toBeInTheDocument();
+      expect(document.getElementById("delete-review-button-2")).not.toBeInTheDocument();
+    });
+
+  });
+
+  it("shows only the delete review button for logged-in non-admin users for own reviews", async () => {
+
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1, review2], hasNext: false } }) },
+    ]);
+
+    vi.mocked(reqIsLogged).mockResolvedValue(userAccount);
+    useUserStore.setState({ user: userAccount });
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
+      expect(document.getElementById("delete-review-button-2")).not.toBeInTheDocument();
+    });
+
+  });
+
+  it("shows the review delete button for admin users for all reviews", async () => {
+
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1, review2], hasNext: false } }) },
+    ]);
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
+      expect(document.getElementById("delete-review-button-2")).toBeInTheDocument();
+    });
+
+  });
+
+  it("deletes review", async () => {
+    const user = userEvent.setup();
+    let reviews = [review1, review2];
+
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: reviews, hasNext: false } }) },
+    ]);
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+
+    vi.mocked(deleteReview).mockImplementation(async () => {
+      reviews = reviews.filter((review) => review.id !== review1.id);
+    });
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("delete-review-button-1")!);
+
+    expect(await screen.findByText("¿Está seguro de que desea borrar esta reseña?")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Cancelar/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Eliminar reseña/ })).toBeInTheDocument();
+
+    await user.click(await screen.findByRole("button", { name: /Eliminar reseña/ }));
+
+    await waitFor(() => {
+      expect(deleteReview).toHaveBeenCalledWith(component2.id, review1.id);
+      expect(screen.queryByText(review1.title)).not.toBeInTheDocument();
+    });
+
+  });
+
+  it("cancel review deletion", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1, review2], hasNext: false } }) },
+    ]);
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("delete-review-button-1")!);
+
+    expect(await screen.findByText("¿Está seguro de que desea borrar esta reseña?")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Cancelar/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Eliminar reseña/ })).toBeInTheDocument();
+
+    await user.click(await screen.findByRole("button", { name: /Cancelar/ }));
+
+    await waitFor(() => {
+      expect(deleteReview).not.toHaveBeenCalled();
+      expect(screen.queryByText(review1.title)).toBeInTheDocument();
+    });
+
+  });
+
+  it("cancel review deletion with the close button", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1, review2], hasNext: false } }) },
+    ]);
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await waitFor(() => {
+      expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("delete-review-button-1")!);
+
+    expect(await screen.findByText("¿Está seguro de que desea borrar esta reseña?")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Cancelar/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Eliminar reseña/ })).toBeInTheDocument();
+
+    await user.click(await screen.findByRole("button", { name: "Close" }));
+
+    await waitFor(() => {
+      expect(deleteReview).not.toHaveBeenCalled();
+      expect(screen.queryByText(review1.title)).toBeInTheDocument();
+    });
   });
 
 });

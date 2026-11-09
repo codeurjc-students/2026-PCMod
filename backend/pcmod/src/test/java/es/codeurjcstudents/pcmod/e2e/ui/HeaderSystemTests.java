@@ -77,6 +77,7 @@ public class HeaderSystemTests {
     scrollToAndClick(By.linkText("Iniciar Sesión"));
 
     wait.until(ExpectedConditions.urlToBe("http://localhost:5173/login"));
+    wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("login-title"))).isDisplayed();
     assertThat(driver.findElement(By.id("login-title")).getText()).isEqualTo("Iniciar sesión:");
 
   }
@@ -89,6 +90,7 @@ public class HeaderSystemTests {
     scrollToAndClick(By.linkText("Registrarse"));
 
     wait.until(ExpectedConditions.urlToBe("http://localhost:5173/register"));
+    wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("register-title"))).isDisplayed();
     assertThat(driver.findElement(By.id("register-title")).getText()).isEqualTo("Registro:");
 
   }

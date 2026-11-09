@@ -35,3 +35,16 @@ export async function getReviews(id: number, page: number): Promise<ReviewsResul
 
   return { items: [], hasNext: false };
 }
+
+export async function deleteReview(id: number, reviewId: number): Promise<void> {
+
+  const url = new URL(`${API_URL}/${id}/reviews/${reviewId}`, getBaseUrl());
+  const res = await fetch(url.toString(), {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error deleting review");
+  }
+
+}

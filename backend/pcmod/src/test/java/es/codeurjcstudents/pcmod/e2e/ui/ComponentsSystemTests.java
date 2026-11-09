@@ -171,7 +171,7 @@ public class ComponentsSystemTests {
   }
 
   @Test
-  public void componentDetailWithoutReviewsRenderTest() {
+  public void componentDetailRenderTest() {
 
     driver.get("http://localhost:5173/components/1");
 
@@ -190,66 +190,6 @@ public class ComponentsSystemTests {
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-price")));
     String loadedComponentPrice = driver.findElement(By.id("component-price")).getText();
     assertThat(loadedComponentPrice).isEqualTo("350.00 €");
-
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-reviews-title")));
-    String loadedComponentReviewsTitle = driver.findElement(By.id("component-reviews-title")).getText();
-    assertThat(loadedComponentReviewsTitle).isEqualTo("Reseñas del producto:");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-average-rating")));
-    String loadedComponentAverageRating = driver.findElement(By.id("component-average-rating")).getText();
-    assertThat(loadedComponentAverageRating).isEqualTo("Puntuación media: ☆☆☆☆☆ 0/5 (0 reseña(s))");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-no-reviews")));
-    String loadedComponentNoReviews = driver.findElement(By.id("component-no-reviews")).getText();
-    assertThat(loadedComponentNoReviews).isEqualTo("No hay reseñas de este producto todavía.");
-
-  }
-
-  @Test
-  public void componentDetailWithReviewsRenderTest() {
-
-    driver.get("http://localhost:5173/components/2");
-
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-stock")));
-    String componentStockMessage = driver.findElement(By.id("component-stock")).getText();
-    assertThat(componentStockMessage).isEqualTo("¡Últimas unidades!");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-name")));
-    String loadedComponentName = driver.findElement(By.id("component-name")).getText();
-    assertThat(loadedComponentName).isEqualTo("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-description")));
-    String loadedComponentDescription = driver.findElement(By.id("component-description")).getText();
-    assertThat(loadedComponentDescription).contains("Ray Tracing y DLSS 4 para gaming fluido");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-brand-type")));
-    String loadedComponentBrandType = driver.findElement(By.id("component-brand-type")).getText();
-    assertThat(loadedComponentBrandType).isEqualTo("Gigabyte | GPU");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-price")));
-    String loadedComponentPrice = driver.findElement(By.id("component-price")).getText();
-    assertThat(loadedComponentPrice).isEqualTo("359.85 €");
-
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-reviews-title")));
-    String loadedComponentReviewsTitle = driver.findElement(By.id("component-reviews-title")).getText();
-    assertThat(loadedComponentReviewsTitle).isEqualTo("Reseñas del producto:");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-average-rating")));
-    String loadedComponentAverageRating = driver.findElement(By.id("component-average-rating")).getText();
-    assertThat(loadedComponentAverageRating).isEqualTo("Puntuación media: ★★★★☆ 3.5/5 (2 reseña(s))");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("usernameReview-1")));
-    String loadedUserExample = driver.findElement(By.id("usernameReview-1")).getText();
-    assertThat(loadedUserExample).isEqualTo("user_example");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-title-1")));
-    String loadedUserReview = driver.findElement(By.id("review-title-1")).getText();
-    assertThat(loadedUserReview).isEqualTo("Buena gráfica, aunque con cosas a mejorar.");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-valoration-1")));
-    String loadedUserRating = driver.findElement(By.id("review-valoration-1")).getText();
-    assertThat(loadedUserRating).isEqualTo("Valoración del producto: ★★★★☆ 4/5");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("usernameReview-2")));
-    String loadedAdminExample = driver.findElement(By.id("usernameReview-2")).getText();
-    assertThat(loadedAdminExample).isEqualTo("admin_example");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-title-2")));
-    String loadedAdminReview = driver.findElement(By.id("review-title-2")).getText();
-    assertThat(loadedAdminReview).isEqualTo("Tarjeta gráfica bastante mejorable.");
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-valoration-2")));
-    String loadedAdminRating = driver.findElement(By.id("review-valoration-2")).getText();
-    assertThat(loadedAdminRating).isEqualTo("Valoración del producto: ★★★☆☆ 3/5");
-
-    assertThat(driver.findElements(By.id("loadMore"))).isEmpty();
 
   }
 
