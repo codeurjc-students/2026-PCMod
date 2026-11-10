@@ -10,4 +10,6 @@ public interface ReviewsRepository extends JpaRepository<Review, Long> {
 
   Page<Review> findAllByComponentId(Long id, Pageable pageable);
 
+  boolean existsByComponentIdAndUserId(Long componentId, Long userId);
+
 }

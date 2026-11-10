@@ -1,15 +1,15 @@
 package es.codeurjcstudents.pcmod.integration;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +76,10 @@ public class ReviewsIntegrationTests {
 
   @BeforeEach
   void setUp() {
+    reviewsRepository.deleteAll();
     componentsRepository.deleteAll();
+    usersRepository.deleteAll();
+
     componentsRepository.save(new Component("AMD Ryzen 7 7800X3D",
         "8 núcleos y 16 hilos ideales para gaming",
         ComponentType.CPU, "AMD", BigDecimal.valueOf(350.00), 5));
@@ -85,13 +88,11 @@ public class ReviewsIntegrationTests {
         ComponentType.STORAGE, "Kingston", BigDecimal.valueOf(100.00), 10));
 
     SecurityContextHolder.clearContext();
-    usersRepository.deleteAll();
     usersRepository.save(new User("user1", "test", "userTest1", "c/testaddress", "testuser1@example.com",
         passwordEncoder.encode("pass"), "REGISTERED_USER"));
     usersRepository.save(new User("admin", "test", "adminTest1", "c/testaddress", "testadmin1@example.com",
         passwordEncoder.encode("adminpass"), "REGISTERED_USER", "ADMIN"));
 
-    reviewsRepository.deleteAll();
     Review review1 = new Review("Buen procesador.",
     "Buen procesador para gaming.",
     5);
@@ -159,6 +160,216 @@ public class ReviewsIntegrationTests {
     assertTrue(reviewsList.getContent().isEmpty());
     assertEquals(0, reviewsList.getTotalElements());
     assertEquals(0, reviewsList.getTotalPages());
+
+  }
+
+  @Test
+  void postReviewAsNoRegisteredUser() {
+    Review review = new Review("sample_title", "sample_message", 5);
+    assertThrows(AuthenticationCredentialsNotFoundException.class, () -> reviewsService.save(review, usersRepository.findAll().getFirst().getId(), componentsRepository.findAll().getLast().getId()));
+    assertEquals(2, reviewsRepository.count());
+  }
+
+  @Test
+  void postReviewAsNoAdmin() {
+    User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(user.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"))));
+
+    Review review = new Review("sample_title", "sample_message", 5);
+    assertDoesNotThrow(() -> reviewsService.save(review, user.getId(), componentsRepository.findAll().getLast().getId()));
+    assertEquals(3, reviewsRepository.count());
+  }
+
+  @Test
+  void postReviewAsAdmin() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Review review = new Review("sample_title", "sample_message", 5);
+    assertDoesNotThrow(() -> reviewsService.save(review, admin.getId(), componentsRepository.findAll().getLast().getId()));
+    assertEquals(3, reviewsRepository.count());
+
+  }
+
+  @Test
+  void postReviewInAComponentWithOwnReview() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Review review = new Review("sample_title", "sample_message", 5);
+    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, admin.getId(), componentsRepository.findAll().getFirst().getId()));
+    assertEquals(2, reviewsRepository.count());
+
+  }
+
+  @Test
+  void saveReview() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Review review = new Review("sample_title", "sample_message", 5);
+    Component component = componentsRepository.findAll().getLast();
+    Review savedReview = reviewsService.save(review, admin.getId(), component.getId());
+
+    assertEquals(review.getTitle(), savedReview.getTitle());
+    assertEquals(review.getMessage(), savedReview.getMessage());
+    assertEquals(review.getRating(), savedReview.getRating());
+    assertEquals(component.getId(), savedReview.getComponent().getId());
+    assertEquals(admin.getId(), savedReview.getUser().getId());
+    assertEquals(3, reviewsRepository.count());
+
+  }
+
+  @Test
+  void saveVoidReview() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Review review = new Review("","", null);
+    Component component = componentsRepository.findAll().getLast();
+
+    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
+    assertEquals(2, reviewsRepository.count());
+  }
+
+  @Test
+  void saveNullReview() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Review review = new Review(null,null, null);
+    Component component = componentsRepository.findAll().getLast();
+
+    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
+    assertEquals(2, reviewsRepository.count());
+  }
+
+  @Test
+  void saveBadFormatReview() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Review review = new Review("sample_title", "sample_message", -5);
+    Component component = componentsRepository.findAll().getLast();
+
+    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
+    assertEquals(2, reviewsRepository.count());
+  }
+
+  @Test
+  void validateReview() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Review review = new Review("sample_title", "sample_message", 5);
+
+    List<String> errors = reviewsService.validateReview(review);
+
+    assertTrue(errors.isEmpty());
+
+  }
+
+  @Test
+  void validateReviewInAComponentWithOwnReview() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Review review = new Review("sample_title","sample_message", 5);
+    Component component = componentsRepository.findAll().getFirst();
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
+    assertEquals("Validación fallida:\n• Ya existe una reseña de este producto para tu usuario.", exception.getMessage());
+    assertEquals(2, reviewsRepository.count());
+  }
+
+  @Test
+  void validateVoidReview() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Review review = new Review("", "", null);
+   
+    List<String> errors = reviewsService.validateReview(review);
+
+    assertTrue(errors.contains("El título es obligatorio."));
+    assertTrue(errors.contains("El mensaje es obligatorio."));
+    assertTrue(errors.contains("La valoración es obligatoria."));
+
+  }
+
+  @Test
+  void validateNullReview() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Review review = new Review(null, null, null);
+
+    List<String> errors = reviewsService.validateReview(review);
+
+    assertTrue(errors.contains("El título es obligatorio."));
+    assertTrue(errors.contains("El mensaje es obligatorio."));
+    assertTrue(errors.contains("La valoración es obligatoria."));
+
+  }
+
+  @Test
+  void validateBadNumReviewData() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Review review = new Review("sample_title", "sample_message", -5);
+
+    List<String> errors = reviewsService.validateReview(review);
+
+    assertTrue(errors.contains("La valoración del producto ha de estar entre 1 y 5."));
 
   }
 
@@ -243,7 +454,7 @@ public class ReviewsIntegrationTests {
     Review review = reviewsRepository.findAll().getFirst();
 
     assertThrows(NoSuchElementException.class, () -> reviewsService.delete(component.getId(), review.getId()));
-    assertEquals(0, reviewsRepository.count());
+    assertEquals(2, reviewsRepository.count());
 
   }
 

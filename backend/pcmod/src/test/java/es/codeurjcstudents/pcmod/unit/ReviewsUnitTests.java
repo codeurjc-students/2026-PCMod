@@ -152,6 +152,194 @@ public class ReviewsUnitTests {
   }
 
   @Test
+  public void testSaveReview() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    ReviewMapper reviewMapper = mock(ReviewMapper.class);
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, reviewMapper, componentsRepository, usersRepository );
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+    component.setId(1L);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+      passwordEncoder.encode("pass"), "REGISTERED_USER");
+
+    Review review = new Review("sample_title", "sample_message", 5);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
+    when(reviewsRepository.existsByComponentIdAndUserId(1L, 1L)).thenReturn(false);
+    when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
+
+    reviewsService.save(review, 1L, 1L);
+    
+    verify(reviewsRepository).save(any(Review.class));
+  }
+
+  @Test
+  public void testSaveReviewInComponentExistingSameUserReview() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    ReviewMapper reviewMapper = mock(ReviewMapper.class);
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, reviewMapper, componentsRepository, usersRepository );
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+    component.setId(1L);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+      passwordEncoder.encode("pass"), "REGISTERED_USER");
+
+    Review review = new Review("sample_title", "sample_message", 5);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
+    when(reviewsRepository.existsByComponentIdAndUserId(1L, 1L)).thenReturn(true);
+    when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, 1L, 1L));
+    assertEquals("Validación fallida:\n• Ya existe una reseña de este producto para tu usuario.", exception.getMessage());
+    verify(reviewsRepository, never()).save(any(Review.class));
+  }
+
+  @Test
+  public void testSaveVoidReviewData() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    ReviewMapper reviewMapper = mock(ReviewMapper.class);
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, reviewMapper, componentsRepository, usersRepository );
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+      passwordEncoder.encode("pass"), "REGISTERED_USER");
+
+    Review review = new Review("", "", null);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
+    when(reviewsRepository.existsByComponentIdAndUserId(1L, 1L)).thenReturn(false);
+    when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
+
+    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, 1L, 1L));
+    verify(reviewsRepository, never()).save(any(Review.class));
+
+  }
+
+  @Test
+  public void testSaveNullReviewData() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    ReviewMapper reviewMapper = mock(ReviewMapper.class);
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, reviewMapper, componentsRepository, usersRepository );
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+      passwordEncoder.encode("pass"), "REGISTERED_USER");
+
+    Review review = new Review(null, null, null);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
+    when(reviewsRepository.existsByComponentIdAndUserId(1L, 1L)).thenReturn(false);
+    when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
+
+    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, 1L, 1L));
+    verify(reviewsRepository, never()).save(any(Review.class));
+
+  }
+
+  @Test
+  public void testSaveBadNumReviewData() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    ReviewMapper reviewMapper = mock(ReviewMapper.class);
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, reviewMapper, componentsRepository, usersRepository );
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+      passwordEncoder.encode("pass"), "REGISTERED_USER");
+
+    Review review = new Review("sample_title", "sample_message", -5);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
+    when(reviewsRepository.existsByComponentIdAndUserId(1L, 1L)).thenReturn(false);
+    when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
+
+    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, 1L, 1L));
+    verify(reviewsRepository, never()).save(any(Review.class));
+
+  }
+
+  @Test
+  public void testReviewValidation() {
+
+    ReviewsService reviewsService = new ReviewsService(null, null, null, null );
+
+    Review review = new Review("sample_title", "sample_message", 5);
+
+    List<String> errors = reviewsService.validateReview(review);
+
+    assertTrue(errors.isEmpty());
+
+  }
+
+  @Test
+  public void testVoidReviewValidation() {
+
+    ReviewsService reviewsService = new ReviewsService(null, null, null, null );
+
+    Review review = new Review("", "", null);
+
+    List<String> errors = reviewsService.validateReview(review);
+
+    assertTrue(errors.contains("El título es obligatorio."));
+    assertTrue(errors.contains("El mensaje es obligatorio."));
+    assertTrue(errors.contains("La valoración es obligatoria."));
+
+  }
+
+  @Test
+  public void testNullReviewValidation() {
+
+    ReviewsService reviewsService = new ReviewsService(null, null, null, null );
+
+    Review review = new Review(null, null, null);
+
+    List<String> errors = reviewsService.validateReview(review);
+
+    assertTrue(errors.contains("El título es obligatorio."));
+    assertTrue(errors.contains("El mensaje es obligatorio."));
+    assertTrue(errors.contains("La valoración es obligatoria."));
+
+  }
+
+  @Test
+  public void testBadNumReviewValidation() {
+
+    ReviewsService reviewsService = new ReviewsService(null, null, null, null );
+
+    Review review = new Review("sample_title", "sample_message", -5);
+
+    List<String> errors = reviewsService.validateReview(review);
+
+    assertTrue(errors.contains("La valoración del producto ha de estar entre 1 y 5."));
+
+  }
+
+  @Test
   public void testDeleteReview() {
 
     ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
