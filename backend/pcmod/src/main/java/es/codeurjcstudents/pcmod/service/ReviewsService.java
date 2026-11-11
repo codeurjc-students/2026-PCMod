@@ -86,6 +86,10 @@ public class ReviewsService {
     return reviewRepository.save(review);
   }
 
+  public boolean hasUserReviewed(Long componentId, Long userId) {
+    return reviewRepository.existsByComponentIdAndUserId(componentId, userId);
+  }
+
   public List<String> validateReview(Review review) {
 
     List<String> errors = new ArrayList<>();

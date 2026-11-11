@@ -33,6 +33,16 @@ public class ReviewsRestController {
     return reviewsService.findAllByComponent(id, pageable).map(reviewsService::toDTO);
   }
 
+  @GetMapping("/has-reviewed")
+  public ResponseEntity<Boolean> hasUserReviewed(@PathVariable long id, Principal principal) {
+
+    if (principal == null) {
+      return ResponseEntity.ok(false);
+    }
+
+    return ResponseEntity.ok(reviewsService.hasUserReviewed(id, Long.parseLong(principal.getName())));
+  }
+
   @PostMapping("/")
   public ResponseEntity<ReviewDTO> createReview(@RequestBody ReviewDTO reviewDTO, @PathVariable long id, Principal principal) {
 

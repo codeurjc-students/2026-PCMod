@@ -172,9 +172,13 @@ public class ReviewsUnitTests {
     when(reviewsRepository.existsByComponentIdAndUserId(1L, 1L)).thenReturn(false);
     when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
     when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
+    when(reviewsRepository.save(any(Review.class))).thenReturn(review);
 
-    reviewsService.save(review, 1L, 1L);
+    Review savedReview = reviewsService.save(review, 1L, 1L);
     
+    assertEquals(review.getTitle(), savedReview.getTitle());
+    assertEquals(review.getMessage(), savedReview.getMessage());
+    assertEquals(review.getRating(), savedReview.getRating());
     verify(reviewsRepository).save(any(Review.class));
   }
 
@@ -336,6 +340,36 @@ public class ReviewsUnitTests {
     List<String> errors = reviewsService.validateReview(review);
 
     assertTrue(errors.contains("La valoración del producto ha de estar entre 1 y 5."));
+
+  }
+
+  @Test
+  public void testHasUserReviewed() {
+
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, null, null, null );
+
+    when(reviewsRepository.existsByComponentIdAndUserId(any(), any())).thenReturn(true); 
+
+    boolean res = reviewsService.hasUserReviewed(1L, 1L);
+
+    assertEquals(true, res);
+    verify(reviewsRepository).existsByComponentIdAndUserId(1L, 1L);
+
+  }
+
+  @Test
+  public void testHasNotUserReviewed() {
+
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, null, null, null );
+
+    when(reviewsRepository.existsByComponentIdAndUserId(any(), any())).thenReturn(false); 
+
+    boolean res = reviewsService.hasUserReviewed(1L, 1L);
+
+    assertEquals(false, res);
+    verify(reviewsRepository).existsByComponentIdAndUserId(1L, 1L);
 
   }
 

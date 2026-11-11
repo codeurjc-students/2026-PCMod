@@ -385,6 +385,154 @@ describe("ComponentDetailPageIntegration", () => {
 
   });
 
+  it("does not render the review form when user is not logged in", async () => {
+
+    const RouterStub = createRoutesStub([,
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader }
+    ]);
+
+    render(<RouterStub initialEntries={["/components/1"]} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText("¡Añade una reseña a este producto!")).not.toBeInTheDocument();
+    });
+
+  });
+
+  it("does not render the review form when user has already reviewed the component", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/2" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("¡Añade una reseña a este producto!")).not.toBeInTheDocument();
+    });
+
+  });
+
+  it("renders the review form when user has not reviewed the component", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/1" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("¡Añade una reseña a este producto!")).toBeInTheDocument();
+      expect(screen.getByLabelText("Título:")).toBeInTheDocument();
+      expect(screen.getByLabelText("Mensaje:")).toBeInTheDocument();
+      expect(screen.getByLabelText("Valoración:")).toBeInTheDocument();
+    });
+
+  });
+
+  it("creates a new review with valid data", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/5" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await screen.findByText("MAG A650BN");
+    await user.type(screen.getByLabelText("Título:"), "sample_title");
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message");
+    await user.type(screen.getByLabelText("Valoración:"), "5");
+
+    const createButton = await screen.findByRole("button", { name: /Guardar reseña/i });
+    await user.click(createButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/5\/5 \(1 reseña\(s\)\)/i)).toBeInTheDocument();
+      expect(screen.getByText("sample_title")).toBeInTheDocument();
+      expect(screen.getByText("sample_message")).toBeInTheDocument();
+      expect(screen.getByText("Valoración del producto: ★★★★★ 5/5")).toBeInTheDocument();
+    });
+
+  });
+
+  it("show error when creating a new review with void data", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/5" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await screen.findByText("MAG A650BN");
+
+    const createButton = await screen.findByRole("button", { name: /Guardar reseña/i });
+    await user.click(createButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Por favor, ingrese un título válido.")).toBeInTheDocument();
+      expect(screen.getByText("Por favor, ingrese un mensaje válido.")).toBeInTheDocument();
+      expect(screen.getByText("Por favor, ingrese una valoración válida.")).toBeInTheDocument();
+    });
+
+  });
+
+  it("show error when creating a new review with invalid data", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/5" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await screen.findByText("MAG A650BN");
+    await user.type(screen.getByLabelText("Título:"), "sample_title");
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message");
+    await user.type(screen.getByLabelText("Valoración:"), "-5");
+
+    const createButton = await screen.findByRole("button", { name: /Guardar reseña/i });
+    await user.click(createButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Por favor, ingrese una valoración válida.")).toBeInTheDocument();
+    });
+
+  });
+
   it("cancel review deletion", async () => {
 
     const user = userEvent.setup();

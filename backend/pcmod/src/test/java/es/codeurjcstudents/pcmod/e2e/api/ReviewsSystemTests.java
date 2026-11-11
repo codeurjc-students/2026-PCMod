@@ -259,6 +259,56 @@ public class ReviewsSystemTests {
   }
 
   @Test
+  public void hasReviewed() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .when().get("/components/2/reviews/has-reviewed")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body(equalTo("true"));
+  }
+
+  @Test
+  public void hasNotReviewed() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .when().get("/components/3/reviews/has-reviewed")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body(equalTo("false"));
+  } 
+
+  @Test
+  public void hasReviewedWithNullUser() {
+    given()
+        .when().get("/components/2/reviews/has-reviewed")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .body(equalTo("false"));
+  } 
+
+  @Test
   public void deleteReviewAsNotLoggedIn() {
 
     given()

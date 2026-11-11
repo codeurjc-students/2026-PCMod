@@ -701,6 +701,63 @@ body {
   font-size: 1.3rem;
 }
 
+.reviews-list .custom-review-form {
+  width: 100%;
+  margin-bottom: 1.25rem;
+  padding: 1.25rem;
+  background-color: #fffaf6;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgb(84 37 20 / 6%);
+  text-align: left;
+}
+
+.reviews-list .custom-review-form .form {
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.reviews-list .custom-review-form .form h3 {
+  color: var(--color-ink);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.reviews-list .custom-review-form .form-field {
+  gap: 0.35rem;
+}
+
+.reviews-list .custom-review-form .form-label {
+  margin-bottom: 0;
+  color: var(--color-brand-dark);
+  font-weight: 700;
+}
+
+.reviews-list .custom-review-form .form-control {
+  min-height: 44px;
+  padding: 0.65rem 0.75rem;
+  background-color: var(--color-surface);
+  border-color: var(--color-line);
+}
+
+.reviews-list .custom-review-form textarea.form-control {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.reviews-list .custom-review-form .form-control:focus {
+  border-color: var(--color-principal);
+  box-shadow: 0 0 0 3px rgb(249 94 0 / 14%);
+}
+
+.reviews-list .custom-review-form .rating-input {
+  max-width: 180px;
+}
+
+.reviews-list .custom-review-form>.pcmod-button {
+  margin: 0;
+}
+
 .reviews-list h4 {
   margin: 0;
   color: var(--color-muted);
@@ -1395,6 +1452,14 @@ body {
 
   .custom-component-form .form-block {
     grid-template-columns: 1fr;
+  }
+
+  .reviews-list .custom-review-form {
+    padding: 1rem;
+  }
+
+  .reviews-list .custom-review-form .rating-input {
+    max-width: none;
   }
 
   .custom-component-form .pcmod-danger-button,

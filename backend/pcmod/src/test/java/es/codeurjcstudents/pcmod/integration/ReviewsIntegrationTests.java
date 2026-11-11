@@ -374,6 +374,38 @@ public class ReviewsIntegrationTests {
   }
 
   @Test
+  public void testHasUserReviewed() {
+    Component component = componentsRepository.findAll().getFirst();
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    boolean res = reviewsService.hasUserReviewed(component.getId(), admin.getId());
+
+    assertEquals(true, res);
+
+  }
+
+  @Test
+  public void testHasNotUserReviewed() {
+    Component component = componentsRepository.findAll().getLast();
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_REGISTERED_USER", "ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    boolean res = reviewsService.hasUserReviewed(component.getId(), admin.getId());
+
+    assertEquals(false, res);
+
+  }
+
+  @Test
   void deleteReviewAsNotLoggedIn() {
 
     Component component = componentsRepository.findAll().getFirst();
