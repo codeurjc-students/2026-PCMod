@@ -120,6 +120,7 @@ describe("ComponentDetailPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
     useUserStore.setState({ user: null });
     vi.mocked(reqIsLogged).mockResolvedValue(null as never);
   });
@@ -511,6 +512,41 @@ describe("ComponentDetailPage", () => {
 
   });
 
+  it("clientLoader throws the backend error when checking user review availability fails", async () => {
+    const backendErrorMessage = "sample_backend_error";
+    const reviews = {
+      items: [],
+      hasNext: false,
+    };
+
+    vi.mocked(getComponent).mockResolvedValue(component1);
+    vi.mocked(getReviews).mockResolvedValue(reviews);
+    vi.mocked(hasUserReviewed).mockRejectedValue(new Error(backendErrorMessage));
+
+    await expect(
+      clientLoader({ params: { id: "1" } } as Parameters<typeof clientLoader>[0]),
+    ).rejects.toThrow(backendErrorMessage);
+
+  });
+
+  it("clientLoader throws the default error when checking user review availability fails without a message", async () => {
+    const reviews = {
+      items: [],
+      hasNext: false,
+    };
+
+    vi.mocked(getComponent).mockResolvedValue(component1);
+    vi.mocked(getReviews).mockResolvedValue(reviews);
+    vi.mocked(hasUserReviewed).mockRejectedValue(
+      new Error("There was an error while checking user review availability."),
+    );
+
+    await expect(
+      clientLoader({ params: { id: "1" } } as Parameters<typeof clientLoader>[0]),
+    ).rejects.toThrow("There was an error while checking user review availability.");
+
+  });
+
   it("gets public user info", async () => {
 
     const originalPublicUser = {
@@ -709,6 +745,79 @@ describe("ComponentDetailPage", () => {
     await waitFor(() => {
       expect(createReview).not.toHaveBeenCalled();
       expect(screen.getByText("Por favor, ingrese una valoración válida.")).toBeInTheDocument();
+    });
+
+  });
+
+  it("throws an error when the createReview request fails with a backend message", async () => {
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_error_message";
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+    vi.mocked(hasUserReviewed).mockResolvedValue(false);
+    vi.mocked(createReview).mockRejectedValue(new Error(backendErrorMessage));
+
+    const RouterStub = createRoutesStub([
+      {
+        path: "/components/:id",
+        Component: ComponentDetail,
+        loader: () => ({
+          component: component1,
+          reviews: { items: [], hasNext: false },
+          hasReviewed: false,
+        }),
+      },
+    ]);
+
+    render(<RouterStub initialEntries={["/components/1"]} />);
+
+    await screen.findByText("AMD Ryzen 7 7800X3D");
+    await user.type(screen.getByLabelText("Título:"), "sample_title");
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message");
+    await user.type(screen.getByLabelText("Valoración:"), "5");
+    await user.click(screen.getByRole("button", { name: /Guardar reseña/i }));
+
+    await waitFor(() => {
+      expect(createReview).toHaveBeenCalledWith(1, "sample_title", "sample_message", 5);
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+      expect(screen.getByText("¡Añade una reseña a este producto!")).toBeInTheDocument();
+    });
+
+  });
+
+  it("throws the default error when the createReview request fails with a backend message", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+    vi.mocked(hasUserReviewed).mockResolvedValue(false);
+    vi.mocked(createReview).mockRejectedValue(new Error("There was an error while creating the review."));
+
+    const RouterStub = createRoutesStub([
+      {
+        path: "/components/:id",
+        Component: ComponentDetail,
+        loader: () => ({
+          component: component1,
+          reviews: { items: [], hasNext: false },
+          hasReviewed: false,
+        }),
+      },
+    ]);
+
+    render(<RouterStub initialEntries={["/components/1"]} />);
+
+    await screen.findByText("AMD Ryzen 7 7800X3D");
+    await user.type(screen.getByLabelText("Título:"), "sample_title");
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message");
+    await user.type(screen.getByLabelText("Valoración:"), "5");
+    await user.click(screen.getByRole("button", { name: /Guardar reseña/i }));
+
+    await waitFor(() => {
+      expect(createReview).toHaveBeenCalledWith(1, "sample_title", "sample_message", 5);
+      expect(screen.getByText("There was an error while creating the review.")).toBeInTheDocument();
+      expect(screen.getByText("¡Añade una reseña a este producto!")).toBeInTheDocument();
     });
 
   });

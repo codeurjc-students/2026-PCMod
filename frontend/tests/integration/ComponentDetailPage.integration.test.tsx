@@ -533,6 +533,118 @@ describe("ComponentDetailPageIntegration", () => {
 
   });
 
+  it("shows the backend error with message when creating a review fails", async () => {
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_backend_error";
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/1" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await screen.findByText("AMD Ryzen 7 7800X3D");
+    await user.type(screen.getByLabelText("Título:"), "sample_title");
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message");
+    await user.type(screen.getByLabelText("Valoración:"), "5");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ message: backendErrorMessage }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    await user.click(screen.getByRole("button", { name: /Guardar reseña/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+      expect(screen.getByText("¡Añade una reseña a este producto!")).toBeInTheDocument();
+    });
+  });
+
+  it("shows the backend error without message when creating a review fails", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/1" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await screen.findByText("AMD Ryzen 7 7800X3D");
+    await user.type(screen.getByLabelText("Título:"), "sample_title");
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message");
+    await user.type(screen.getByLabelText("Valoración:"), "5");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    await user.click(screen.getByRole("button", { name: /Guardar reseña/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("There was an error while creating the review.")).toBeInTheDocument();
+      expect(screen.getByText("¡Añade una reseña a este producto!")).toBeInTheDocument();
+    });
+  });
+
+  it("shows the backend error with message when checking user review availability fails", async () => {
+    const backendErrorMessage = "sample_backend_error";
+    const originalFetch = globalThis.fetch;
+
+    vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
+      if (String(input).includes("/reviews/has-reviewed")) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({ message: backendErrorMessage }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          ),
+        );
+      }
+
+      return originalFetch(input, init);
+    });
+
+    await expect(
+      clientLoader({ params: { id: "1" } } as Parameters<typeof clientLoader>[0]),
+    ).rejects.toThrow(backendErrorMessage);
+  });
+
+  it("shows the backend error without message when checking user review availability fails", async () => {
+    const originalFetch = globalThis.fetch;
+
+    vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
+      if (String(input).includes("/reviews/has-reviewed")) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({}),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          ),
+        );
+      }
+
+      return originalFetch(input, init);
+    });
+
+    await expect(
+      clientLoader({ params: { id: "1" } } as Parameters<typeof clientLoader>[0]),
+    ).rejects.toThrow("There was an error while checking user review availability.");
+  });
+
   it("cancel review deletion", async () => {
 
     const user = userEvent.setup();
