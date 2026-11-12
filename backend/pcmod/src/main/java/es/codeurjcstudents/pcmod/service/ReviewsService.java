@@ -1,5 +1,9 @@
 package es.codeurjcstudents.pcmod.service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -53,6 +57,70 @@ public class ReviewsService {
 
   public Page<Review> findAllByComponent(long id, Pageable pageable) {
     return reviewRepository.findAllByComponentId(id, pageable);
+  }
+
+  @PreAuthorize("hasRole('REGISTERED_USER') and (#userId.toString() == principal.username)")
+  @Transactional
+  public Review save(Review review, long userId, long componentId) {
+
+    if (reviewRepository.existsByComponentIdAndUserId(componentId, userId)) {
+      throw new IllegalArgumentException("Validación fallida:\n• Ya existe una reseña de este producto para tu usuario.");
+    }
+
+    List<String> errors = validateReview(review);
+
+    if (!errors.isEmpty()) {
+      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+    }
+
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
+
+    Component component = componentRepository.findById(componentId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Componente no encontrado."));
+
+    review.setDate(LocalDate.now(ZoneId.of("Europe/Madrid")));
+    user.addReview(review);
+    component.addReview(review);
+
+    return reviewRepository.save(review);
+  }
+
+  public boolean hasUserReviewed(Long componentId, Long userId) {
+    return reviewRepository.existsByComponentIdAndUserId(componentId, userId);
+  }
+
+  public List<String> validateReview(Review review) {
+
+    List<String> errors = new ArrayList<>();
+
+    validateRequiredField(review.getTitle(), "El título es obligatorio.", errors);
+    validateRequiredField(review.getMessage(), "El mensaje es obligatorio.", errors);
+
+    if (review.getRating() == null || review.getRating().toString().isEmpty()) {
+      errors.add("La valoración es obligatoria.");
+    } else {
+      validateRating(review, errors);
+    }
+
+    return errors;
+
+  }
+
+  private void validateRequiredField(String value, String message, List<String> errors) {
+
+    if (value == null || value.isEmpty()) {
+      errors.add(message);
+    }
+
+  }
+
+  public void validateRating(Review review, List<String> errors) {
+
+    if ((review.getRating() < 1) || (review.getRating() > 5)) {
+      errors.add("La valoración del producto ha de estar entre 1 y 5.");
+    }
+
   }
 
   @PreAuthorize("hasRole('ADMIN') or @reviewsService.isOwner(#reviewId, principal.username)")

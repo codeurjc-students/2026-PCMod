@@ -1,20 +1,24 @@
 import { Button, Col, Image, Modal } from "react-bootstrap";
-import { ArrowLeft, CartPlus, Image as ImageIcon, PencilSquare, Plus, Trash, XOctagon } from "react-bootstrap-icons";
+import { ArrowLeft, CartPlus, ExclamationCircleFill, Image as ImageIcon, PencilSquare, Plus, Trash, XOctagon } from "react-bootstrap-icons";
 import type { Route } from "./+types/detail-component";
 import { deleteComponent, getComponent } from "~/services/components-service";
 import { useUserStore } from "~/stores/user-store";
-import { useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState, type SubmitEvent } from "react";
 import { Link, useNavigate, useRevalidator } from "react-router";
 import ReviewCard from "~/components/reviewCard";
 import type ReviewDTO from "~/dtos/ReviewDTO";
-import { getReviews } from "~/services/reviews-service";
+import { createReview, getReviews, hasUserReviewed } from "~/services/reviews-service";
+import ReviewForm from "~/components/reviewForm";
+import { getReviewFormValues, type ReviewFormValues } from "~/utils/review-form-utils";
+import { handleFormSubmit } from "~/utils/general-form-utils";
 
 const API_URL = "/api/v1/components";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const component = await getComponent(Number(params.id));
   const reviews = await getReviews(component.id, 0);
-  return { component, reviews };
+  const hasReviewed = await hasUserReviewed(component.id);
+  return { component, reviews, hasReviewed };
 }
 
 function convertRatingToStars(rating: number) {
@@ -38,6 +42,13 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState(false);
+  const [wasValidated, setWasValidated] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [, formAction, isPending] = useActionState(
+    createReviewAction,
+    { title: "", message: "", rating: 0 }
+  );
 
   useEffect(() => {
     setReviews(loaderData.reviews.items);
@@ -78,6 +89,30 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
       setIsLoadingMore(false);
     }
   };
+
+  async function createReviewAction(_prevState: ReviewFormValues, formData: FormData) {
+    const { title, message, rating } = getReviewFormValues(formData);
+    setErrorMessage("");
+
+    try {
+      await createReview(component.id, title, message, rating);
+      await revalidator.revalidate();
+    } catch (error) {
+      console.log(error);
+
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Hubo un error al guardar la reseña. Por favor, inténtalo de nuevo.",
+      );
+    }
+
+    return { title, message, rating };
+  }
+
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+    handleFormSubmit(event, formAction, setWasValidated);
+  }
 
   async function handleDeleteReview() {
     await revalidator.revalidate();
@@ -137,6 +172,27 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
             <h2 id="component-reviews-title">Reseñas del producto:</h2>
             <h3 id="component-average-rating">Puntuación media: <span className="rating-stars">{convertRatingToStars(component.averageRating)}</span> {component.averageRating}/5 ({component.reviews.length} reseña(s))</h3>
             <div className="reviews-list">
+              {user && !loaderData.hasReviewed && (
+                <>
+                  {errorMessage && (
+                    <div className="error-message-text">
+                      <strong>
+                        <ExclamationCircleFill /> Error:
+                      </strong>
+                      <p id="error-message" className="mb-0 mt-1">
+                        {errorMessage}
+                      </p>
+                    </div>
+                  )}
+                  <ReviewForm 
+                    onSubmit={handleSubmit}
+                    isPending={isPending}
+                    wasValidated={wasValidated}
+                    formRef={formRef}
+                    submitLabel="Guardar reseña"
+                  />
+                </>
+              )}
               {reviews.length > 0 ? (
                 <>
                   {reviews.map((review) => (
