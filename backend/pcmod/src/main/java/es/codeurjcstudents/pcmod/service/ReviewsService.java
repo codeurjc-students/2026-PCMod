@@ -86,6 +86,48 @@ public class ReviewsService {
     return reviewRepository.save(review);
   }
 
+  @PreAuthorize("hasRole('ADMIN') or @reviewsService.isOwner(#reviewId, principal.username)")
+  public void delete(long componentId, long reviewId) {
+    
+    Optional<Review> reviewToDelete = reviewRepository.findById(reviewId);
+
+    if ((reviewToDelete.isPresent()) && (reviewToDelete.get().getComponent().getId() != componentId)) {
+      throw new NoSuchElementException("La reseña no pertenece a ese componente.");
+    }
+
+    if (reviewToDelete.isPresent()) {
+
+      reviewRepository.deleteById(reviewId);
+
+    }
+    
+  }
+
+  @PreAuthorize("hasRole('ADMIN') or @reviewsService.isOwner(#reviewId, principal.username)")
+  public Review updateReview(Review newReviewData, long componentId, long reviewId) {
+
+    Optional<Review> reviewToUpdate = reviewRepository.findById(reviewId);
+
+    if ((reviewToUpdate.isPresent()) && (reviewToUpdate.get().getComponent().getId() != componentId)) {
+      throw new NoSuchElementException("La reseña no pertenece a ese componente.");
+    }
+
+    List<String> errors = validateReview(newReviewData);
+
+    if (!errors.isEmpty()) {
+      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+    }
+
+    Review review = reviewRepository.findById(reviewId).orElseThrow();
+    review.setTitle(newReviewData.getTitle());
+    review.setMessage(newReviewData.getMessage());
+    review.setRating(newReviewData.getRating());
+    review.setDate(LocalDate.now(ZoneId.of("Europe/Madrid")));
+
+    return reviewRepository.save(review);
+
+  }
+
   public boolean hasUserReviewed(Long componentId, Long userId) {
     return reviewRepository.existsByComponentIdAndUserId(componentId, userId);
   }
@@ -121,23 +163,6 @@ public class ReviewsService {
       errors.add("La valoración del producto ha de estar entre 1 y 5.");
     }
 
-  }
-
-  @PreAuthorize("hasRole('ADMIN') or @reviewsService.isOwner(#reviewId, principal.username)")
-  public void delete(long componentId, long reviewId) {
-    
-    Optional<Review> reviewToDelete = reviewRepository.findById(reviewId);
-
-    if ((reviewToDelete.isPresent()) && (reviewToDelete.get().getComponent().getId() != componentId)) {
-      throw new NoSuchElementException("La reseña no pertenece a ese componente.");
-    }
-
-    if (reviewToDelete.isPresent()) {
-
-      reviewRepository.deleteById(reviewId);
-
-    }
-    
   }
 
   public boolean isOwner(long reviewId, String usernameId) {

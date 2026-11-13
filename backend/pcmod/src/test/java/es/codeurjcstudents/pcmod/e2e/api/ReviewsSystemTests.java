@@ -436,4 +436,221 @@ public class ReviewsSystemTests {
 
   }
 
+  @Test
+  public void putReviewAsNoLoggedIn() {
+    given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "title": "sample_title",
+              "message": "sample_message",
+              "rating": 5
+            }
+            """)
+        .when().put("/components/2/reviews/1")
+        .then().statusCode(401).contentType(ContentType.JSON)
+        .body("error", equalTo("Unauthorized"));
+  }
+
+  @Test
+  public void putReviewAsRegisteredUserNoAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "title": "sample_title",
+              "message": "sample_message",
+              "rating": 5
+            }
+            """)
+        .when().put("/components/2/reviews/1")
+        .then().statusCode(201).contentType(ContentType.JSON)
+        .body("id", notNullValue())
+        .body("title", equalTo("sample_title"))
+        .body("message", equalTo("sample_message"))
+        .body("rating", equalTo(5));
+  }
+
+  @Test
+  public void putOtherUserReviewAsRegisteredUserNoAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "user@example.com",
+                "password": "userpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "title": "sample_title",
+              "message": "sample_message",
+              "rating": 5
+            }
+            """)
+        .when().put("/components/2/reviews/2")
+        .then().statusCode(403).contentType(ContentType.JSON)
+        .body("error", equalTo("Forbidden"));
+  }
+
+  @Test
+  public void putReviewsAsAdmin() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "title": "sample_title",
+              "message": "sample_message",
+              "rating": 5
+            }
+            """)
+        .when().put("/components/2/reviews/1")
+        .then().statusCode(201).contentType(ContentType.JSON)
+        .body("id", notNullValue())
+        .body("title", equalTo("sample_title"))
+        .body("message", equalTo("sample_message"))
+        .body("rating", equalTo(5));
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "title": "sample_title",
+              "message": "sample_message",
+              "rating": 5
+            }
+            """)
+        .when().put("/components/2/reviews/2")
+        .then().statusCode(201).contentType(ContentType.JSON)
+        .body("id", notNullValue())
+        .body("title", equalTo("sample_title"))
+        .body("message", equalTo("sample_message"))
+        .body("rating", equalTo(5));
+  }
+
+  @Test
+  public void putVoidReviewData() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "title": "",
+              "message": "",
+              "rating": ""
+            }
+            """)
+        .when().put("/components/2/reviews/1")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("message", equalTo(
+            "Validación fallida:\n• El título es obligatorio.\n• El mensaje es obligatorio.\n• La valoración es obligatoria."));
+  }
+
+  @Test
+  public void putNullComponentData() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "title": null,
+              "message": null,
+              "rating": null
+            }
+            """)
+        .when().put("/components/2/reviews/1")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("message", equalTo(
+            "Validación fallida:\n• El título es obligatorio.\n• El mensaje es obligatorio.\n• La valoración es obligatoria."));
+  }
+
+  @Test
+  public void putBadNumReviewData() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "title": "sample_title",
+              "message": "sample_message",
+              "rating": -5
+            }
+            """)
+        .when().put("/components/2/reviews/1")
+        .then().statusCode(500).contentType(ContentType.JSON)
+        .body("status", equalTo(500))
+        .body("message", equalTo(
+            "Validación fallida:\n• La valoración del producto ha de estar entre 1 y 5."));
+  }
+
 }
