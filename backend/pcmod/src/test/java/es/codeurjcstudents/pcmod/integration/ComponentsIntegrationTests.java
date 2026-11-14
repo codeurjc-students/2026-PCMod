@@ -118,7 +118,7 @@ public class ComponentsIntegrationTests {
   }
 
   @Test
-  public void testGetComponent() {
+  void testGetComponent() {
     Component component = componentsRepository.save(new Component("Intel i5 12400F",
         "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU, "Intel", BigDecimal.valueOf(153.97), 14));
 
@@ -135,12 +135,12 @@ public class ComponentsIntegrationTests {
   }
 
   @Test
-  public void testGetComponentNotFound() {
+  void testGetComponentNotFound() {
     assertThrows(ResponseStatusException.class, () -> componentsService.getComponent(99L));
   }
 
   @Test
-  public void testGetComponentImage() throws IOException, SQLException {
+  void testGetComponentImage() throws IOException, SQLException {
     Component component = componentsRepository.findAll().get(0);
     Resource expectedImage = new ClassPathResource("/sample_images/ryzen-7.webp");
     component.setImage(imageService.createImage(expectedImage.getInputStream()));
@@ -151,7 +151,7 @@ public class ComponentsIntegrationTests {
   }
 
   @Test
-  public void testGetNullComponentImage() throws SQLException {
+  void testGetNullComponentImage() throws SQLException {
     Resource actualImage = componentsService.getImageFile(1L);
 
     assertEquals(null, actualImage);
@@ -162,6 +162,7 @@ public class ComponentsIntegrationTests {
     Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU,
         "Intel", BigDecimal.valueOf(153.97), 14);
     assertThrows(AuthenticationCredentialsNotFoundException.class, () -> componentsService.save(component));
+    assertEquals(2, componentsRepository.count());
   }
 
   @Test
@@ -176,7 +177,7 @@ public class ComponentsIntegrationTests {
     Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU,
         "Intel", BigDecimal.valueOf(153.97), 14);
     assertThrows(AuthorizationDeniedException.class, () -> componentsService.save(component));
-
+    assertEquals(2, componentsRepository.count());
   }
 
   @Test
@@ -191,7 +192,73 @@ public class ComponentsIntegrationTests {
     Component component = new Component("Intel i5 12400F", "Procesador de 6 núcleos y 12 hilos", ComponentType.CPU,
         "Intel", BigDecimal.valueOf(153.97), 14);
     assertDoesNotThrow(() -> componentsService.save(component));
+    assertEquals(3, componentsRepository.count());
+  }
 
+  @Test
+  void postVoidComponent() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component newComponent = new Component("", "", ComponentType.CPU, "", BigDecimal.valueOf(100.00), 5);
+
+    assertThrows(IllegalArgumentException.class,
+        () -> componentsService.save(newComponent));
+  }
+
+  @Test
+  void postNullComponent() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component newComponent = new Component(null, null, ComponentType.CPU, null, BigDecimal.valueOf(100.00), 5);
+
+    assertThrows(IllegalArgumentException.class,
+        () -> componentsService.save(newComponent));
+  }
+
+  @Test
+  void postExistingComponent() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component newComponent = new Component("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC", "sampleDescription",
+        ComponentType.CPU, "sampleBrand", BigDecimal.valueOf(100.00), 5);
+
+    assertThrows(IllegalArgumentException.class,
+        () -> componentsService.save(newComponent));
+  }
+
+  @Test
+  void postBadFormatComponent() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component newComponent = new Component("sampleName", "sampleDescription", ComponentType.CPU, "sampleBrand",
+        BigDecimal.valueOf(-100.00), -5);
+
+    assertThrows(IllegalArgumentException.class,
+        () -> componentsService.save(newComponent));
   }
 
   @Test
@@ -359,9 +426,8 @@ public class ComponentsIntegrationTests {
 
   @Test
   void deleteComponentAsNotLoggedIn() {
-
     assertThrows(AuthenticationCredentialsNotFoundException.class, () -> componentsService.delete(1L));
-
+    assertEquals(2, componentsRepository.count());
   }
 
   @Test
@@ -377,7 +443,6 @@ public class ComponentsIntegrationTests {
 
     assertThrows(AuthorizationDeniedException.class, () -> componentsService.delete(component.getId()));
     assertEquals(2, componentsRepository.count());
-
   }
 
   @Test
@@ -393,7 +458,6 @@ public class ComponentsIntegrationTests {
 
     assertDoesNotThrow(() -> componentsService.delete(component.getId()));
     assertEquals(1, componentsRepository.count());
-
   }
 
   @Test

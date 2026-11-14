@@ -573,4 +573,142 @@ describe("ComponentForm", () => {
     });
 
   });
+
+  it("throws an error when the createComponent request fails with a backend message", async () => {
+      
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_error_message";
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+    vi.mocked(createComponent).mockRejectedValue(new Error(backendErrorMessage));
+
+    const RouterStub = createRoutesStub([
+      { path: "/components/create", Component: ComponentsCreate },
+    ]);
+  
+    render(<RouterStub initialEntries={["/components/create"]} />);
+
+    await user.type(screen.getByLabelText("Nombre:"), "testComponent");
+    await user.type(screen.getByLabelText("Descripción:"), "testDescription");
+    await screen.findByRole("option", { name: "Procesador" });
+    await user.selectOptions(screen.getByLabelText("Tipo de componente:"), "CPU");
+    await user.type(screen.getByLabelText("Marca:"), "testBrand");
+    await user.type(screen.getByLabelText("Precio:"), "10");
+    await user.type(screen.getByLabelText("Stock:"), "5");
+
+    const createButton = await screen.findByRole("button", { name: /Guardar componente/i });
+    await user.click(createButton);
+
+    await waitFor(() => {
+      expect(createComponent).toHaveBeenCalledTimes(1);
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+    });
+  
+  });
+  
+  it("throws the default error when the createReview request fails without a backend message", async () => {
+    
+    const user = userEvent.setup();
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+    vi.mocked(createComponent).mockRejectedValue(new Error("Hubo un error al crear el componente."));
+
+    const RouterStub = createRoutesStub([
+      { path: "/components/create", Component: ComponentsCreate },
+    ]);
+  
+    render(<RouterStub initialEntries={["/components/create"]} />);
+
+    await user.type(screen.getByLabelText("Nombre:"), "testComponent");
+    await user.type(screen.getByLabelText("Descripción:"), "testDescription");
+    await screen.findByRole("option", { name: "Procesador" });
+    await user.selectOptions(screen.getByLabelText("Tipo de componente:"), "CPU");
+    await user.type(screen.getByLabelText("Marca:"), "testBrand");
+    await user.type(screen.getByLabelText("Precio:"), "10");
+    await user.type(screen.getByLabelText("Stock:"), "5");
+
+    const createButton = await screen.findByRole("button", { name: /Guardar componente/i });
+    await user.click(createButton);
+
+    await waitFor(() => {
+      expect(createComponent).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("Hubo un error al crear el componente.")).toBeInTheDocument();
+    });
+
+  });
+
+  it("throws an error when the updateComponent request fails with a backend message", async () => {
+      
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_error_message";
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+    vi.mocked(getComponent).mockResolvedValue(component);
+    vi.mocked(updateComponent).mockRejectedValue(new Error(backendErrorMessage));
+
+    const RouterStub = createRoutesStub([
+      { path: "/components/5/update", Component: ComponentsUpdate, loader: updateClientLoader },
+    ]);
+  
+    render(<RouterStub initialEntries={["/components/5/update"]} />);
+
+    await screen.findByLabelText("Nombre:");
+    await user.clear(screen.getByLabelText("Nombre:"));
+    await user.type(screen.getByLabelText("Nombre:"), "testComponent");
+    await user.clear(screen.getByLabelText("Descripción:"));
+    await user.type(screen.getByLabelText("Descripción:"), "testDescription");
+    await screen.findByRole("option", { name: "Procesador" });
+    await user.selectOptions(screen.getByLabelText("Tipo de componente:"), "CPU");
+    await user.type(screen.getByLabelText("Marca:"), "testBrand");
+    await user.type(screen.getByLabelText("Precio:"), "10");
+    await user.type(screen.getByLabelText("Stock:"), "5");
+
+    const updateButton = await screen.findByRole("button", { name: /Actualizar componente/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(updateComponent).toHaveBeenCalledTimes(1);
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+    });
+  
+  });
+  
+  it("throws the default error when the updateComponent request fails without a backend message", async () => {
+    
+    const user = userEvent.setup();
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+    vi.mocked(getComponent).mockResolvedValue(component);
+    vi.mocked(updateComponent).mockRejectedValue(new Error("Hubo un error al actualizar el componente."));
+
+    const RouterStub = createRoutesStub([
+      { path: "/components/5/update", Component: ComponentsUpdate, loader: updateClientLoader },
+    ]);
+  
+    render(<RouterStub initialEntries={["/components/5/update"]} />);
+
+    await screen.findByLabelText("Nombre:");
+    await user.clear(screen.getByLabelText("Nombre:"));
+    await user.type(screen.getByLabelText("Nombre:"), "testComponent");
+    await user.clear(screen.getByLabelText("Descripción:"));
+    await user.type(screen.getByLabelText("Descripción:"), "testDescription");
+    await screen.findByRole("option", { name: "Procesador" });
+    await user.selectOptions(screen.getByLabelText("Tipo de componente:"), "CPU");
+    await user.type(screen.getByLabelText("Marca:"), "testBrand");
+    await user.type(screen.getByLabelText("Precio:"), "10");
+    await user.type(screen.getByLabelText("Stock:"), "5");
+
+    const updateButton = await screen.findByRole("button", { name: /Actualizar componente/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(updateComponent).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("Hubo un error al actualizar el componente.")).toBeInTheDocument();
+    });
+
+  });
 });

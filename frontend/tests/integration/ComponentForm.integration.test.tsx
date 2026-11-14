@@ -10,6 +10,8 @@ import ComponentsCreate from "~/routes/components-create";
 import Components from "~/routes/components";
 import ComponentDetail, { clientLoader } from "~/routes/detail-component";
 import ComponentsUpdate, { clientLoader as updateClientLoader } from "~/routes/components-update";
+import { addImage } from "~/services/components-service";
+import type ImageDTO from "~/dtos/ImageDTO";
 
 describe("ProfileIntegration", () => {
 
@@ -501,6 +503,211 @@ describe("ProfileIntegration", () => {
       expect(screen.getByText(/10\.00/i)).toBeInTheDocument();
     });
 
+  });
+
+  it("uploads an image successfully", async () => {
+
+    const image: ImageDTO = { id: 1 };
+
+    const file = new File(["dummy image content"], "test.jpg", { type: "image/jpeg" });
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify(image),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        }
+      )
+    );
+
+    const result = await addImage(5, file);
+
+    expect(result).toEqual(image);
+  });
+
+  it("throws an error when uploading an image fails", async () => {
+
+    const file = new File(["dummy image content"], "test.jpg", { type: "image/jpeg" });
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ }),
+        { status: 400 }
+      )
+    );
+
+    await expect(addImage(5, file)).rejects.toThrow(
+      "Hubo un error al subir la imagen. Solo se permiten imágenes JPEG, PNG y WebP."
+    );
+  });
+  
+  it("throws an error when the createComponent request fails with a backend message", async () => {
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_backend_error";
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/create" replace /> },
+      { path: "/components/create", Component: ComponentsCreate },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(async () => {
+      expect(screen.getByLabelText("Nombre:")).toBeInTheDocument();
+    });
+    await user.type(screen.getByLabelText("Nombre:"), "testNameError");
+    await user.type(screen.getByLabelText("Descripción:"), "testDescriptionError");
+    await user.type(screen.getByLabelText("Marca:"), "testBrandError");
+    await screen.findByRole("option", { name: "Procesador" });
+    await user.selectOptions(screen.getByLabelText("Tipo de componente:"), "CPU");
+    await user.type(screen.getByLabelText("Precio:"), "10");
+    await user.type(screen.getByLabelText("Stock:"), "5");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ message: backendErrorMessage }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    await user.click(screen.getByRole("button", { name: /Guardar componente/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+    });
+  });
+
+  it("throws an error when the createComponent request fails without a backend message", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/create" replace /> },
+      { path: "/components/create", Component: ComponentsCreate },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(async () => {
+      expect(screen.getByLabelText("Nombre:")).toBeInTheDocument();
+    });
+    await user.type(screen.getByLabelText("Nombre:"), "testNameError");
+    await user.type(screen.getByLabelText("Descripción:"), "testDescriptionError");
+    await user.type(screen.getByLabelText("Marca:"), "testBrandError");
+    await screen.findByRole("option", { name: "Procesador" });
+    await user.selectOptions(screen.getByLabelText("Tipo de componente:"), "CPU");
+    await user.type(screen.getByLabelText("Precio:"), "10");
+    await user.type(screen.getByLabelText("Stock:"), "5");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    await user.click(screen.getByRole("button", { name: /Guardar componente/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Hubo un error al crear el componente.")).toBeInTheDocument();
+    });
+  });
+
+  it("throws an error when the updateComponent request fails with a backend message", async () => {
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_backend_error";
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/5/update" replace /> },
+      { path: "/components/:id/update", Component: ComponentsUpdate, loader: updateClientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(async () => {
+      expect(screen.getByLabelText("Nombre:")).toBeInTheDocument();
+    });
+    await user.clear(screen.getByLabelText("Nombre:"));
+    await user.type(screen.getByLabelText("Nombre:"), "testUpdateNameError");
+    await user.clear(screen.getByLabelText("Descripción:"));
+    await user.type(screen.getByLabelText("Descripción:"), "testUpdateDescriptionError");
+    await user.clear(screen.getByLabelText("Marca:"));
+    await user.type(screen.getByLabelText("Marca:"), "testUpdateBrand");
+    await screen.findByRole("option", { name: "Procesador" });
+    await user.selectOptions(screen.getByLabelText("Tipo de componente:"), "CPU");
+    await user.clear(screen.getByLabelText("Precio:"));
+    await user.type(screen.getByLabelText("Precio:"), "10");
+    await user.clear(screen.getByLabelText("Stock:"));
+    await user.type(screen.getByLabelText("Stock:"), "5");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ message: backendErrorMessage }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    await user.click(screen.getByRole("button", { name: /Actualizar componente/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+    });
+  });
+
+  it("throws an error when the updateComponent request fails without a backend message", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/5/update" replace /> },
+      { path: "/components/:id/update", Component: ComponentsUpdate, loader: updateClientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(async () => {
+      expect(screen.getByLabelText("Nombre:")).toBeInTheDocument();
+    });
+    await user.clear(screen.getByLabelText("Nombre:"));
+    await user.type(screen.getByLabelText("Nombre:"), "testUpdateNameError");
+    await user.clear(screen.getByLabelText("Descripción:"));
+    await user.type(screen.getByLabelText("Descripción:"), "testUpdateDescriptionError");
+    await user.clear(screen.getByLabelText("Marca:"));
+    await user.type(screen.getByLabelText("Marca:"), "testUpdateBrand");
+    await screen.findByRole("option", { name: "Procesador" });
+    await user.selectOptions(screen.getByLabelText("Tipo de componente:"), "CPU");
+    await user.clear(screen.getByLabelText("Precio:"));
+    await user.type(screen.getByLabelText("Precio:"), "10");
+    await user.clear(screen.getByLabelText("Stock:"));
+    await user.type(screen.getByLabelText("Stock:"), "5");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    await user.click(screen.getByRole("button", { name: /Actualizar componente/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Hubo un error al actualizar el componente.")).toBeInTheDocument();
+    });
   });
 
 });
