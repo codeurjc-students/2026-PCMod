@@ -47,7 +47,7 @@ export default function ComponentsUpdate({ loaderData }: Route.ComponentProps) {
     <main className="main">
       <div className="container">
         <div className="component-form">
-          <Link to="/">
+          <Link to={`/components/${component.id}`}>
             <ArrowLeft />
             <span className="ms-2">Volver</span>
           </Link>

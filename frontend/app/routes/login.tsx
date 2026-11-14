@@ -103,8 +103,8 @@ export default function Login() {
               </div>
             </div>
             <Button type="submit" name="login-button" className="pcmod-button" disabled={isPending}>
-              <span className="me-2">Iniciar sesión</span>
               <BoxArrowInRight />
+              <span className="me-2">Iniciar sesión</span>
             </Button>
             <p>¿No tiene cuenta en PCMod?</p>
             <Link to="/register" id="register-link" className="link-text">

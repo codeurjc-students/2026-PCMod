@@ -1,5 +1,7 @@
 package es.codeurjcstudents.pcmod.controller;
 
+import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentRequest;
+
 import java.net.URI;
 import java.security.Principal;
 
@@ -11,11 +13,10 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentRequest;
 
 import es.codeurjcstudents.pcmod.dto.ReviewDTO;
 import es.codeurjcstudents.pcmod.model.Review;
@@ -58,6 +59,18 @@ public class ReviewsRestController {
   @DeleteMapping("/{reviewId}")
   public void deleteReview(@PathVariable long id, @PathVariable long reviewId) {
     reviewsService.delete(id, reviewId);
+  }
+
+  @PutMapping("/{reviewId}")
+  public ResponseEntity<ReviewDTO> updateComponent(@RequestBody ReviewDTO updatedData, @PathVariable long id, @PathVariable long reviewId) {
+
+    Review newReviewData = reviewsService.toDomain(updatedData);
+    Review updatedReview = reviewsService.updateReview(newReviewData, id, reviewId);
+
+    URI location = fromCurrentRequest().buildAndExpand(updatedReview.getId()).toUri();
+
+    return ResponseEntity.created(location).body(reviewsService.toDTO(updatedReview));
+
   }
 
 }

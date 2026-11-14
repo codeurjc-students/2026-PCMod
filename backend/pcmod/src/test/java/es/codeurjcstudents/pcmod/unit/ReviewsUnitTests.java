@@ -2,6 +2,7 @@ package es.codeurjcstudents.pcmod.unit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -496,6 +497,144 @@ public class ReviewsUnitTests {
     when(reviewsRepository.findById(1L)).thenReturn(java.util.Optional.empty());
 
     assertFalse(reviewsService.isOwner(1L, "1"));
+
+  }
+
+  @Test
+  public void testUpdateReview() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    ReviewMapper reviewMapper = mock(ReviewMapper.class);
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, reviewMapper, componentsRepository, usersRepository );
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+    component.setId(1L);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+      passwordEncoder.encode("pass"), "REGISTERED_USER");
+
+    Review review = new Review("sample_title", "sample_message", 5);
+    review.setComponent(component);
+    Review reviewToUpdate = new Review("sample_title_updated", "sample_message_updated", 1);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
+    when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
+    when(reviewsRepository.save(any(Review.class))).thenReturn(review);
+
+    Review updatedReview = reviewsService.updateReview(reviewToUpdate, 1L, 1L);
+
+    assertEquals(reviewToUpdate.getTitle(), updatedReview.getTitle());
+    assertEquals(reviewToUpdate.getMessage(), updatedReview.getMessage());
+    assertEquals(reviewToUpdate.getRating(), updatedReview.getRating());
+    verify(reviewsRepository).save(any(Review.class));
+  }
+
+  @Test
+  public void testUpdateVoidReviewData() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    ReviewMapper reviewMapper = mock(ReviewMapper.class);
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, reviewMapper, componentsRepository, usersRepository );
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+    component.setId(1L);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+      passwordEncoder.encode("pass"), "REGISTERED_USER");
+
+    Review review = new Review("", "", null);
+    review.setComponent(component);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
+    when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
+
+    assertThrows(IllegalArgumentException.class, () -> reviewsService.updateReview(review, 1L, 1L));
+    verify(reviewsRepository, never()).save(any(Review.class));
+
+  }
+
+  @Test
+  public void testUpdateNullReviewData() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    ReviewMapper reviewMapper = mock(ReviewMapper.class);
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, reviewMapper, componentsRepository, usersRepository );
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+    component.setId(1L);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+      passwordEncoder.encode("pass"), "REGISTERED_USER");
+
+    Review review = new Review(null, null, null);
+    review.setComponent(component);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
+    when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
+
+    assertThrows(IllegalArgumentException.class, () -> reviewsService.updateReview(review, 1L, 1L));
+    verify(reviewsRepository, never()).save(any(Review.class));
+
+  }
+
+  @Test
+  public void testUpdateBadNumReviewData() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    ReviewMapper reviewMapper = mock(ReviewMapper.class);
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, reviewMapper, componentsRepository, usersRepository );
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+    component.setId(1L);
+
+    User user = new User("user", "test", "userTest", "c/testaddress", "testuser@example.com",
+      passwordEncoder.encode("pass"), "REGISTERED_USER");
+
+    Review review = new Review("sample_title", "sample_message", -5);
+    review.setComponent(component);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.of(component));
+    when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
+    when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
+
+    assertThrows(IllegalArgumentException.class, () -> reviewsService.updateReview(review, 1L, 1L));
+    verify(reviewsRepository, never()).save(any(Review.class));
+
+  }
+
+  @Test
+  public void testUpdateReviewOfWrongComponent() {
+
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, null, null, null );
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+    Component otherComponent = new Component("sample_name2", "sample_message2", ComponentType.CPU, "sample_brand2", BigDecimal.valueOf(100.00), 5);
+    component.setId(1L);
+    otherComponent.setId(2L);
+
+    Review review = new Review("sample_title", "sample_message", 5);
+    review.setComponent(component);
+
+    Review updatedReview = new Review("sample_title_updated", "sample_message_updated", Integer.valueOf(1));
+
+    when(reviewsRepository.findById(1L)).thenReturn(java.util.Optional.of(review)); 
+    when(componentsRepository.findById(2L)).thenReturn(java.util.Optional.of(otherComponent));
+
+    assertThrows(NoSuchElementException.class, () -> reviewsService.updateReview(updatedReview, 2L, 1L));
+    verify(reviewsRepository, never()).deleteById(1L);
 
   }
 }

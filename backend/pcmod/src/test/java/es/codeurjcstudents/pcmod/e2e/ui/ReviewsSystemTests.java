@@ -129,6 +129,8 @@ public class ReviewsSystemTests {
     driver.get("http://localhost:5173/components/2");
 
     assertThat(driver.findElements(By.id("save-review-button"))).isEmpty();
+    assertThat(driver.findElements(By.id("update-review-button-1"))).isEmpty();
+    assertThat(driver.findElements(By.id("update-review-button-2"))).isEmpty();
     assertThat(driver.findElements(By.id("delete-review-button-1"))).isEmpty();
     assertThat(driver.findElements(By.id("delete-review-button-2"))).isEmpty();
 
@@ -143,9 +145,12 @@ public class ReviewsSystemTests {
 
     driver.get("http://localhost:5173/components/2");
 
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("update-review-button-1")));
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("delete-review-button-1")));
 
     assertThat(driver.findElements(By.id("save-review-button"))).isEmpty();
+    assertThat(driver.findElements(By.id("update-review-button-1"))).isNotEmpty();
+    assertThat(driver.findElements(By.id("update-review-button-2"))).isEmpty();
     assertThat(driver.findElements(By.id("delete-review-button-1"))).isNotEmpty();
     assertThat(driver.findElements(By.id("delete-review-button-2"))).isEmpty();
 
@@ -173,10 +178,14 @@ public class ReviewsSystemTests {
 
     driver.get("http://localhost:5173/components/2");
 
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("update-review-button-1")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("update-review-button-2")));
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("delete-review-button-1")));
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("delete-review-button-2")));
 
     assertThat(driver.findElements(By.id("save-review-button"))).isEmpty();
+    assertThat(driver.findElements(By.id("update-review-button-1"))).isNotEmpty();
+    assertThat(driver.findElements(By.id("update-review-button-2"))).isNotEmpty();
     assertThat(driver.findElements(By.id("delete-review-button-1"))).isNotEmpty();
     assertThat(driver.findElements(By.id("delete-review-button-2"))).isNotEmpty();
 
@@ -350,6 +359,168 @@ public class ReviewsSystemTests {
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-title-2")));
     assertThat(driver.findElement(By.id("review-title-2")).getText())
         .isEqualTo("Tarjeta gráfica bastante mejorable.");
+
+  }
+
+  @Test
+  public void updateAsLoggedInNoAdminTest() {
+
+    login("user@example.com", "userpass");
+
+    driver.get("http://localhost:5173/components/4");
+    scrollToAndClick(By.id("update-review-button-4"));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
+    driver.findElement(By.id("title")).clear();
+    driver.findElement(By.id("title")).sendKeys("updated_title");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("message")));
+    driver.findElement(By.id("message")).clear();
+    driver.findElement(By.id("message")).sendKeys("updated_message");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("rating")));
+    driver.findElement(By.id("rating")).clear();
+    driver.findElement(By.id("rating")).sendKeys("1");
+    scrollToAndClick(By.id("save-review-button"));
+
+    driver.get("http://localhost:5173/components/4");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("usernameReview-1")));
+    String reviewUsername = driver.findElement(By.id("usernameReview-1")).getText();
+    assertThat(reviewUsername).isEqualTo("user_example");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-title-4")));
+    String reviewTitle = driver.findElement(By.id("review-title-4")).getText();
+    assertThat(reviewTitle).isEqualTo("updated_title");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-message-4")));
+    String reviewMessage = driver.findElement(By.id("review-message-4")).getText();
+    assertThat(reviewMessage).isEqualTo("updated_message");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-valoration-4")));
+    String reviewRating = driver.findElement(By.id("review-valoration-4")).getText();
+    assertThat(reviewRating).isEqualTo("Valoración del producto: ★☆☆☆☆ 1/5");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-average-rating")));
+    String loadedComponentAverageRating = driver.findElement(By.id("component-average-rating")).getText();
+    assertThat(loadedComponentAverageRating).isEqualTo("Puntuación media: ★☆☆☆☆ 1/5 (1 reseña(s))");
+
+  }
+
+  @Test
+  public void updateAsAdminTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/4");
+    scrollToAndClick(By.id("update-review-button-4"));
+    WebElement editForm = wait.until(
+      ExpectedConditions.visibilityOfElementLocated(By.id("edit-review-form"))
+    );
+    editForm.findElement(By.id("title")).clear();
+    editForm.findElement(By.id("title")).sendKeys("updated_title");
+    editForm.findElement(By.id("message")).clear();
+    editForm.findElement(By.id("message")).sendKeys("updated_message");
+    editForm.findElement(By.id("rating")).clear();
+    editForm.findElement(By.id("rating")).sendKeys("1");
+    scrollToAndClick(By.id("save-review-button"));
+
+    driver.get("http://localhost:5173/components/4");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("usernameReview-1")));
+    String reviewUsername = driver.findElement(By.id("usernameReview-1")).getText();
+    assertThat(reviewUsername).isEqualTo("user_example");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-title-4")));
+    String reviewTitle = driver.findElement(By.id("review-title-4")).getText();
+    assertThat(reviewTitle).isEqualTo("updated_title");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-message-4")));
+    String reviewMessage = driver.findElement(By.id("review-message-4")).getText();
+    assertThat(reviewMessage).isEqualTo("updated_message");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-valoration-4")));
+    String reviewRating = driver.findElement(By.id("review-valoration-4")).getText();
+    assertThat(reviewRating).isEqualTo("Valoración del producto: ★☆☆☆☆ 1/5");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("component-average-rating")));
+    String loadedComponentAverageRating = driver.findElement(By.id("component-average-rating")).getText();
+    assertThat(loadedComponentAverageRating).isEqualTo("Puntuación media: ★☆☆☆☆ 1/5 (1 reseña(s))");
+
+  }
+
+  @Test
+  public void updateVoidReviewTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/4");
+
+    scrollToAndClick(By.id("update-review-button-4"));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
+    driver.findElement(By.id("title")).clear();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("message")));
+    driver.findElement(By.id("message")).clear();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("rating")));
+    driver.findElement(By.id("rating")).clear();
+    scrollToAndClick(By.id("save-review-button"));
+
+    assertThat(driver.findElement(By.id("invalid-title")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-title")).getText())
+        .isEqualTo("Por favor, ingrese un título válido.");
+    assertThat(driver.findElement(By.id("invalid-message")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-message")).getText())
+        .isEqualTo("Por favor, ingrese un mensaje válido.");
+    assertThat(driver.findElement(By.id("invalid-rating")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-rating")).getText())
+        .isEqualTo("Por favor, ingrese una valoración válida.");
+
+  }
+
+  @Test
+  public void updateInvalidFormatReviewTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/4");
+    scrollToAndClick(By.id("update-review-button-4"));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
+    driver.findElement(By.id("title")).clear();
+    driver.findElement(By.id("title")).sendKeys("updated_title");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("message")));
+    driver.findElement(By.id("message")).clear();
+    driver.findElement(By.id("message")).sendKeys("updated_message");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("rating")));
+    driver.findElement(By.id("rating")).clear();
+    driver.findElement(By.id("rating")).sendKeys("-1");
+    scrollToAndClick(By.id("save-review-button"));
+
+    assertThat(driver.findElement(By.id("invalid-rating")).isDisplayed()).isTrue();
+    assertThat(driver.findElement(By.id("invalid-rating")).getText())
+        .isEqualTo("Por favor, ingrese una valoración válida.");
+
+  }
+  
+  @Test
+  public void cancelUpdateReviewTest() {
+
+    login("admin@example.com", "adminpass");
+
+    driver.get("http://localhost:5173/components/4");
+    scrollToAndClick(By.id("update-review-button-4"));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("title")));
+    driver.findElement(By.id("title")).clear();
+    driver.findElement(By.id("title")).sendKeys("updated_title_cancel");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("message")));
+    driver.findElement(By.id("message")).clear();
+    driver.findElement(By.id("message")).sendKeys("updated_message_cancel");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("rating")));
+    driver.findElement(By.id("rating")).clear();
+    driver.findElement(By.id("rating")).sendKeys("2");
+    scrollToAndClick(By.name("cancel-review-button"));
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("usernameReview-1")));
+    String reviewUsername = driver.findElement(By.id("usernameReview-1")).getText();
+    assertThat(reviewUsername).isEqualTo("user_example");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-title-4")));
+    String reviewTitle = driver.findElement(By.id("review-title-4")).getText();
+    assertThat(reviewTitle).isNotEqualTo("updated_title_cancel");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-message-4")));
+    String reviewMessage = driver.findElement(By.id("review-message-4")).getText();
+    assertThat(reviewMessage).isNotEqualTo("updated_message_cancel");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("review-valoration-4")));
+    String reviewRating = driver.findElement(By.id("review-valoration-4")).getText();
+    assertThat(reviewRating).isNotEqualTo("2");
+
 
   }
 

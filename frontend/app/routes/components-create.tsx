@@ -40,7 +40,7 @@ export default function ComponentsCreate() {
     <main className="main">
       <div className="container">
         <div className="component-form">
-          <Link to="/">
+          <Link to="/components">
             <ArrowLeft />
             <span className="ms-2">Volver</span>
           </Link>

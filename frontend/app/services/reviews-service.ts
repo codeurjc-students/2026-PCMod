@@ -98,3 +98,33 @@ export async function deleteReview(id: number, reviewId: number): Promise<void> 
   }
 
 }
+
+export async function updateReview(componentId: number, reviewId: number, title: string, message: string, rating: number): Promise<ReviewDTO> {
+  const url = new URL(`${API_URL}/${componentId}/reviews/${reviewId}`, getBaseUrl());
+  const res = await fetch(url.toString(), {
+    method: 'PUT',
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title,
+      message,
+      rating
+    })
+  });
+
+  if (!res.ok) {
+    let message: string | undefined;
+
+    try {
+      const error = await res.json();
+      message = typeof error.message === "string" ? error.message : undefined;
+    } catch {
+      message = undefined;
+    }
+
+    throw new Error(message ?? "There was an error while updating the review.");
+  }
+
+  return await res.json();
+}

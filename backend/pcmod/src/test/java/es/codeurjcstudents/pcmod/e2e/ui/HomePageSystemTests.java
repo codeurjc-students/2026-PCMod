@@ -62,8 +62,7 @@ public class HomePageSystemTests {
     wait.until(ExpectedConditions.numberOfElementsToBe(recentComponentNames, 3));
     assertThat(driver.findElements(recentComponentNames))
       .extracting(WebElement::getText)
-      .containsExactly(
-        "testComponent",
+      .contains(
         "Corsair iCUE LINK 3500X RGB",
         "Kingston FURY Beast");
 

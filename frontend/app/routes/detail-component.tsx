@@ -3,14 +3,14 @@ import { ArrowLeft, CartPlus, ExclamationCircleFill, Image as ImageIcon, PencilS
 import type { Route } from "./+types/detail-component";
 import { deleteComponent, getComponent } from "~/services/components-service";
 import { useUserStore } from "~/stores/user-store";
-import { useActionState, useEffect, useRef, useState, type SubmitEvent } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useRevalidator } from "react-router";
 import ReviewCard from "~/components/reviewCard";
 import type ReviewDTO from "~/dtos/ReviewDTO";
 import { createReview, getReviews, hasUserReviewed } from "~/services/reviews-service";
 import ReviewForm from "~/components/reviewForm";
-import { getReviewFormValues, type ReviewFormValues } from "~/utils/review-form-utils";
-import { handleFormSubmit } from "~/utils/general-form-utils";
+import { type ReviewFormValues } from "~/utils/review-form-utils";
+import { useReviewForm } from "~/hooks/use-review-form";
 
 const API_URL = "/api/v1/components";
 
@@ -42,13 +42,7 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState(false);
-  const [wasValidated, setWasValidated] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [, formAction, isPending] = useActionState(
-    createReviewAction,
-    { title: "", message: "", rating: 0 }
-  );
+
 
   useEffect(() => {
     setReviews(loaderData.reviews.items);
@@ -90,29 +84,20 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
     }
   };
 
-  async function createReviewAction(_prevState: ReviewFormValues, formData: FormData) {
-    const { title, message, rating } = getReviewFormValues(formData);
-    setErrorMessage("");
+  const initialState: ReviewFormValues = {
+    title: "",
+    message: "",
+    rating: 0,
+  };
 
-    try {
-      await createReview(component.id, title, message, rating);
+  const reviewForm = useReviewForm({
+    initialState,
+    submitAction: async (values) => {
+      await createReview(component.id, values.title, values.message, values.rating);
       await revalidator.revalidate();
-    } catch (error) {
-      console.log(error);
-
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Hubo un error al guardar la reseña. Por favor, inténtalo de nuevo.",
-      );
-    }
-
-    return { title, message, rating };
-  }
-
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    handleFormSubmit(event, formAction, setWasValidated);
-  }
+    },
+    defaultErrorMessage: "Hubo un error al crear la reseña. Por favor, inténtalo de nuevo."
+  });
 
   async function handleDeleteReview() {
     await revalidator.revalidate();
@@ -174,21 +159,21 @@ export default function ComponentDetail({ loaderData }: Route.ComponentProps) {
             <div className="reviews-list">
               {user && !loaderData.hasReviewed && (
                 <>
-                  {errorMessage && (
+                  {reviewForm.errorMessage && (
                     <div className="error-message-text">
                       <strong>
                         <ExclamationCircleFill /> Error:
                       </strong>
                       <p id="error-message" className="mb-0 mt-1">
-                        {errorMessage}
+                        {reviewForm.errorMessage}
                       </p>
                     </div>
                   )}
                   <ReviewForm 
-                    onSubmit={handleSubmit}
-                    isPending={isPending}
-                    wasValidated={wasValidated}
-                    formRef={formRef}
+                    onSubmit={reviewForm.handleSubmit}
+                    isPending={reviewForm.isPending}
+                    wasValidated={reviewForm.wasValidated}
+                    formRef={reviewForm.formRef}
                     submitLabel="Guardar reseña"
                   />
                 </>

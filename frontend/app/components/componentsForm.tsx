@@ -110,13 +110,13 @@ const cancelPath = component?.id !== undefined ? `/components/${component.id}` :
         </div>
 
         <Link to={cancelPath} id="cancel-component-button" className="pcmod-danger-button">
-          <span className="me-2">Cancelar</span>
           <ArrowLeft />
+          <span className="me-2">Cancelar</span>
         </Link>
 
         <Button type="submit" name="save-component-button" className="pcmod-button" disabled={isPending}>
-          <span className="me-2">{submitLabel}</span>
           <Floppy />
+          <span className="me-2">{submitLabel}</span>
         </Button>
       </form>
     );
