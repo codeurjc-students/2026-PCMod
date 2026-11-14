@@ -5,6 +5,7 @@ import Profile, { clientLoader } from "~/routes/profile";
 import { createRoutesStub } from "react-router";
 import userEvent from "@testing-library/user-event";
 import { addImage, deleteUser, getUser, logOut, reqIsLogged, updateUser } from "~/services/users-service";
+import { useUserStore } from "~/stores/user-store";
 
 const userAccount = {
   id: 1,
@@ -334,6 +335,88 @@ describe("ProfilePage", () => {
 
     await waitFor(() => {
       expect(updateUser).not.toHaveBeenCalled();
+    });
+
+  });
+
+  it("throws an error when the updateUser request fails with a backend message", async () => {
+      
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_error_message";
+
+    vi.mocked(reqIsLogged).mockResolvedValue(userAccount);
+    useUserStore.setState({ user: userAccount });
+    vi.mocked(getUser).mockResolvedValue(userAccount);
+    vi.mocked(updateUser).mockRejectedValue(new Error(backendErrorMessage));
+
+    const RouterStub = createRoutesStub([
+      { path: "/me", Component: Profile, loader: () => userAccount },
+    ]);
+
+    render(<RouterStub initialEntries={["/me"]} />);
+
+    const formButton = await screen.findByRole("button", { name: /Editar perfil/i });
+    await user.click(formButton);
+
+    await user.clear(screen.getByLabelText("Nombre:"));
+    await user.type(screen.getByLabelText("Nombre:"), "updated");
+    await user.clear(screen.getByLabelText("Apellido:"));
+    await user.type(screen.getByLabelText("Apellido:"), "user");
+    await user.clear(screen.getByLabelText("Nombre de usuario:"));
+    await user.type(screen.getByLabelText("Nombre de usuario:"), "updatedUserError");
+    await user.clear(screen.getByLabelText("Dirección:"));
+    await user.type(screen.getByLabelText("Dirección:"), "c/updated");
+    await user.clear(screen.getByLabelText("Correo electrónico:"));
+    await user.type(screen.getByLabelText("Correo electrónico:"), "userError@updated.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "Updat3_Test");
+
+    const updateButton = await screen.findByRole("button", { name: /Guardar cambios/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(updateUser).toHaveBeenCalledTimes(1);
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+    });
+  
+  });
+  
+  it("throws the default error when the updateUser request fails without a backend message", async () => {
+    
+    const user = userEvent.setup();
+
+    vi.mocked(reqIsLogged).mockResolvedValue(userAccount);
+    useUserStore.setState({ user: userAccount });
+    vi.mocked(getUser).mockResolvedValue(userAccount);
+    vi.mocked(updateUser).mockRejectedValue(new Error("Hubo un error al actualizar el usuario."));
+
+
+    const RouterStub = createRoutesStub([
+      { path: "/me", Component: Profile, loader: () => userAccount },
+    ]);
+
+    render(<RouterStub initialEntries={["/me"]} />);
+
+    const formButton = await screen.findByRole("button", { name: /Editar perfil/i });
+    await user.click(formButton);
+
+    await user.clear(screen.getByLabelText("Nombre:"));
+    await user.type(screen.getByLabelText("Nombre:"), "updated");
+    await user.clear(screen.getByLabelText("Apellido:"));
+    await user.type(screen.getByLabelText("Apellido:"), "user");
+    await user.clear(screen.getByLabelText("Nombre de usuario:"));
+    await user.type(screen.getByLabelText("Nombre de usuario:"), "updatedUserError");
+    await user.clear(screen.getByLabelText("Dirección:"));
+    await user.type(screen.getByLabelText("Dirección:"), "c/updated");
+    await user.clear(screen.getByLabelText("Correo electrónico:"));
+    await user.type(screen.getByLabelText("Correo electrónico:"), "userError@updated.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "Updat3_Test");
+
+    const updateButton = await screen.findByRole("button", { name: /Guardar cambios/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(updateUser).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("Hubo un error al actualizar el usuario.")).toBeInTheDocument();
     });
 
   });

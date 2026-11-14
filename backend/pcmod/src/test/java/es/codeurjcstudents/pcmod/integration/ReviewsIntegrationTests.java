@@ -413,6 +413,7 @@ public class ReviewsIntegrationTests {
 
     assertThrows(AuthenticationCredentialsNotFoundException.class,
         () -> reviewsService.delete(component.getId(), review.getId()));
+    assertEquals(2, reviewsRepository.count());
 
   }
 

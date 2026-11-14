@@ -45,7 +45,7 @@ export async function logIn(email: string, pass: string): Promise<void> {
   });
 
   if (!res.ok) {
-    throw new Error("There was an error while logging in.");
+    throw new Error("Hubo un error al iniciar sesión.");
   }
 
 }
@@ -58,7 +58,7 @@ export async function logOut(): Promise<void> {
   });
 
   if (!res.ok) {
-    throw new Error("There was an error while logging out.");
+    throw new Error("Hubo un error al cerrar sesión.");
   }
 
 }
@@ -89,7 +89,7 @@ export async function register(name: string, surname: string, username: string, 
       message = undefined;
     }
 
-    throw new Error(message ?? "There was an error while registering.");
+    throw new Error(message ?? "Hubo un error al registrarse.");
   }
 
   return await res.json();

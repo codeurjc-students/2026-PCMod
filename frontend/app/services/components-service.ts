@@ -25,7 +25,7 @@ export async function getComponents(page: number): Promise<ComponentsPageResult>
   const res = await fetch(url.toString());
 
   if (!res.ok) {
-    throw new Error("Error fetching components");
+    throw new Error("Hubo un error al cargar los componentes.");
   }
 
   const data = await res.json();
@@ -46,7 +46,7 @@ export async function getRecentComponents(): Promise<ComponentDTO[]> {
   const res = await fetch(url.toString());
 
   if (!res.ok) {
-    throw new Error("Error fetching recent components");
+    throw new Error("Hubo un error al cargar los componentes.");
   }
 
   const data = await res.json();
@@ -67,7 +67,7 @@ export async function getComponent(id: number): Promise<ComponentDTO> {
   const res = await fetch(url.toString());
 
   if (!res.ok) {
-    throw new Error("Error fetching component");
+    throw new Error("Hubo un error al cargar el componente.");
   }
 
   return await res.json();
@@ -99,7 +99,7 @@ export async function createComponent (name: string, description: string, type: 
       message = undefined;
     }
 
-    throw new Error(message ?? "There was an error while creating the component.");
+    throw new Error(message ?? "Hubo un error al crear el componente.");
   }
 
   return await res.json();
@@ -131,7 +131,7 @@ export async function deleteComponent(id: number): Promise<void> {
   });
 
   if (!response.ok) {
-    throw new Error("Error deleting component");
+    throw new Error("Hubo un error al eliminar el componente.");
   }
 
 }
@@ -174,7 +174,7 @@ export async function getComponentTypes(): Promise<string[]> {
   const response = await fetch(url.toString());
 
   if (!response.ok) {
-    throw new Error("No se pudieron obtener los tipos de componentes");
+    throw new Error("No se pudieron obtener los tipos de componentes.");
   }
 
   return await response.json();

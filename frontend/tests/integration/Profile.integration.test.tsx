@@ -7,8 +7,9 @@ import "@testing-library/jest-dom";
 import { CookieJar } from "tough-cookie";
 import Login from "~/routes/login";
 import Profile, { clientLoader } from "~/routes/profile";
-import { register } from "~/services/users-service";
+import { addImage, register } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
+import type ImageDTO from "~/dtos/ImageDTO";
 
 function RootRoute() {
   const user = useUserStore((state) => state.user);
@@ -321,6 +322,150 @@ describe("ProfileIntegration", () => {
       expect(screen.getByText("Por favor, seleccione un archivo de imagen válido.")).toBeInTheDocument();
     });
 
+  });
+
+  it("uploads an image successfully", async () => {
+
+    const image: ImageDTO = { id: 1 };
+
+    const file = new File(["dummy image content"], "test.jpg", { type: "image/jpeg" });
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify(image),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        }
+      )
+    );
+
+    const result = await addImage(1, file);
+
+    expect(result).toEqual(image);
+  });
+
+  it("throws an error when uploading an image fails", async () => {
+
+    const file = new File(["dummy image content"], "test.jpg", { type: "image/jpeg" });
+
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ }),
+        { status: 400 }
+      )
+    );
+
+    await expect(addImage(1, file)).rejects.toThrow(
+      "Hubo un error al subir la imagen. Solo se permiten imágenes JPEG, PNG y WebP."
+    );
+  });
+
+  it("throws an error when the updateUser request fails with a backend message", async () => {
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_backend_error";
+    await register(
+      "updateError",
+      "accountError",
+      "update_account_error",
+      "c/update_account_address 1",
+      "update.error@example.com",
+      "update_Pass1",
+    );
+
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/me" replace /> },
+      { path: "/me", Component: Profile, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "update.error@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "update_Pass1");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    const formButton = await screen.findByRole("button", { name: /Editar perfil/i });
+    await user.click(formButton);
+
+    await user.clear(screen.getByLabelText("Nombre:"));
+    await user.type(screen.getByLabelText("Nombre:"), "updated");
+    await user.clear(screen.getByLabelText("Apellido:"));
+    await user.type(screen.getByLabelText("Apellido:"), "user");
+    await user.clear(screen.getByLabelText("Nombre de usuario:"));
+    await user.type(screen.getByLabelText("Nombre de usuario:"), "updatedUserError");
+    await user.clear(screen.getByLabelText("Dirección:"));
+    await user.type(screen.getByLabelText("Dirección:"), "c/updated");
+    await user.clear(screen.getByLabelText("Correo electrónico:"));
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@error.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "Updat3_Test");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ message: backendErrorMessage }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    const updateButton = await screen.findByRole("button", { name: /Guardar cambios/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+    });
+  });
+
+  it("throws an error when the updateComponent request fails without a backend message", async () => {
+    const user = userEvent.setup();
+    await register(
+      "updateError2",
+      "accountError2",
+      "update_account_error2",
+      "c/update_account_address 1",
+      "update.error2@example.com",
+      "update_Pass1",
+    );
+
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/me" replace /> },
+      { path: "/me", Component: Profile, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "update.error@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "update_Pass1");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    const formButton = await screen.findByRole("button", { name: /Editar perfil/i });
+    await user.click(formButton);
+
+    await user.clear(screen.getByLabelText("Nombre:"));
+    await user.type(screen.getByLabelText("Nombre:"), "updated");
+    await user.clear(screen.getByLabelText("Apellido:"));
+    await user.type(screen.getByLabelText("Apellido:"), "user");
+    await user.clear(screen.getByLabelText("Nombre de usuario:"));
+    await user.type(screen.getByLabelText("Nombre de usuario:"), "updatedUserError");
+    await user.clear(screen.getByLabelText("Dirección:"));
+    await user.type(screen.getByLabelText("Dirección:"), "c/updated");
+    await user.clear(screen.getByLabelText("Correo electrónico:"));
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@error.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "Updat3_Test");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    const updateButton = await screen.findByRole("button", { name: /Guardar cambios/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Hubo un error al actualizar el perfil.")).toBeInTheDocument();
+    });
   });
 
 });
