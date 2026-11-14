@@ -168,4 +168,67 @@ describe("RegisterIntegration", () => {
     });
   });
 
+  it("throws an error when the register request fails with a backend message", async () => {
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_backend_error";
+
+    const RouterStub = createRoutesStub([
+      { path: "/register", Component: Register }
+    ]);
+
+    render(<RouterStub initialEntries={["/register"]} />);
+
+    await user.type(screen.getByLabelText("Nombre:"), "user");
+    await user.type(screen.getByLabelText("Apellido:"), "test");
+    await user.type(screen.getByLabelText("Nombre de usuario:"), "userTestError");
+    await user.type(screen.getByLabelText("Dirección:"), "c/test");
+    await user.type(screen.getByLabelText("Correo electrónico:"), "userError@test.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "R3gister_Test");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ message: backendErrorMessage }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    const registerButton = screen.getByRole("button", { name: /Registrarse/i });
+    await user.click(registerButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+    });
+  });
+
+  it("throws an error when the register request fails without a backend message", async () => {
+    const user = userEvent.setup();
+
+    const RouterStub = createRoutesStub([
+      { path: "/register", Component: Register }
+    ]);
+
+    render(<RouterStub initialEntries={["/register"]} />);
+
+    await user.type(screen.getByLabelText("Nombre:"), "user");
+    await user.type(screen.getByLabelText("Apellido:"), "test");
+    await user.type(screen.getByLabelText("Nombre de usuario:"), "userTestError");
+    await user.type(screen.getByLabelText("Dirección:"), "c/test");
+    await user.type(screen.getByLabelText("Correo electrónico:"), "userError@test.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "R3gister_Test");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    const registerButton = screen.getByRole("button", { name: /Registrarse/i });
+    await user.click(registerButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Hubo un error al registrarse.")).toBeInTheDocument();
+    });
+  });
+
 });

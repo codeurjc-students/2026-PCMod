@@ -515,9 +515,8 @@ public class UsersIntegrationTests {
 
   @Test
   void deleteUserAsNotLoggedIn() {
-
     assertThrows(AuthenticationCredentialsNotFoundException.class, () -> usersService.deleteUser(1L));
-
+    assertEquals(2, usersRepository.count());
   }
 
   @Test

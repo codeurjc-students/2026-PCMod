@@ -188,4 +188,63 @@ describe("RegisterPage", () => {
 
   });
 
+  it("throws an error when the register request fails with a backend message", async () => {
+      
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_error_message";
+
+    vi.mocked(register).mockRejectedValue(new Error(backendErrorMessage));
+
+    const RouterStub = createRoutesStub([
+      { path: "/register", Component: Register },
+    ]);
+
+    render(<RouterStub initialEntries={["/register"]} />);
+
+    await user.type(screen.getByLabelText("Nombre:"), "user");
+    await user.type(screen.getByLabelText("Apellido:"), "test");
+    await user.type(screen.getByLabelText("Nombre de usuario:"), "userTestError");
+    await user.type(screen.getByLabelText("Dirección:"), "c/test");
+    await user.type(screen.getByLabelText("Correo electrónico:"), "userError@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "R3gister_Test");
+
+    const registerButton = screen.getByRole("button", { name: /Registrarse/i });
+    await user.click(registerButton);
+
+    await waitFor(() => {
+      expect(register).toHaveBeenCalledTimes(1);
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+    });
+  
+  });
+  
+  it("throws the default error when the register request fails without a backend message", async () => {
+    
+    const user = userEvent.setup();
+
+    vi.mocked(register).mockRejectedValue(new Error("Hubo un error al registrarse."));
+
+    const RouterStub = createRoutesStub([
+      { path: "/register", Component: Register },
+    ]);
+
+    render(<RouterStub initialEntries={["/register"]} />);
+
+    await user.type(screen.getByLabelText("Nombre:"), "user");
+    await user.type(screen.getByLabelText("Apellido:"), "test");
+    await user.type(screen.getByLabelText("Nombre de usuario:"), "userTestError");
+    await user.type(screen.getByLabelText("Dirección:"), "c/test");
+    await user.type(screen.getByLabelText("Correo electrónico:"), "userError@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "R3gister_Test");
+
+    const registerButton = screen.getByRole("button", { name: /Registrarse/i });
+    await user.click(registerButton);
+
+    await waitFor(() => {
+      expect(register).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("Hubo un error al registrarse.")).toBeInTheDocument();
+    });
+
+  });
+
 });
