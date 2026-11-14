@@ -514,6 +514,44 @@ body {
   background-color: var(--color-brand-dark);
 }
 
+.review-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.review-form-actions .pcmod-danger-button,
+.review-form-actions .pcmod-review-update-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.review-form-actions .pcmod-review-update-button {
+  color: #ffffff;
+  background-color: var(--color-principal);
+}
+
+.review-form-actions .pcmod-review-update-button:hover,
+.review-form-actions .pcmod-review-update-button:focus-visible {
+  color: #ffffff;
+  background-color: var(--color-brand-dark);
+  transform: translateY(-1px);
+}
+
+.review-form-actions .pcmod-review-update-button:disabled {
+  color: #ffffff;
+  background-color: var(--color-muted);
+  transform: none;
+}
+
 /* Component detail */
 
 .main:has(.component-data) {
@@ -848,17 +886,33 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   width: 38px;
   height: 38px;
   margin-top: 1rem;
   margin-right: 0.5rem;
-  padding: 0.45rem;
+  padding: 0.45rem !important;
   border-radius: 6px;
 }
 
 .reviews-list>.load-more-container {
   align-items: center;
   padding-top: 0.25rem;
+}
+
+.custom-component-form > .pcmod-danger-button,
+.custom-component-form > .pcmod-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 150px;
+  min-height: 46px;
+  margin: 0 0.75rem 0.75rem 0;
+  padding: 0.75rem 1.25rem;
+  box-sizing: border-box;
+  text-decoration: none;
+  vertical-align: middle;
 }
 
 /* Modal */

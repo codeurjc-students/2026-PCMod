@@ -4,7 +4,7 @@ import "@testing-library/jest-dom";
 import { createMemoryRouter, createRoutesStub, RouterProvider } from "react-router";
 import ComponentDetail, { clientLoader } from "~/routes/detail-component";
 import { getComponent, deleteComponent, getComponents } from "~/services/components-service";
-import { createReview, deleteReview, getReviews, hasUserReviewed } from "~/services/reviews-service";
+import { createReview, deleteReview, getReviews, hasUserReviewed, updateReview } from "~/services/reviews-service";
 import { reqIsLogged, getPublicUser } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
 import userEvent from "@testing-library/user-event";
@@ -19,6 +19,7 @@ vi.mock("~/services/reviews-service", () => ({
   getReviews: vi.fn(),
   createReview: vi.fn(),
   deleteReview: vi.fn(),
+  updateReview: vi.fn(),
   hasUserReviewed: vi.fn(),
 }));
 
@@ -786,7 +787,7 @@ describe("ComponentDetailPage", () => {
 
   });
 
-  it("throws the default error when the createReview request fails with a backend message", async () => {
+  it("throws the default error when the createReview request fails without a backend message", async () => {
     const user = userEvent.setup();
 
     vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
@@ -822,7 +823,7 @@ describe("ComponentDetailPage", () => {
 
   });
 
-  it("it does not show the review delete button for non-registered users", async () => {
+  it("it does not show the review delete and update buttons for non-registered users", async () => {
 
     const RouterStub = createRoutesStub([
       { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1, review2], hasNext: false } }) },
@@ -831,13 +832,15 @@ describe("ComponentDetailPage", () => {
     render(<RouterStub initialEntries={["/components/2"]} />);
 
     await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).not.toBeInTheDocument();
+      expect(document.getElementById("update-review-button-2")).not.toBeInTheDocument();
       expect(document.getElementById("delete-review-button-1")).not.toBeInTheDocument();
       expect(document.getElementById("delete-review-button-2")).not.toBeInTheDocument();
     });
 
   });
 
-  it("shows only the delete review button for logged-in non-admin users for own reviews", async () => {
+  it("shows only the delete and update review buttons for logged-in non-admin users for own reviews", async () => {
 
     const RouterStub = createRoutesStub([
       { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1, review2], hasNext: false } }) },
@@ -849,13 +852,15 @@ describe("ComponentDetailPage", () => {
     render(<RouterStub initialEntries={["/components/2"]} />);
 
     await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).toBeInTheDocument();
+      expect(document.getElementById("delete-review-button-2")).not.toBeInTheDocument();
       expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
       expect(document.getElementById("delete-review-button-2")).not.toBeInTheDocument();
     });
 
   });
 
-  it("shows the review delete button for admin users for all reviews", async () => {
+  it("shows the review delete and update buttons for admin users for all reviews", async () => {
 
     const RouterStub = createRoutesStub([
       { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1, review2], hasNext: false } }) },
@@ -867,6 +872,8 @@ describe("ComponentDetailPage", () => {
     render(<RouterStub initialEntries={["/components/2"]} />);
 
     await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).toBeInTheDocument();
+      expect(document.getElementById("update-review-button-2")).toBeInTheDocument();
       expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
       expect(document.getElementById("delete-review-button-2")).toBeInTheDocument();
     });
@@ -963,6 +970,349 @@ describe("ComponentDetailPage", () => {
       expect(deleteReview).not.toHaveBeenCalled();
       expect(screen.queryByText(review1.title)).toBeInTheDocument();
     });
+  });
+
+  it("updates a review with valid data as logged in no admin user", async () => {
+
+    const user = userEvent.setup();
+    let updatedReview = review1;
+
+    vi.mocked(reqIsLogged).mockResolvedValue(userAccount);
+    useUserStore.setState({ user: userAccount });
+
+    vi.mocked(hasUserReviewed).mockResolvedValue(true);
+    vi.mocked(updateReview).mockImplementation(async () => {
+      updatedReview = {
+        ...review1,
+        title: "sample_title_updated",
+        message: "sample_message_updated",
+        rating: 3,
+      };
+
+      return updatedReview;
+    });
+
+    const RouterStub = createRoutesStub([
+      {
+        path: "/components/:id",
+        Component: ComponentDetail,
+        loader: () => ({
+          component: component2,
+          reviews: {
+            items: [updatedReview],
+            hasNext: false
+          },
+          hasReviewed: true
+        })
+      },
+    ]);
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await screen.findByText("Intel Core i5-12400F");
+
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-1")!);
+
+    await user.clear(screen.getByLabelText("Título:"));
+    await user.type(screen.getByLabelText("Título:"), "sample_title_updated");
+    await user.clear(screen.getByLabelText("Mensaje:"));
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message_updated");
+    await user.clear(screen.getByLabelText("Valoración:"));
+    await user.type(screen.getByLabelText("Valoración:"), "3");
+
+    const updateButton = await screen.findByRole("button", { name: /Actualizar reseña/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(updateReview).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("sample_title_updated")).toBeInTheDocument();
+      expect(screen.getByText("sample_message_updated")).toBeInTheDocument();
+      expect(screen.getByText("Valoración del producto: ★★★☆☆ 3/5")).toBeInTheDocument();
+    });
+
+  });
+
+  it("updates a review with valid data as admin", async () => {
+
+    const user = userEvent.setup();
+
+    let updatedReview = review1;
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+
+    vi.mocked(hasUserReviewed).mockResolvedValue(true);
+    vi.mocked(updateReview).mockImplementation(async () => {
+      updatedReview = {
+        ...review1,
+        title: "sample_title_updated",
+        message: "sample_message_updated",
+        rating: 3,
+      };
+
+      return updatedReview;
+    });
+
+    const RouterStub = createRoutesStub([
+      {
+        path: "/components/:id",
+        Component: ComponentDetail,
+        loader: () => ({
+          component: component2,
+          reviews: {
+            items: [updatedReview],
+            hasNext: false
+          },
+          hasReviewed: true
+        })
+      },
+    ]);
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await screen.findByText("Intel Core i5-12400F");
+
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-1")!);
+
+    await user.clear(screen.getByLabelText("Título:"));
+    await user.type(screen.getByLabelText("Título:"), "sample_title_updated");
+    await user.clear(screen.getByLabelText("Mensaje:"));
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message_updated");
+    await user.clear(screen.getByLabelText("Valoración:"));
+    await user.type(screen.getByLabelText("Valoración:"), "3");
+
+    const updateButton = await screen.findByRole("button", { name: /Actualizar reseña/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(updateReview).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("sample_title_updated")).toBeInTheDocument();
+      expect(screen.getByText("sample_message_updated")).toBeInTheDocument();
+      expect(screen.getByText("Valoración del producto: ★★★☆☆ 3/5")).toBeInTheDocument();
+    });
+
+  });
+
+  it("cancel update of a review", async () => {
+
+    const user = userEvent.setup();
+    let updatedReview = review1;
+
+    vi.mocked(reqIsLogged).mockResolvedValue(userAccount);
+    useUserStore.setState({ user: userAccount });
+
+    vi.mocked(hasUserReviewed).mockResolvedValue(true);
+
+    const RouterStub = createRoutesStub([
+      {
+        path: "/components/:id",
+        Component: ComponentDetail,
+        loader: () => ({
+          component: component2,
+          reviews: {
+            items: [review1],
+            hasNext: false
+          },
+          hasReviewed: true
+        })
+      },
+    ]);
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await screen.findByText("Intel Core i5-12400F");
+
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-1")!);
+
+    await user.clear(screen.getByLabelText("Título:"));
+    await user.type(screen.getByLabelText("Título:"), "sample_title_updated");
+    await user.clear(screen.getByLabelText("Mensaje:"));
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message_updated");
+    await user.clear(screen.getByLabelText("Valoración:"));
+    await user.type(screen.getByLabelText("Valoración:"), "3");
+
+    const cancelButton = await screen.findByRole("button", { name: /Cancelar/i });
+    await user.click(cancelButton);
+
+    await waitFor(() => {
+      expect(screen.queryByText("sample_title_updated")).not.toBeInTheDocument();
+      expect(screen.queryByText("sample_message_updated")).not.toBeInTheDocument();
+      expect(screen.queryByText("Valoración del producto: ★★★☆☆ 3/5")).not.toBeInTheDocument();
+    });
+
+  });
+
+  it("show error when updating a review with void data", async () => {
+
+    const user = userEvent.setup();
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+
+    vi.mocked(hasUserReviewed).mockResolvedValue(true);
+
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1], hasNext: false }, hasReviewed: true }) },
+    ]);
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await screen.findByText("Intel Core i5-12400F");
+
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-1")!);
+
+    await user.clear(screen.getByLabelText("Título:"));
+    await user.clear(screen.getByLabelText("Mensaje:"));
+    await user.clear(screen.getByLabelText("Valoración:"));
+
+    const updateButton = await screen.findByRole("button", { name: /Actualizar reseña/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(updateReview).not.toHaveBeenCalled();
+      expect(screen.getByText("Por favor, ingrese un título válido.")).toBeInTheDocument();
+      expect(screen.getByText("Por favor, ingrese un mensaje válido.")).toBeInTheDocument();
+      expect(screen.getByText("Por favor, ingrese una valoración válida.")).toBeInTheDocument();
+    });
+
+  });
+
+  it("show error when updating a review with invalid data", async () => {
+
+    const user = userEvent.setup();
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+
+    vi.mocked(hasUserReviewed).mockResolvedValue(true);
+
+    const RouterStub = createRoutesStub([
+      { path: "/components/:id", Component: ComponentDetail, loader: () => ({ component: component2, reviews: { items: [review1], hasNext: false }, hasReviewed: true }) },
+    ]);
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await screen.findByText("Intel Core i5-12400F");
+
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-1")!);
+
+    await user.clear(screen.getByLabelText("Título:"));
+    await user.type(screen.getByLabelText("Título:"), "sample_title_updated");
+    await user.clear(screen.getByLabelText("Mensaje:"));
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message_updated");
+    await user.clear(screen.getByLabelText("Valoración:"));
+    await user.type(screen.getByLabelText("Valoración:"), "-3");
+
+    const updateButton = await screen.findByRole("button", { name: /Actualizar reseña/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(updateReview).not.toHaveBeenCalled();
+      expect(screen.getByText("Por favor, ingrese una valoración válida.")).toBeInTheDocument();
+    });
+
+  });
+
+  it("throws an error when the updateReview request fails with a backend message", async () => {
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_error_message";
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+    vi.mocked(hasUserReviewed).mockResolvedValue(true);
+    vi.mocked(updateReview).mockRejectedValue(new Error(backendErrorMessage));
+
+    const RouterStub = createRoutesStub([
+      {
+        path: "/components/:id",
+        Component: ComponentDetail,
+        loader: () => ({
+          component: component2,
+          reviews: { items: [review1], hasNext: false },
+          hasReviewed: true,
+        }),
+      },
+    ]);
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await screen.findByText("Intel Core i5-12400F");
+
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-1")!);
+
+    await user.clear(screen.getByLabelText("Título:"));
+    await user.type(screen.getByLabelText("Título:"), "sample_title_updated");
+    await user.clear(screen.getByLabelText("Mensaje:"));
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message_updated");
+    await user.clear(screen.getByLabelText("Valoración:"));
+    await user.type(screen.getByLabelText("Valoración:"), "5");
+    await user.click(screen.getByRole("button", { name: /Actualizar reseña/i }));
+
+    await waitFor(() => {
+      expect(updateReview).toHaveBeenCalledWith(2, 1, "sample_title_updated", "sample_message_updated", 5);
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+    });
+
+  });
+
+  it("throws the default error when the updateReview request fails without a backend message", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(reqIsLogged).mockResolvedValue(adminAccount);
+    useUserStore.setState({ user: adminAccount });
+    vi.mocked(hasUserReviewed).mockResolvedValue(true);
+    vi.mocked(updateReview).mockRejectedValue(new Error("There was an error while updating the review."));
+
+    const RouterStub = createRoutesStub([
+      {
+        path: "/components/:id",
+        Component: ComponentDetail,
+        loader: () => ({
+          component: component2,
+          reviews: { items: [review1], hasNext: false },
+          hasReviewed: true,
+        }),
+      },
+    ]);
+
+    render(<RouterStub initialEntries={["/components/2"]} />);
+
+    await screen.findByText("Intel Core i5-12400F");
+
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-1")!);
+
+    await user.clear(screen.getByLabelText("Título:"));
+    await user.type(screen.getByLabelText("Título:"), "sample_title_updated");
+    await user.clear(screen.getByLabelText("Mensaje:"));
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message_updated");
+    await user.clear(screen.getByLabelText("Valoración:"));
+    await user.type(screen.getByLabelText("Valoración:"), "5");
+    await user.click(screen.getByRole("button", { name: /Actualizar reseña/i }));
+
+    await waitFor(() => {
+      expect(updateReview).toHaveBeenCalledWith(2, 1, "sample_title_updated", "sample_message_updated", 5);
+      expect(screen.getByText("There was an error while updating the review.")).toBeInTheDocument();
+    });
+
   });
 
 });

@@ -126,8 +126,8 @@ export default function Register() {
               </div>
             </div>
             <Button type="submit" name="register-button" className="pcmod-button" disabled={isPending}>
-              <span className="me-2">Registrarse</span>
               <PersonPlus />
+              <span className="me-2">Registrarse</span>
             </Button>
             <p>¿Ya tiene cuenta en PCMod?</p>
             <Link to="/login" id="login-link" className="link-text">

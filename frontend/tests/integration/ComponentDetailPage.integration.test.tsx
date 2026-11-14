@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import fetchCookie from "fetch-cookie";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, createRoutesStub, Navigate, RouterProvider } from "react-router";
@@ -318,7 +318,7 @@ describe("ComponentDetailPageIntegration", () => {
 
   });
 
-  it("it does not show the review delete button for non-registered users", async () => {
+  it("it does not show the review delete and update buttons for non-registered users", async () => {
 
     const componentData = await clientLoader({ params: { id: "2" } } as Parameters<typeof clientLoader>[0]);
 
@@ -335,13 +335,15 @@ describe("ComponentDetailPageIntegration", () => {
     render(<RouterProvider router={router} />);
 
     await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).not.toBeInTheDocument();
+      expect(document.getElementById("update-review-button-2")).not.toBeInTheDocument();
       expect(document.getElementById("delete-review-button-1")).not.toBeInTheDocument();
       expect(document.getElementById("delete-review-button-2")).not.toBeInTheDocument();
     });
 
   });
 
-  it("shows only the delete review button for logged-in non-admin users for own reviews", async () => {
+  it("shows only the delete and update review buttonw for logged-in non-admin users for own reviews", async () => {
 
     const user = userEvent.setup();
     const RouterStub = createRoutesStub([
@@ -357,13 +359,15 @@ describe("ComponentDetailPageIntegration", () => {
     await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
 
     await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).toBeInTheDocument();
+      expect(document.getElementById("update-review-button-2")).not.toBeInTheDocument();
       expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
       expect(document.getElementById("delete-review-button-2")).not.toBeInTheDocument();
     });
 
   });
 
-  it("shows the review delete button for admin users for all reviews", async () => {
+  it("shows the review delete and update review buttons for admin users for all reviews", async () => {
 
     const user = userEvent.setup();
     const RouterStub = createRoutesStub([
@@ -379,6 +383,8 @@ describe("ComponentDetailPageIntegration", () => {
     await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
 
     await waitFor(() => {
+      expect(document.getElementById("update-review-button-1")).toBeInTheDocument();
+      expect(document.getElementById("update-review-button-2")).toBeInTheDocument();
       expect(document.getElementById("delete-review-button-1")).toBeInTheDocument();
       expect(document.getElementById("delete-review-button-2")).toBeInTheDocument();
     });
@@ -738,6 +744,229 @@ describe("ComponentDetailPageIntegration", () => {
       expect(screen.queryByText("Buena gráfica, aunque con cosas a mejorar.")).not.toBeInTheDocument();
     });
 
+  });
+
+  it("updates review as logged in user no admin", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/4" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+    
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-4")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-4")!);
+
+    await user.clear(screen.getByLabelText("Título:"));
+    await user.type(screen.getByLabelText("Título:"), "sample_title");
+    await user.clear(screen.getByLabelText("Mensaje:"));
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message");
+    await user.clear(screen.getByLabelText("Valoración:"));
+    await user.type(screen.getByLabelText("Valoración:"), "5");
+
+    const updateButton = await screen.findByRole("button", { name: /Actualizar reseña/i });
+    await user.click(updateButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("sample_title")).toBeInTheDocument();
+      expect(screen.getByText("sample_message")).toBeInTheDocument();
+      expect(screen.getByText("Valoración del producto: ★★★★★ 5/5")).toBeInTheDocument();
+      expect(screen.getByText(/5\/5 \(1 reseña\(s\)\)/i)).toBeInTheDocument();
+    });
+
+  });
+
+  it("updates review as admin", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/4" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "admin@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "adminpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+    
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-4")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-4")!);
+
+    const editForm = document.getElementById("edit-review-form")!;
+
+    await user.clear(within(editForm).getByLabelText("Título:"));
+    await user.type(within(editForm).getByLabelText("Título:"), "sample_title_admin");
+    await user.clear(within(editForm).getByLabelText("Mensaje:"));
+    await user.type(within(editForm).getByLabelText("Mensaje:"), "sample_message_admin");
+    await user.clear(within(editForm).getByLabelText("Valoración:"));
+    await user.type(within(editForm).getByLabelText("Valoración:"), "4");
+
+    await user.click(within(editForm).getByRole("button", {name: /Actualizar reseña/i}));
+
+    await waitFor(() => {
+      expect(screen.getByText("sample_title_admin")).toBeInTheDocument();
+      expect(screen.getByText("sample_message_admin")).toBeInTheDocument();
+      expect(screen.getByText("Valoración del producto: ★★★★☆ 4/5")).toBeInTheDocument();
+      expect(screen.getByText(/4\/5 \(1 reseña\(s\)\)/i)).toBeInTheDocument();
+    });
+
+  });
+
+  it("updates review with void data", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/4" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+    
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-4")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-4")!);
+
+    await user.clear(screen.getByLabelText("Título:"));
+    await user.clear(screen.getByLabelText("Mensaje:"));
+    await user.clear(screen.getByLabelText("Valoración:"));
+
+    const updateButton = await screen.findByRole("button", { name: /Actualizar reseña/i });
+    await user.click(updateButton);
+
+    expect(screen.getByText("Por favor, ingrese un título válido.")).toBeInTheDocument();
+    expect(screen.getByText("Por favor, ingrese un mensaje válido.")).toBeInTheDocument();
+    expect(screen.getByText("Por favor, ingrese una valoración válida.")).toBeInTheDocument();
+
+  });
+
+  it("updates review with invalid format data", async () => {
+
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/4" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+    
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-4")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-4")!);
+
+    await user.clear(screen.getByLabelText("Valoración:"));
+    await user.type(screen.getByLabelText("Valoración:"), "-5");
+
+    const updateButton = await screen.findByRole("button", { name: /Actualizar reseña/i });
+    await user.click(updateButton);
+
+    expect(screen.getByText("Por favor, ingrese una valoración válida.")).toBeInTheDocument();
+
+  });
+
+  it("shows the backend error with message when updating a review fails", async () => {
+    const user = userEvent.setup();
+    const backendErrorMessage = "sample_backend_error";
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/4" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-4")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-4")!);
+
+    await user.clear(screen.getByLabelText("Título:"));
+    await user.type(screen.getByLabelText("Título:"), "sample_title");
+    await user.clear(screen.getByLabelText("Mensaje:"));
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message");
+    await user.clear(screen.getByLabelText("Valoración:"));
+    await user.type(screen.getByLabelText("Valoración:"), "5");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ message: backendErrorMessage }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    await user.click(screen.getByRole("button", { name: /Actualizar reseña/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(backendErrorMessage)).toBeInTheDocument();
+    });
+  });
+
+  it("shows the backend error without message when updating a review fails", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/login", Component: Login },
+      { path: "/", Component: () => <Navigate to="/components/4" replace /> },
+      { path: "/components/:id", Component: ComponentDetail, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/login"]} />);
+
+    await user.type(screen.getByLabelText("Correo electrónico:"), "user@example.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "userpass");
+    await user.click(screen.getByRole("button", { name: /Iniciar sesión/i }));
+
+    await waitFor(() => {
+      expect(document.getElementById("update-review-button-4")).toBeInTheDocument();
+    });
+    await user.click(document.getElementById("update-review-button-4")!);
+
+    await user.clear(screen.getByLabelText("Título:"));
+    await user.type(screen.getByLabelText("Título:"), "sample_title");
+    await user.clear(screen.getByLabelText("Mensaje:"));
+    await user.type(screen.getByLabelText("Mensaje:"), "sample_message");
+    await user.clear(screen.getByLabelText("Valoración:"));
+    await user.type(screen.getByLabelText("Valoración:"), "5");
+
+    vi.spyOn(globalThis, "fetch").mockImplementationOnce(() => Promise.resolve(
+      new Response(
+        JSON.stringify({ }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      ),
+    ));
+
+    await user.click(screen.getByRole("button", { name: /Actualizar reseña/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("There was an error while updating the review.")).toBeInTheDocument();
+    });
   });
 
 });
