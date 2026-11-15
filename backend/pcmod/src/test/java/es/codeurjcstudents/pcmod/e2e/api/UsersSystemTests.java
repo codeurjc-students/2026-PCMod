@@ -670,6 +670,30 @@ public class UsersSystemTests {
   }
 
   @Test
+  public void deleteNoExistingUser() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("users/99")
+        .then().statusCode(404)
+        .body("error", equalTo("Not Found"))
+        .body("message", equalTo("Usuario no encontrado."));
+
+  }
+
+  @Test
   public void putUserAsNoLoggedIn() {
 
     given()
@@ -818,6 +842,40 @@ public class UsersSystemTests {
         .body("address", equalTo("c/ example 3"))
         .body("email", equalTo("update.admin@example.com"))
         .body("roles[0]", equalTo("REGISTERED_USER"));
+
+  }
+
+  @Test
+  public void putNoExistingUser() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "update",
+              "surname": "user",
+              "username": "update.user",
+              "address" : "c/ example 3",
+              "email": "update.user@example.com",
+              "password": "Updat3_user_pass"
+            }
+            """)
+        .when().put("users/99")
+        .then().statusCode(404).contentType(ContentType.JSON)
+        .body("error", equalTo("Not Found"))
+        .body("message", equalTo("Usuario no encontrado."));
 
   }
 

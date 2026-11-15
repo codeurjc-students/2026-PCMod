@@ -71,6 +71,20 @@ public class ImagesUnitTests {
   }
 
   @Test
+  public void testReplaceNoExistingImage() {
+
+    ImageRepository imageRepository = mock(ImageRepository.class);
+    ImageService imageService = new ImageService(imageRepository);
+
+    when(imageRepository.findById(99L)).thenReturn(Optional.empty());
+
+    String classpathResource = "/sample_images/i5-12400f.webp";
+    Resource imagePath = new ClassPathResource(classpathResource);
+    assertThrows(ResponseStatusException.class, () -> imageService.replaceImageFile(99L, imagePath.getInputStream()));
+
+  }
+
+  @Test
   public void testDeleteImage() {
 
     ImageRepository imageRepository = mock(ImageRepository.class);
@@ -82,6 +96,18 @@ public class ImagesUnitTests {
     imageService.deleteImage(1L);
 
     verify(imageRepository).deleteById(1L);
+
+  }
+
+  @Test
+  public void testDeleteNoExistingImage() {
+
+    ImageRepository imageRepository = mock(ImageRepository.class);
+    ImageService imageService = new ImageService(imageRepository);
+
+    when(imageRepository.findById(99L)).thenReturn(Optional.empty());
+
+    assertThrows(ResponseStatusException.class, () -> imageService.deleteImage(99L));
 
   }
 

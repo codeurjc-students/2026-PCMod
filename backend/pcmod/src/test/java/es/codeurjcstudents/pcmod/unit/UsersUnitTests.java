@@ -405,7 +405,7 @@ public class UsersUnitTests {
 
     when(usersRepository.findById(1L)).thenReturn(java.util.Optional.empty());
 
-    usersService.deleteUser(1L);
+    assertThrows(ResponseStatusException.class, () -> usersService.deleteUser(1L));
 
     verify(usersRepository, never()).deleteById(1L);
 
@@ -437,6 +437,20 @@ public class UsersUnitTests {
     assertTrue(userSaved.getRoles().contains("REGISTERED_USER"));
     assertFalse(userSaved.getRoles().contains("ADMIN"));
     verify(usersRepository).save(any(User.class));
+
+  }
+
+  @Test
+  public void testUpdateUserNotFound() {
+
+    UsersRepository usersRepository = mock(UsersRepository.class);
+    UsersService usersService = new UsersService(usersRepository, null, null, null);
+
+    when(usersRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+
+    assertThrows(ResponseStatusException.class, () -> usersService.updateUser(new User(), "password", 1L));
+
+    verify(usersRepository, never()).save(any(User.class));
 
   }
 

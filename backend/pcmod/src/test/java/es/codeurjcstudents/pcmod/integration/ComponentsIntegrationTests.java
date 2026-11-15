@@ -461,6 +461,20 @@ public class ComponentsIntegrationTests {
   }
 
   @Test
+  void deleteNoExistingComponent() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    assertThrows(ResponseStatusException.class, () -> componentsService.delete(99L));
+    assertEquals(2, componentsRepository.count());
+  }
+
+  @Test
   void updateImageAsNoRegisteredUser() throws IOException {
     User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
     Component component = componentsRepository.findAll().get(0);
@@ -602,6 +616,23 @@ public class ComponentsIntegrationTests {
     assertEquals("sampleBrand", savedComponent.getBrand());
     assertEquals(BigDecimal.valueOf(100.00), savedComponent.getPrice());
     assertEquals(5, savedComponent.getStock());
+  }
+
+  @Test
+  void updateNoExistingComponent() {
+
+    Component updatedComponent = new Component("sampleName", "sampleDescription", ComponentType.CPU, "sampleBrand",
+        BigDecimal.valueOf(100.00), 5);
+
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    assertThrows(ResponseStatusException.class, () -> componentsService.updateComponent(updatedComponent, 99L));
+
   }
 
   @Test

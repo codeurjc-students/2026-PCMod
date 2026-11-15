@@ -517,6 +517,29 @@ public class ComponentsSystemTests {
   }
 
   @Test
+  public void deleteNoExistingComponent() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/99")
+        .then().statusCode(404)
+        .body("error", equalTo("Not Found"))
+        .body("message", equalTo("Componente no encontrado."));
+  }
+
+  @Test
   public void putComponentAsNoLoggedIn() {
 
     given()
@@ -604,6 +627,39 @@ public class ComponentsSystemTests {
         .body("brand", equalTo("MSI"))
         .body("price", equalTo(100.00F))
         .body("stock", equalTo(5));
+  }
+
+  @Test
+  public void putNoExistingComponent() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "name": "sampleNamePUT",
+              "description": "sampleDescriptionPUT",
+              "type" : "CPU",
+              "brand" : "MSI",
+              "price" : 100.00,
+              "stock" : 5
+            }
+            """)
+        .when().put("components/99")
+        .then().statusCode(404).contentType(ContentType.JSON)
+        .body("error", equalTo("Not Found"))
+        .body("message", equalTo("Componente no encontrado."));
   }
 
   @Test

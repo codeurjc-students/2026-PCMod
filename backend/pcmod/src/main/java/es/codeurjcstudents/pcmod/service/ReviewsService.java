@@ -32,6 +32,10 @@ public class ReviewsService {
   private final ComponentsRepository componentRepository;
   private final UsersRepository userRepository;
 
+  private static final String NOT_FOUND_MESSAGE = "Reseña no encontrada.";
+  private static final String COMPONENT_NOT_FOUND_MESSAGE = "Componente no encontrado.";
+  private static final String USER_NOT_FOUND_MESSAGE = "Usuario no encontrado.";
+
   public ReviewsService(ReviewsRepository reviewsRepository, ReviewMapper reviewMapper, ComponentsRepository componentRepository,
       UsersRepository userRepository) {
     this.reviewRepository = reviewsRepository;
@@ -44,10 +48,10 @@ public class ReviewsService {
   public Review createReview(Long userId, Long componentId, Review review) {
 
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND_MESSAGE));
 
     Component component = componentRepository.findById(componentId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Componente no encontrado."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, COMPONENT_NOT_FOUND_MESSAGE));
 
     user.addReview(review);
     component.addReview(review);
@@ -74,10 +78,10 @@ public class ReviewsService {
     }
 
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, USER_NOT_FOUND_MESSAGE));
 
     Component component = componentRepository.findById(componentId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Componente no encontrado."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, COMPONENT_NOT_FOUND_MESSAGE));
 
     review.setDate(LocalDate.now(ZoneId.of("Europe/Madrid")));
     user.addReview(review);
@@ -89,26 +93,22 @@ public class ReviewsService {
   @PreAuthorize("hasRole('ADMIN') or @reviewsService.isOwner(#reviewId, principal.username)")
   public void delete(long componentId, long reviewId) {
     
-    Optional<Review> reviewToDelete = reviewRepository.findById(reviewId);
+    Review reviewToDelete = reviewRepository.findById(reviewId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE));
 
-    if ((reviewToDelete.isPresent()) && (reviewToDelete.get().getComponent().getId() != componentId)) {
+    if (reviewToDelete.getComponent().getId() != componentId) {
       throw new NoSuchElementException("La reseña no pertenece a ese componente.");
     }
 
-    if (reviewToDelete.isPresent()) {
-
-      reviewRepository.deleteById(reviewId);
-
-    }
+    reviewRepository.deleteById(reviewId);
     
   }
 
   @PreAuthorize("hasRole('ADMIN') or @reviewsService.isOwner(#reviewId, principal.username)")
   public Review updateReview(Review newReviewData, long componentId, long reviewId) {
 
-    Optional<Review> reviewToUpdate = reviewRepository.findById(reviewId);
+    Review reviewToUpdate = reviewRepository.findById(reviewId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE));
 
-    if ((reviewToUpdate.isPresent()) && (reviewToUpdate.get().getComponent().getId() != componentId)) {
+    if (reviewToUpdate.getComponent().getId() != componentId) {
       throw new NoSuchElementException("La reseña no pertenece a ese componente.");
     }
 

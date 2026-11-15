@@ -474,6 +474,23 @@ public class ReviewsIntegrationTests {
   }
 
   @Test
+  void deleteNoExistingReview() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component component = componentsRepository.findAll().getFirst();
+
+    assertThrows(ResponseStatusException.class, () -> reviewsService.delete(component.getId(), 99L));
+    assertEquals(2, reviewsRepository.count());
+
+  }
+
+  @Test
   void deleteReviewOfWrongComponent() {
     User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
 
@@ -568,6 +585,24 @@ public class ReviewsIntegrationTests {
     assertEquals("sample_title", savedAdminReview.getTitle());
     assertEquals("sample_message", savedAdminReview.getMessage());
     assertEquals(Integer.valueOf(5), savedAdminReview.getRating());
+
+  }
+
+  @Test
+  void updateNoExistingReview() {
+    Component component = componentsRepository.findAll().getFirst();
+
+    Review updatedReview = new Review("sample_title", "sample_message", Integer.valueOf(5));
+
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    assertThrows(ResponseStatusException.class, () -> reviewsService.updateReview(updatedReview, component.getId(), 99L));
+
 
   }
 

@@ -413,6 +413,31 @@ public class ReviewsSystemTests {
   }
 
   @Test
+  public void deleteNoExistingReview() {
+
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/2/reviews/99")
+        .then().statusCode(404)
+        .body("error", equalTo("Not Found"))
+        .body("message", equalTo("Reseña no encontrada."));
+
+  }
+
+  @Test
   public void deleteReviewWithWrongComponentId() {
 
     String authToken = given()
@@ -560,6 +585,37 @@ public class ReviewsSystemTests {
         .body("title", equalTo("sample_title"))
         .body("message", equalTo("sample_message"))
         .body("rating", equalTo(5));
+  }
+
+  @Test
+  public void putNoExistingReview() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "title": "sample_title",
+              "message": "sample_message",
+              "rating": 5
+            }
+            """)
+        .when().put("/components/2/reviews/99")
+        .then().statusCode(404).contentType(ContentType.JSON)
+        .body("error", equalTo("Not Found"))
+        .body("message", equalTo("Reseña no encontrada."));
+        
   }
 
   @Test

@@ -407,7 +407,7 @@ public class ReviewsUnitTests {
     when(reviewsRepository.findById(1L)).thenReturn(java.util.Optional.empty()); 
     when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(component));
 
-    reviewsService.delete(1L, 1L);
+    assertThrows(ResponseStatusException.class, () -> reviewsService.delete(1L, 1L));
 
     verify(reviewsRepository, never()).deleteById(1L);
 
@@ -529,6 +529,24 @@ public class ReviewsUnitTests {
     assertEquals(reviewToUpdate.getMessage(), updatedReview.getMessage());
     assertEquals(reviewToUpdate.getRating(), updatedReview.getRating());
     verify(reviewsRepository).save(any(Review.class));
+  }
+
+  @Test
+  public void testUpdateReviewNotFound() {
+
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, null, null, null );
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+
+    when(reviewsRepository.findById(1L)).thenReturn(java.util.Optional.empty()); 
+    when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(component));
+
+    assertThrows(ResponseStatusException.class, () -> reviewsService.updateReview(new Review(), 1L, 1L));
+
+    verify(reviewsRepository, never()).save(any(Review.class));
+
   }
 
   @Test

@@ -19,6 +19,7 @@ public class ImageService {
 
   private static final long MAX_SIZE = 10L * 1024L * 1024L; // 10MB
   private static final List<String> ALLOWED_TYPES = List.of("image/jpeg", "image/png", "image/webp");
+  private static final String NOT_FOUND_MESSAGE = "Imagen no encontrada.";
 
   private final ImageRepository imageRepository;
 
@@ -47,7 +48,7 @@ public class ImageService {
 
   public Image replaceImageFile(long id, InputStream inputStream) throws IOException {
 
-    Image image = imageRepository.findById(id).orElseThrow();
+    Image image = imageRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE));
 
     try {
       image.setImageFile(new SerialBlob(inputStream.readAllBytes()));
@@ -62,7 +63,7 @@ public class ImageService {
 
   public Image deleteImage(long id) {
 
-    Image image = imageRepository.findById(id).orElseThrow();
+    Image image = imageRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE));
     imageRepository.deleteById(id);
 
     return image;

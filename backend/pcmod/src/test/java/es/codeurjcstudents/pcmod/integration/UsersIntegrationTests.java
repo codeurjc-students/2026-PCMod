@@ -183,6 +183,13 @@ public class UsersIntegrationTests {
   }
 
   @Test
+  void getNoExistingUser() {
+
+    assertThrows(ResponseStatusException.class, () -> usersService.getUser(99L));
+
+  }
+
+  @Test
   void getUserImage() throws IOException, SQLException {
     Resource expectedImage = new ClassPathResource("/sample_images/user.png");
     MockMultipartFile imageFile = new MockMultipartFile("imageFile", "user.png", "image/png",
@@ -567,6 +574,21 @@ public class UsersIntegrationTests {
   }
 
   @Test
+  void deleteNoExistingUser() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    assertThrows(ResponseStatusException.class, () -> usersService.deleteUser(99L));
+    assertEquals(2, usersRepository.count());
+
+  }
+
+  @Test
   void updateAsNonRegisteredUser() {
     User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
 
@@ -660,6 +682,24 @@ public class UsersIntegrationTests {
     assertTrue(admin.getRoles().contains("ADMIN"));
 
   }
+
+  @Test
+  void updateNoExisitingUser() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    User updated = new User("updatedName", "updatedSurname", "updatedUsernameNoExisting",
+        "c/testaddressUpdate",
+        "testUpdatedNoExisting@example.com",
+        null, "REGISTERED_USER");
+    assertThrows(ResponseStatusException.class, () -> usersService.updateUser(updated, "Updat3_Test_Pass", 99L));
+
+  }
+
 
   @Test
   void updateVoidCredentials() {

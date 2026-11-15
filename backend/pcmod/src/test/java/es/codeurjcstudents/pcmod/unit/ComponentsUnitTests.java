@@ -420,7 +420,7 @@ public class ComponentsUnitTests {
 
     when(componentsRepository.findById(1L)).thenReturn(Optional.empty());
 
-    componentsService.delete(1L);
+    assertThrows(ResponseStatusException.class, () -> componentsService.delete(1L));
 
     verify(componentsRepository, never()).deleteById(1L);
 
@@ -452,6 +452,22 @@ public class ComponentsUnitTests {
     assertEquals(updatedComponent.getPrice(), componentSaved.getPrice());
     assertEquals(updatedComponent.getStock(), componentSaved.getStock());
     verify(componentsRepository).save(any(Component.class));
+
+  }
+
+  @Test
+  public void testUpdateNonExistentComponent() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.empty());
+
+    assertThrows(ResponseStatusException.class, () -> componentsService.updateComponent(new Component(), 1L));
+
+    verify(componentsRepository, never()).save(any(Component.class));
 
   }
 
