@@ -30,6 +30,8 @@ public class ComponentsService {
   private final ComponentMapper componentMapper;
   private final ImageService imagesService;
 
+  private static final String NOT_FOUND_MESSAGE = "Componente no encontrado.";
+
   public ComponentsService(ComponentsRepository componentRepository, ComponentMapper componentMapper,
       ImageService imagesService) {
     this.componentRepository = componentRepository;
@@ -47,7 +49,7 @@ public class ComponentsService {
 
   public Component getComponent(long id) {
     return componentRepository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Componente no encontrado."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE));
   }
 
   public Resource getImageFile(long id) throws SQLException {
@@ -67,7 +69,7 @@ public class ComponentsService {
     List<String> errors = validateComponent(component, null);
 
     if (!errors.isEmpty()) {
-      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validación fallida:\n• " + String.join("\n• ", errors));
     }
 
     return componentRepository.save(component);
@@ -96,23 +98,21 @@ public class ComponentsService {
   @PreAuthorize("hasRole('ADMIN')")
   public void delete(long id) {
 
-    Optional<Component> deletedComponent = componentRepository.findById(id);
+    componentRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE));
 
-    if (deletedComponent.isPresent()) {
-
-      componentRepository.deleteById(id);
-
-    }
+    componentRepository.deleteById(id);
 
   }
 
   @PreAuthorize("hasRole('ADMIN')")
   public Component updateComponent(Component newComponentData, long id) {
 
+    componentRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE));
+
     List<String> errors = validateComponent(newComponentData, id);
 
     if (!errors.isEmpty()) {
-      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validación fallida:\n• " + String.join("\n• ", errors));
     }
 
     Component component = componentRepository.findById(id).orElseThrow();

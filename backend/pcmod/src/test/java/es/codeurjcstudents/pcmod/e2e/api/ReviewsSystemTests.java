@@ -163,7 +163,7 @@ public class ReviewsSystemTests {
             }
             """)
         .when().post("/components/4/reviews/")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(409).contentType(ContentType.JSON)
         .body("message", equalTo("Validación fallida:\n• Ya existe una reseña de este producto para tu usuario."));
   }
 
@@ -192,7 +192,7 @@ public class ReviewsSystemTests {
             }
             """)
         .when().post("/components/5/reviews/")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El título es obligatorio.\n• El mensaje es obligatorio.\n• La valoración es obligatoria."));
   }
@@ -222,7 +222,7 @@ public class ReviewsSystemTests {
             }
             """)
         .when().post("/components/5/reviews/")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El título es obligatorio.\n• El mensaje es obligatorio.\n• La valoración es obligatoria."));
   }
@@ -252,8 +252,8 @@ public class ReviewsSystemTests {
             }
             """)
         .when().post("/components/5/reviews/")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo(
             "Validación fallida:\n• La valoración del producto ha de estar entre 1 y 5."));
   }
@@ -413,6 +413,31 @@ public class ReviewsSystemTests {
   }
 
   @Test
+  public void deleteNoExistingReview() {
+
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .header("Content-Type", "application/json")
+        .cookie("AuthToken", authToken)
+        .when().delete("components/2/reviews/99")
+        .then().statusCode(404)
+        .body("error", equalTo("Not Found"))
+        .body("message", equalTo("Reseña no encontrada."));
+
+  }
+
+  @Test
   public void deleteReviewWithWrongComponentId() {
 
     String authToken = given()
@@ -563,6 +588,37 @@ public class ReviewsSystemTests {
   }
 
   @Test
+  public void putNoExistingReview() {
+    String authToken = given()
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+                "username": "admin@example.com",
+                "password": "adminpass"
+            }
+            """)
+        .when().post("auth/login")
+        .then().statusCode(200).contentType(ContentType.JSON)
+        .extract().cookie("AuthToken");
+
+    given()
+        .cookie("AuthToken", authToken)
+        .header("Content-Type", "application/json")
+        .body("""
+            {
+              "title": "sample_title",
+              "message": "sample_message",
+              "rating": 5
+            }
+            """)
+        .when().put("/components/2/reviews/99")
+        .then().statusCode(404).contentType(ContentType.JSON)
+        .body("error", equalTo("Not Found"))
+        .body("message", equalTo("Reseña no encontrada."));
+        
+  }
+
+  @Test
   public void putVoidReviewData() {
     String authToken = given()
         .header("Content-Type", "application/json")
@@ -587,7 +643,7 @@ public class ReviewsSystemTests {
             }
             """)
         .when().put("/components/2/reviews/1")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El título es obligatorio.\n• El mensaje es obligatorio.\n• La valoración es obligatoria."));
   }
@@ -617,7 +673,7 @@ public class ReviewsSystemTests {
             }
             """)
         .when().put("/components/2/reviews/1")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El título es obligatorio.\n• El mensaje es obligatorio.\n• La valoración es obligatoria."));
   }
@@ -647,8 +703,8 @@ public class ReviewsSystemTests {
             }
             """)
         .when().put("/components/2/reviews/1")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo(
             "Validación fallida:\n• La valoración del producto ha de estar entre 1 y 5."));
   }

@@ -183,6 +183,13 @@ public class UsersIntegrationTests {
   }
 
   @Test
+  void getNoExistingUser() {
+
+    assertThrows(ResponseStatusException.class, () -> usersService.getUser(99L));
+
+  }
+
+  @Test
   void getUserImage() throws IOException, SQLException {
     Resource expectedImage = new ClassPathResource("/sample_images/user.png");
     MockMultipartFile imageFile = new MockMultipartFile("imageFile", "user.png", "image/png",
@@ -236,7 +243,7 @@ public class UsersIntegrationTests {
   void registerVoidCredentials() {
     User newUser = new User("", "", "", "", "", "", "");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(newUser, ""));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(newUser, ""));
     assertEquals(2, usersRepository.count());
   }
 
@@ -244,7 +251,7 @@ public class UsersIntegrationTests {
   void registerNullCredentials() {
     User newUser = new User(null, null, null, null, null, null, "");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(newUser, null));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(newUser, null));
     assertEquals(2, usersRepository.count());
   }
 
@@ -253,7 +260,7 @@ public class UsersIntegrationTests {
     User newUser = new User("user", "test", "userTest1", "c/testAddress", "testuser1@example.com", null,
         "REGISTERED_USER");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(newUser, "R3gister_Test_Pass"));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(newUser, "R3gister_Test_Pass"));
     assertEquals(2, usersRepository.count());
   }
 
@@ -262,7 +269,7 @@ public class UsersIntegrationTests {
     User newUser = new User("user", "test", "userTest", "c/testAddress", "test@example", null,
         "REGISTERED_USER");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(newUser, "pass"));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(newUser, "pass"));
     assertEquals(2, usersRepository.count());
   }
 
@@ -422,7 +429,7 @@ public class UsersIntegrationTests {
     MockMultipartFile invalidTypeImage = new MockMultipartFile(
         "image", "image.txt", "text/plain", new byte[1024]);
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.addUserImage(user.getId(), invalidTypeImage));
+    assertThrows(ResponseStatusException.class, () -> usersService.addUserImage(user.getId(), invalidTypeImage));
 
   }
 
@@ -567,6 +574,21 @@ public class UsersIntegrationTests {
   }
 
   @Test
+  void deleteNoExistingUser() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    assertThrows(ResponseStatusException.class, () -> usersService.deleteUser(99L));
+    assertEquals(2, usersRepository.count());
+
+  }
+
+  @Test
   void updateAsNonRegisteredUser() {
     User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
 
@@ -662,6 +684,24 @@ public class UsersIntegrationTests {
   }
 
   @Test
+  void updateNoExisitingUser() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    User updated = new User("updatedName", "updatedSurname", "updatedUsernameNoExisting",
+        "c/testaddressUpdate",
+        "testUpdatedNoExisting@example.com",
+        null, "REGISTERED_USER");
+    assertThrows(ResponseStatusException.class, () -> usersService.updateUser(updated, "Updat3_Test_Pass", 99L));
+
+  }
+
+
+  @Test
   void updateVoidCredentials() {
     User user = usersRepository.findByEmail("testuser1@example.com").orElseThrow();
     SecurityContextHolder.getContext().setAuthentication(
@@ -672,7 +712,7 @@ public class UsersIntegrationTests {
 
     User updatedUser = new User("", "", "", "", "", "", "");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(updatedUser, "", user.getId()));
+    assertThrows(ResponseStatusException.class, () -> usersService.updateUser(updatedUser, "", user.getId()));
 
   }
 
@@ -687,7 +727,7 @@ public class UsersIntegrationTests {
 
     User updatedUser = new User(null, null, null, null, null, null, "");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(updatedUser, null, user.getId()));
+    assertThrows(ResponseStatusException.class, () -> usersService.updateUser(updatedUser, null, user.getId()));
 
   }
 
@@ -703,7 +743,7 @@ public class UsersIntegrationTests {
     User updatedUser = new User("user", "test", "adminTest1", "c/testAddress", "testadmin1@example.com", null,
         "REGISTERED_USER");
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> usersService.updateUser(updatedUser, "Updat3_Test_Pass", user.getId()));
 
   }
@@ -720,7 +760,7 @@ public class UsersIntegrationTests {
     User updatedUser = new User("user", "test", "userTest", "c/testAddress", "test@example", null,
         "REGISTERED_USER");
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> usersService.updateUser(updatedUser, "pass", user.getId()));
 
   }

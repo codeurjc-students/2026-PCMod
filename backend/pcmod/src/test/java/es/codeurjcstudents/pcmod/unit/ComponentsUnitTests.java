@@ -183,7 +183,7 @@ public class ComponentsUnitTests {
 
     Component component = new Component("", "", ComponentType.CPU, "", BigDecimal.valueOf(153.97), 14);
 
-    assertThrows(IllegalArgumentException.class, () -> componentsService.save(component));
+    assertThrows(ResponseStatusException.class, () -> componentsService.save(component));
     verify(componentsRepository, never()).save(any(Component.class));
 
   }
@@ -198,7 +198,7 @@ public class ComponentsUnitTests {
 
     Component component = new Component(null, null, ComponentType.CPU, null, BigDecimal.valueOf(153.97), 14);
 
-    assertThrows(IllegalArgumentException.class, () -> componentsService.save(component));
+    assertThrows(ResponseStatusException.class, () -> componentsService.save(component));
     verify(componentsRepository, never()).save(any(Component.class));
 
   }
@@ -216,7 +216,7 @@ public class ComponentsUnitTests {
 
     when(componentsRepository.existsByName("Intel i5 12400F")).thenReturn(true);
 
-    assertThrows(IllegalArgumentException.class, () -> componentsService.save(component));
+    assertThrows(ResponseStatusException.class, () -> componentsService.save(component));
     verify(componentsRepository, never()).save(any(Component.class));
 
   }
@@ -348,9 +348,9 @@ public class ComponentsUnitTests {
     MockMultipartFile invalidTypeImage = new MockMultipartFile(
         "image", "image.txt", "text/plain", new byte[1024]);
 
-    when(imageService.createImage(any())).thenThrow(IllegalArgumentException.class);
+    when(imageService.createImage(any())).thenThrow(ResponseStatusException.class);
 
-    assertThrows(IllegalArgumentException.class, () -> componentsService.addComponentImage(1L, invalidTypeImage));
+    assertThrows(ResponseStatusException.class, () -> componentsService.addComponentImage(1L, invalidTypeImage));
   }
 
   @Test
@@ -420,7 +420,7 @@ public class ComponentsUnitTests {
 
     when(componentsRepository.findById(1L)).thenReturn(Optional.empty());
 
-    componentsService.delete(1L);
+    assertThrows(ResponseStatusException.class, () -> componentsService.delete(1L));
 
     verify(componentsRepository, never()).deleteById(1L);
 
@@ -456,6 +456,22 @@ public class ComponentsUnitTests {
   }
 
   @Test
+  public void testUpdateNonExistentComponent() {
+
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+    ComponentMapper componentMapper = mock(ComponentMapper.class);
+    ImageService imageService = mock(ImageService.class);
+    ComponentsService componentsService = new ComponentsService(componentsRepository, componentMapper, imageService);
+
+    when(componentsRepository.findById(1L)).thenReturn(Optional.empty());
+
+    assertThrows(ResponseStatusException.class, () -> componentsService.updateComponent(new Component(), 1L));
+
+    verify(componentsRepository, never()).save(any(Component.class));
+
+  }
+
+  @Test
   public void testVoidUpdate() {
 
     ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
@@ -469,7 +485,7 @@ public class ComponentsUnitTests {
 
     when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(originalComponent));
 
-    assertThrows(IllegalArgumentException.class, () -> componentsService.updateComponent(component, 1L));
+    assertThrows(ResponseStatusException.class, () -> componentsService.updateComponent(component, 1L));
     verify(componentsRepository, never()).save(any(Component.class));
 
   }
@@ -488,7 +504,7 @@ public class ComponentsUnitTests {
 
     when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(originalComponent));
 
-    assertThrows(IllegalArgumentException.class, () -> componentsService.updateComponent(component, 1L));
+    assertThrows(ResponseStatusException.class, () -> componentsService.updateComponent(component, 1L));
     verify(componentsRepository, never()).save(any(Component.class));
 
   }
@@ -510,7 +526,7 @@ public class ComponentsUnitTests {
 
     when(componentsRepository.existsByName("existingComponent")).thenReturn(true);
 
-    assertThrows(IllegalArgumentException.class, () -> componentsService.updateComponent(updatedComponent, 1L));
+    assertThrows(ResponseStatusException.class, () -> componentsService.updateComponent(updatedComponent, 1L));
     verify(componentsRepository, never()).save(any(Component.class));
 
   }
@@ -527,7 +543,7 @@ public class ComponentsUnitTests {
         BigDecimal.valueOf(-5.00), -5);
     when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(component));
 
-    assertThrows(IllegalArgumentException.class, () -> componentsService.updateComponent(component, 1L));
+    assertThrows(ResponseStatusException.class, () -> componentsService.updateComponent(component, 1L));
     verify(componentsRepository, never()).save(any(Component.class));
   }
 

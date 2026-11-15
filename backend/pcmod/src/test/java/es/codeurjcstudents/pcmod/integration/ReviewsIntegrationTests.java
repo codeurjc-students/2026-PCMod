@@ -209,7 +209,7 @@ public class ReviewsIntegrationTests {
             null, java.util.List.of(new SimpleGrantedAuthority("ROLE_REGISTERED_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))));
 
     Review review = new Review("sample_title", "sample_message", 5);
-    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, admin.getId(), componentsRepository.findAll().getFirst().getId()));
+    assertThrows(ResponseStatusException.class, () -> reviewsService.save(review, admin.getId(), componentsRepository.findAll().getFirst().getId()));
     assertEquals(2, reviewsRepository.count());
 
   }
@@ -248,7 +248,7 @@ public class ReviewsIntegrationTests {
     Review review = new Review("","", null);
     Component component = componentsRepository.findAll().getLast();
 
-    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
+    assertThrows(ResponseStatusException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
     assertEquals(2, reviewsRepository.count());
   }
 
@@ -264,7 +264,7 @@ public class ReviewsIntegrationTests {
     Review review = new Review(null,null, null);
     Component component = componentsRepository.findAll().getLast();
 
-    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
+    assertThrows(ResponseStatusException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
     assertEquals(2, reviewsRepository.count());
   }
 
@@ -280,7 +280,7 @@ public class ReviewsIntegrationTests {
     Review review = new Review("sample_title", "sample_message", -5);
     Component component = componentsRepository.findAll().getLast();
 
-    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
+    assertThrows(ResponseStatusException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
     assertEquals(2, reviewsRepository.count());
   }
 
@@ -313,8 +313,8 @@ public class ReviewsIntegrationTests {
     Review review = new Review("sample_title","sample_message", 5);
     Component component = componentsRepository.findAll().getFirst();
 
-    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
-    assertEquals("Validación fallida:\n• Ya existe una reseña de este producto para tu usuario.", exception.getMessage());
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> reviewsService.save(review, admin.getId(), component.getId()));
+    assertTrue(exception.getMessage().contains("Validación fallida:\n• Ya existe una reseña de este producto para tu usuario."));
     assertEquals(2, reviewsRepository.count());
   }
 
@@ -474,6 +474,23 @@ public class ReviewsIntegrationTests {
   }
 
   @Test
+  void deleteNoExistingReview() {
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    Component component = componentsRepository.findAll().getFirst();
+
+    assertThrows(ResponseStatusException.class, () -> reviewsService.delete(component.getId(), 99L));
+    assertEquals(2, reviewsRepository.count());
+
+  }
+
+  @Test
   void deleteReviewOfWrongComponent() {
     User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
 
@@ -572,6 +589,24 @@ public class ReviewsIntegrationTests {
   }
 
   @Test
+  void updateNoExistingReview() {
+    Component component = componentsRepository.findAll().getFirst();
+
+    Review updatedReview = new Review("sample_title", "sample_message", Integer.valueOf(5));
+
+    User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
+    SecurityContextHolder.getContext().setAuthentication(
+        new UsernamePasswordAuthenticationToken(
+            org.springframework.security.core.userdetails.User.withUsername(admin.getId().toString())
+                .password("").authorities("ROLE_ADMIN").build(),
+            null, java.util.List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+    assertThrows(ResponseStatusException.class, () -> reviewsService.updateReview(updatedReview, component.getId(), 99L));
+
+
+  }
+
+  @Test
   void updateVoidReview() {
     User admin = usersRepository.findByEmail("testadmin1@example.com").orElseThrow();
     Component component = componentsRepository.findAll().get(0);
@@ -585,7 +620,7 @@ public class ReviewsIntegrationTests {
 
     Review updatedReview = new Review("", "", null);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> reviewsService.updateReview(updatedReview, component.getId(), review.getId()));
   }
 
@@ -603,7 +638,7 @@ public class ReviewsIntegrationTests {
 
     Review updatedReview = new Review(null, null, null);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> reviewsService.updateReview(updatedReview, component.getId(), review.getId()));
   }
 
@@ -621,7 +656,7 @@ public class ReviewsIntegrationTests {
 
     Review updatedReview = new Review("sample_title", "sample_message", Integer.valueOf(-5));
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> reviewsService.updateReview(updatedReview, component.getId(), review.getId()));
   }
 

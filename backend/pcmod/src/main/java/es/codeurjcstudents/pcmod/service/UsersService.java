@@ -33,6 +33,7 @@ public class UsersService {
 
   private static final String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
   private static final String PASS_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&\\-_])[A-Za-z\\d@$!%*?&\\-_]{8,}$";
+  private static final String NOT_FOUND_MESSAGE = "Usuario no encontrado.";
 
   public UsersService(UsersRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper,
       ImageService imagesService) {
@@ -48,7 +49,7 @@ public class UsersService {
 
   public User getUser(long id) {
     return userRepository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE));
   }
 
   public Resource getImageFile(long id) throws SQLException {
@@ -67,7 +68,7 @@ public class UsersService {
     List<String> errors = validateUser(user, rawPassword, null);
 
     if (!errors.isEmpty()) {
-      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validación fallida:\n• " + String.join("\n• ", errors));
     }
 
     User userToSave = new User(user.getName(), user.getSurname(), user.getUsername(), user.getAddress(),
@@ -81,7 +82,7 @@ public class UsersService {
 
     imagesService.validate(imageFile);
 
-    User user = userRepository.findById(id).orElseThrow();
+    User user = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE));
     Image image;
 
     if (user.getImage() == null) {
@@ -98,23 +99,21 @@ public class UsersService {
   @PreAuthorize("hasRole('ADMIN') or principal.username == #id.toString()")
   public void deleteUser(long id) {
 
-    Optional<User> user = userRepository.findById(id);
+    userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE));
 
-    if (user.isPresent()) {
-
-      userRepository.deleteById(id);
-
-    }
+    userRepository.deleteById(id);
 
   }
 
   @PreAuthorize("hasRole('ADMIN') or principal.username == #id.toString()")
   public User updateUser(User newUserData, String rawPassword, long id) {
 
+    userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE));
+
     List<String> errors = validateUser(newUserData, rawPassword, id);
 
     if (!errors.isEmpty()) {
-      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validación fallida:\n• " + String.join("\n• ", errors));
     }
 
     User user = userRepository.findById(id).orElseThrow();

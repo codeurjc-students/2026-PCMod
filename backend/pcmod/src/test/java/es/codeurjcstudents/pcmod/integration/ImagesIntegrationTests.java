@@ -3,6 +3,7 @@ package es.codeurjcstudents.pcmod.integration;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -20,7 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-
+import org.springframework.web.server.ResponseStatusException;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -114,6 +115,16 @@ public class ImagesIntegrationTests {
   }
 
   @Test
+  void replaceNoExistingImage() {
+
+    imageRepository.deleteAll();
+
+    Resource replacementPath = new ClassPathResource("/sample_images/i5-12400f.webp");
+
+    assertThrows(ResponseStatusException.class, () -> imageService.replaceImageFile(99L, replacementPath.getInputStream()));
+  }
+
+  @Test
   void deleteImage() {
 
     Long imageToDelete = imageRepository.findAll().getFirst().getId();
@@ -121,6 +132,13 @@ public class ImagesIntegrationTests {
 
     List<Image> imageList = imageService.findAll();
     assertEquals(2, imageList.size());
+
+  }
+
+  @Test
+  void deleteNoExistingImage() {
+
+    assertThrows(ResponseStatusException.class, () -> imageService.deleteImage(99L));
 
   }
 

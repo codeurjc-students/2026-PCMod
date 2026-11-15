@@ -6,6 +6,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import es.codeurjcstudents.pcmod.model.Image;
 import es.codeurjcstudents.pcmod.repository.ImageRepository;
@@ -24,13 +25,12 @@ import java.sql.SQLException;
 import java.util.Optional;
 
 import javax.sql.rowset.serial.SerialBlob;
-import javax.sql.rowset.serial.SerialException;
 
 @Tag("server-unit")
 public class ImagesUnitTests {
 
   @Test
-  public void testCreateImage() throws SerialException, SQLException, IOException {
+  public void testCreateImage() throws SQLException, IOException {
 
     ImageRepository imageRepository = mock(ImageRepository.class);
     ImageService imageService = new ImageService(imageRepository);
@@ -48,7 +48,7 @@ public class ImagesUnitTests {
   }
 
   @Test
-  public void testReplaceImage() throws SerialException, SQLException, IOException {
+  public void testReplaceImage() throws SQLException, IOException {
 
     ImageRepository imageRepository = mock(ImageRepository.class);
     ImageService imageService = new ImageService(imageRepository);
@@ -71,7 +71,21 @@ public class ImagesUnitTests {
   }
 
   @Test
-  public void testDeleteImage() throws IOException {
+  public void testReplaceNoExistingImage() {
+
+    ImageRepository imageRepository = mock(ImageRepository.class);
+    ImageService imageService = new ImageService(imageRepository);
+
+    when(imageRepository.findById(99L)).thenReturn(Optional.empty());
+
+    String classpathResource = "/sample_images/i5-12400f.webp";
+    Resource imagePath = new ClassPathResource(classpathResource);
+    assertThrows(ResponseStatusException.class, () -> imageService.replaceImageFile(99L, imagePath.getInputStream()));
+
+  }
+
+  @Test
+  public void testDeleteImage() {
 
     ImageRepository imageRepository = mock(ImageRepository.class);
     ImageService imageService = new ImageService(imageRepository);
@@ -82,6 +96,18 @@ public class ImagesUnitTests {
     imageService.deleteImage(1L);
 
     verify(imageRepository).deleteById(1L);
+
+  }
+
+  @Test
+  public void testDeleteNoExistingImage() {
+
+    ImageRepository imageRepository = mock(ImageRepository.class);
+    ImageService imageService = new ImageService(imageRepository);
+
+    when(imageRepository.findById(99L)).thenReturn(Optional.empty());
+
+    assertThrows(ResponseStatusException.class, () -> imageService.deleteImage(99L));
 
   }
 
@@ -101,9 +127,9 @@ public class ImagesUnitTests {
         "image", "image.webp", "image/webp", new byte[10 * 1024 * 1024 + 1]);
 
     assertDoesNotThrow(() -> imageService.validate(validImage));
-    assertThrows(IllegalArgumentException.class, () -> imageService.validate(invalidTypeImage));
-    assertThrows(IllegalArgumentException.class, () -> imageService.validate(imageWithoutType));
-    assertThrows(IllegalArgumentException.class, () -> imageService.validate(oversizedImage));
+    assertThrows(ResponseStatusException.class, () -> imageService.validate(invalidTypeImage));
+    assertThrows(ResponseStatusException.class, () -> imageService.validate(imageWithoutType));
+    assertThrows(ResponseStatusException.class, () -> imageService.validate(oversizedImage));
 
   }
 

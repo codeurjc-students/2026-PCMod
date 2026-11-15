@@ -2,7 +2,6 @@ package es.codeurjcstudents.pcmod.unit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -205,8 +204,8 @@ public class ReviewsUnitTests {
     when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
     when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
 
-    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, 1L, 1L));
-    assertEquals("Validación fallida:\n• Ya existe una reseña de este producto para tu usuario.", exception.getMessage());
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> reviewsService.save(review, 1L, 1L));
+    assertTrue(exception.getMessage().contains("Validación fallida:\n• Ya existe una reseña de este producto para tu usuario."));
     verify(reviewsRepository, never()).save(any(Review.class));
   }
 
@@ -231,7 +230,7 @@ public class ReviewsUnitTests {
     when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
     when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
 
-    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, 1L, 1L));
+    assertThrows(ResponseStatusException.class, () -> reviewsService.save(review, 1L, 1L));
     verify(reviewsRepository, never()).save(any(Review.class));
 
   }
@@ -257,7 +256,7 @@ public class ReviewsUnitTests {
     when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
     when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
 
-    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, 1L, 1L));
+    assertThrows(ResponseStatusException.class, () -> reviewsService.save(review, 1L, 1L));
     verify(reviewsRepository, never()).save(any(Review.class));
 
   }
@@ -283,7 +282,7 @@ public class ReviewsUnitTests {
     when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
     when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
 
-    assertThrows(IllegalArgumentException.class, () -> reviewsService.save(review, 1L, 1L));
+    assertThrows(ResponseStatusException.class, () -> reviewsService.save(review, 1L, 1L));
     verify(reviewsRepository, never()).save(any(Review.class));
 
   }
@@ -408,7 +407,7 @@ public class ReviewsUnitTests {
     when(reviewsRepository.findById(1L)).thenReturn(java.util.Optional.empty()); 
     when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(component));
 
-    reviewsService.delete(1L, 1L);
+    assertThrows(ResponseStatusException.class, () -> reviewsService.delete(1L, 1L));
 
     verify(reviewsRepository, never()).deleteById(1L);
 
@@ -533,6 +532,24 @@ public class ReviewsUnitTests {
   }
 
   @Test
+  public void testUpdateReviewNotFound() {
+
+    ReviewsRepository reviewsRepository = mock(ReviewsRepository.class);
+    ReviewsService reviewsService = new ReviewsService(reviewsRepository, null, null, null );
+    ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
+
+    Component component = new Component("sample_name", "sample_message", ComponentType.CPU, "sample_brand", BigDecimal.valueOf(100.00), 5);
+
+    when(reviewsRepository.findById(1L)).thenReturn(java.util.Optional.empty()); 
+    when(componentsRepository.findById(1L)).thenReturn(java.util.Optional.of(component));
+
+    assertThrows(ResponseStatusException.class, () -> reviewsService.updateReview(new Review(), 1L, 1L));
+
+    verify(reviewsRepository, never()).save(any(Review.class));
+
+  }
+
+  @Test
   public void testUpdateVoidReviewData() {
 
     ComponentsRepository componentsRepository = mock(ComponentsRepository.class);
@@ -554,7 +571,7 @@ public class ReviewsUnitTests {
     when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
     when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
 
-    assertThrows(IllegalArgumentException.class, () -> reviewsService.updateReview(review, 1L, 1L));
+    assertThrows(ResponseStatusException.class, () -> reviewsService.updateReview(review, 1L, 1L));
     verify(reviewsRepository, never()).save(any(Review.class));
 
   }
@@ -581,7 +598,7 @@ public class ReviewsUnitTests {
     when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
     when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
 
-    assertThrows(IllegalArgumentException.class, () -> reviewsService.updateReview(review, 1L, 1L));
+    assertThrows(ResponseStatusException.class, () -> reviewsService.updateReview(review, 1L, 1L));
     verify(reviewsRepository, never()).save(any(Review.class));
 
   }
@@ -608,7 +625,7 @@ public class ReviewsUnitTests {
     when(usersRepository.findById(1L)).thenReturn(Optional.of(user));
     when(reviewsRepository.findById(1L)).thenReturn(Optional.of(review)); 
 
-    assertThrows(IllegalArgumentException.class, () -> reviewsService.updateReview(review, 1L, 1L));
+    assertThrows(ResponseStatusException.class, () -> reviewsService.updateReview(review, 1L, 1L));
     verify(reviewsRepository, never()).save(any(Review.class));
 
   }
