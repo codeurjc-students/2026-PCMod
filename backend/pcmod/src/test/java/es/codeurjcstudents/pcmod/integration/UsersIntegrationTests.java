@@ -236,7 +236,7 @@ public class UsersIntegrationTests {
   void registerVoidCredentials() {
     User newUser = new User("", "", "", "", "", "", "");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(newUser, ""));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(newUser, ""));
     assertEquals(2, usersRepository.count());
   }
 
@@ -244,7 +244,7 @@ public class UsersIntegrationTests {
   void registerNullCredentials() {
     User newUser = new User(null, null, null, null, null, null, "");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(newUser, null));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(newUser, null));
     assertEquals(2, usersRepository.count());
   }
 
@@ -253,7 +253,7 @@ public class UsersIntegrationTests {
     User newUser = new User("user", "test", "userTest1", "c/testAddress", "testuser1@example.com", null,
         "REGISTERED_USER");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(newUser, "R3gister_Test_Pass"));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(newUser, "R3gister_Test_Pass"));
     assertEquals(2, usersRepository.count());
   }
 
@@ -262,7 +262,7 @@ public class UsersIntegrationTests {
     User newUser = new User("user", "test", "userTest", "c/testAddress", "test@example", null,
         "REGISTERED_USER");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(newUser, "pass"));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(newUser, "pass"));
     assertEquals(2, usersRepository.count());
   }
 
@@ -422,7 +422,7 @@ public class UsersIntegrationTests {
     MockMultipartFile invalidTypeImage = new MockMultipartFile(
         "image", "image.txt", "text/plain", new byte[1024]);
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.addUserImage(user.getId(), invalidTypeImage));
+    assertThrows(ResponseStatusException.class, () -> usersService.addUserImage(user.getId(), invalidTypeImage));
 
   }
 
@@ -672,7 +672,7 @@ public class UsersIntegrationTests {
 
     User updatedUser = new User("", "", "", "", "", "", "");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(updatedUser, "", user.getId()));
+    assertThrows(ResponseStatusException.class, () -> usersService.updateUser(updatedUser, "", user.getId()));
 
   }
 
@@ -687,7 +687,7 @@ public class UsersIntegrationTests {
 
     User updatedUser = new User(null, null, null, null, null, null, "");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(updatedUser, null, user.getId()));
+    assertThrows(ResponseStatusException.class, () -> usersService.updateUser(updatedUser, null, user.getId()));
 
   }
 
@@ -703,7 +703,7 @@ public class UsersIntegrationTests {
     User updatedUser = new User("user", "test", "adminTest1", "c/testAddress", "testadmin1@example.com", null,
         "REGISTERED_USER");
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> usersService.updateUser(updatedUser, "Updat3_Test_Pass", user.getId()));
 
   }
@@ -720,7 +720,7 @@ public class UsersIntegrationTests {
     User updatedUser = new User("user", "test", "userTest", "c/testAddress", "test@example", null,
         "REGISTERED_USER");
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> usersService.updateUser(updatedUser, "pass", user.getId()));
 
   }

@@ -28,7 +28,6 @@ import java.sql.Blob;
 import java.sql.SQLException;
 import javax.sql.rowset.serial.SerialBlob;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import es.codeurjcstudents.pcmod.model.Image;
 import es.codeurjcstudents.pcmod.model.User;
@@ -157,7 +156,7 @@ public class UsersUnitTests {
     User user = new User("", "", "", "", "",
         null, "");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(user, ""));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(user, ""));
     verify(usersRepository, never()).save(any(User.class));
 
   }
@@ -171,7 +170,7 @@ public class UsersUnitTests {
     User user = new User(null, null, null, null, null,
         null, "");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(user, null));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(user, null));
     verify(usersRepository, never()).save(any(User.class));
 
   }
@@ -188,7 +187,7 @@ public class UsersUnitTests {
     when(usersRepository.existsByUsername("userTest")).thenReturn(true);
     when(usersRepository.existsByEmail("testuser@example.com")).thenReturn(true);
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(user, "R3gister_Existing"));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(user, "R3gister_Existing"));
     verify(usersRepository, never()).save(any(User.class));
 
   }
@@ -202,7 +201,7 @@ public class UsersUnitTests {
     User user = new User("user", "test", "userTest", "c/testaddress", "test@email",
         null, "");
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.register(user, "pass"));
+    assertThrows(ResponseStatusException.class, () -> usersService.register(user, "pass"));
     verify(usersRepository, never()).save(any(User.class));
   }
 
@@ -339,9 +338,9 @@ public class UsersUnitTests {
     MockMultipartFile invalidTypeImage = new MockMultipartFile(
         "image", "image.txt", "text/plain", new byte[1024]);
 
-    when(imageService.createImage(any())).thenThrow(IllegalArgumentException.class);
+    when(imageService.createImage(any())).thenThrow(ResponseStatusException.class);
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.addUserImage(1L, invalidTypeImage));
+    assertThrows(ResponseStatusException.class, () -> usersService.addUserImage(1L, invalidTypeImage));
   }
 
   @Test
@@ -451,7 +450,7 @@ public class UsersUnitTests {
         null, "");
     when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(user, "", 1L));
+    assertThrows(ResponseStatusException.class, () -> usersService.updateUser(user, "", 1L));
     verify(usersRepository, never()).save(any(User.class));
 
   }
@@ -466,7 +465,7 @@ public class UsersUnitTests {
         null, "");
     when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(user, null, 1L));
+    assertThrows(ResponseStatusException.class, () -> usersService.updateUser(user, null, 1L));
     verify(usersRepository, never()).save(any(User.class));
 
   }
@@ -487,7 +486,7 @@ public class UsersUnitTests {
     when(usersRepository.existsByUsername("userTest")).thenReturn(true);
     when(usersRepository.existsByEmail("testuser@example.com")).thenReturn(true);
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(user, "Updat3_Existing", 1L));
+    assertThrows(ResponseStatusException.class, () -> usersService.updateUser(user, "Updat3_Existing", 1L));
     verify(usersRepository, never()).save(any(User.class));
 
   }
@@ -502,7 +501,7 @@ public class UsersUnitTests {
         null, "");
     when(usersRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
 
-    assertThrows(IllegalArgumentException.class, () -> usersService.updateUser(user, "pass", 1L));
+    assertThrows(ResponseStatusException.class, () -> usersService.updateUser(user, "pass", 1L));
     verify(usersRepository, never()).save(any(User.class));
   }
 

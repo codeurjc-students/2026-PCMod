@@ -67,7 +67,7 @@ public class UsersService {
     List<String> errors = validateUser(user, rawPassword, null);
 
     if (!errors.isEmpty()) {
-      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validación fallida:\n• " + String.join("\n• ", errors));
     }
 
     User userToSave = new User(user.getName(), user.getSurname(), user.getUsername(), user.getAddress(),
@@ -114,7 +114,7 @@ public class UsersService {
     List<String> errors = validateUser(newUserData, rawPassword, id);
 
     if (!errors.isEmpty()) {
-      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validación fallida:\n• " + String.join("\n• ", errors));
     }
 
     User user = userRepository.findById(id).orElseThrow();

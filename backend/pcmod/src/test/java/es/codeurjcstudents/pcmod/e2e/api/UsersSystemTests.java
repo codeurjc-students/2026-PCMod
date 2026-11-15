@@ -260,8 +260,8 @@ public class UsersSystemTests {
             }
             """)
         .when().post("auth/register")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo(
             "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
   }
@@ -281,8 +281,8 @@ public class UsersSystemTests {
             }
             """)
         .when().post("auth/register")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo(
             "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio.\n• La contraseña es obligatoria."));
   }
@@ -302,8 +302,8 @@ public class UsersSystemTests {
             }
             """)
         .when().post("auth/register")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo("Validación fallida:\n• El nombre de usuario ya existe.\n• El email ya existe."));
   }
 
@@ -322,8 +322,8 @@ public class UsersSystemTests {
             }
             """)
         .when().post("auth/register")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo(
             "Validación fallida:\n• El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com.\n• La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&-_)."));
   }
@@ -448,8 +448,8 @@ public class UsersSystemTests {
         .cookie("AuthToken", authToken)
         .multiPart("imageFile", "test.txt", invalidTypeImage, "text/plain")
         .when().post("users/1/image")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo("El tipo de archivo no es válido. Solo se permiten imágenes JPEG, PNG y WebP."));
   }
 
@@ -849,7 +849,7 @@ public class UsersSystemTests {
             }
             """)
         .when().put("users/1")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio."));
   }
@@ -882,7 +882,7 @@ public class UsersSystemTests {
             }
             """)
         .when().put("users/1")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El nombre es obligatorio.\n• El apellido es obligatorio.\n• La dirección es obligatoria.\n• El nombre de usuario es obligatorio.\n• El email es obligatorio."));
   }
@@ -915,8 +915,8 @@ public class UsersSystemTests {
             }
             """)
         .when().put("users/1")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo("Validación fallida:\n• El nombre de usuario ya existe.\n• El email ya existe."));
   }
 
@@ -948,8 +948,8 @@ public class UsersSystemTests {
             }
             """)
         .when().put("users/1")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo(
             "Validación fallida:\n• El formato del email no es válido. Debe seguir el formato: ejemplo@dominio.com.\n• La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&-_)."));
   }

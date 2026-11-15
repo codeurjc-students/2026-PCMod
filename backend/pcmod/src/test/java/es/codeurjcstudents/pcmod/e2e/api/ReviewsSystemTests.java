@@ -163,7 +163,7 @@ public class ReviewsSystemTests {
             }
             """)
         .when().post("/components/4/reviews/")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(409).contentType(ContentType.JSON)
         .body("message", equalTo("Validación fallida:\n• Ya existe una reseña de este producto para tu usuario."));
   }
 
@@ -192,7 +192,7 @@ public class ReviewsSystemTests {
             }
             """)
         .when().post("/components/5/reviews/")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El título es obligatorio.\n• El mensaje es obligatorio.\n• La valoración es obligatoria."));
   }
@@ -222,7 +222,7 @@ public class ReviewsSystemTests {
             }
             """)
         .when().post("/components/5/reviews/")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El título es obligatorio.\n• El mensaje es obligatorio.\n• La valoración es obligatoria."));
   }
@@ -252,8 +252,8 @@ public class ReviewsSystemTests {
             }
             """)
         .when().post("/components/5/reviews/")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo(
             "Validación fallida:\n• La valoración del producto ha de estar entre 1 y 5."));
   }
@@ -587,7 +587,7 @@ public class ReviewsSystemTests {
             }
             """)
         .when().put("/components/2/reviews/1")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El título es obligatorio.\n• El mensaje es obligatorio.\n• La valoración es obligatoria."));
   }
@@ -617,7 +617,7 @@ public class ReviewsSystemTests {
             }
             """)
         .when().put("/components/2/reviews/1")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El título es obligatorio.\n• El mensaje es obligatorio.\n• La valoración es obligatoria."));
   }
@@ -647,8 +647,8 @@ public class ReviewsSystemTests {
             }
             """)
         .when().put("/components/2/reviews/1")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo(
             "Validación fallida:\n• La valoración del producto ha de estar entre 1 y 5."));
   }

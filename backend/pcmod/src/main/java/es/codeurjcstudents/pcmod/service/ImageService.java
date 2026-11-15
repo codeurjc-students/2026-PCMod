@@ -6,8 +6,10 @@ import java.util.List;
 
 import javax.sql.rowset.serial.SerialBlob;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import es.codeurjcstudents.pcmod.model.Image;
 import es.codeurjcstudents.pcmod.repository.ImageRepository;
@@ -69,12 +71,12 @@ public class ImageService {
   public void validate(MultipartFile imageField) {
 
     if (imageField.getSize() > MAX_SIZE) {
-      throw new IllegalArgumentException("El tamaño de la imagen no puede superar los 10MB.");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El tamaño de la imagen no puede superar los 10MB.");
     }
 
     String contentType = imageField.getContentType();
     if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
-      throw new IllegalArgumentException(
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
           "El tipo de archivo no es válido. Solo se permiten imágenes JPEG, PNG y WebP.");
     }
 

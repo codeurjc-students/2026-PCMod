@@ -67,7 +67,7 @@ public class ComponentsService {
     List<String> errors = validateComponent(component, null);
 
     if (!errors.isEmpty()) {
-      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validación fallida:\n• " + String.join("\n• ", errors));
     }
 
     return componentRepository.save(component);
@@ -112,7 +112,7 @@ public class ComponentsService {
     List<String> errors = validateComponent(newComponentData, id);
 
     if (!errors.isEmpty()) {
-      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validación fallida:\n• " + String.join("\n• ", errors));
     }
 
     Component component = componentRepository.findById(id).orElseThrow();

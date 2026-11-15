@@ -64,13 +64,13 @@ public class ReviewsService {
   public Review save(Review review, long userId, long componentId) {
 
     if (reviewRepository.existsByComponentIdAndUserId(componentId, userId)) {
-      throw new IllegalArgumentException("Validación fallida:\n• Ya existe una reseña de este producto para tu usuario.");
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Validación fallida:\n• Ya existe una reseña de este producto para tu usuario.");
     }
 
     List<String> errors = validateReview(review);
 
     if (!errors.isEmpty()) {
-      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validación fallida:\n• " + String.join("\n• ", errors));
     }
 
     User user = userRepository.findById(userId)
@@ -115,7 +115,7 @@ public class ReviewsService {
     List<String> errors = validateReview(newReviewData);
 
     if (!errors.isEmpty()) {
-      throw new IllegalArgumentException("Validación fallida:\n• " + String.join("\n• ", errors));
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validación fallida:\n• " + String.join("\n• ", errors));
     }
 
     Review review = reviewRepository.findById(reviewId).orElseThrow();

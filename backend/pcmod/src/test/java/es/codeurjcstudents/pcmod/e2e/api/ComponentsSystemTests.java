@@ -231,7 +231,7 @@ public class ComponentsSystemTests {
             }
             """)
         .when().post("/components/")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El nombre del componente es obligatorio.\n• La descripción es obligatoria.\n• La marca es obligatoria."));
   }
@@ -264,7 +264,7 @@ public class ComponentsSystemTests {
             }
             """)
         .when().post("/components/")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El nombre del componente es obligatorio.\n• La descripción es obligatoria.\n• La marca es obligatoria."));
   }
@@ -297,8 +297,8 @@ public class ComponentsSystemTests {
             }
             """)
         .when().post("/components/")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo("Validación fallida:\n• Ya existe un componente con ese nombre."));
   }
 
@@ -330,8 +330,8 @@ public class ComponentsSystemTests {
             }
             """)
         .when().post("/components/")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo(
             "Validación fallida:\n• El precio del producto ha de ser mayor de 0.00 €.\n• El stock del producto ha de ser 0 o mayor."));
   }
@@ -457,8 +457,8 @@ public class ComponentsSystemTests {
         .cookie("AuthToken", authToken)
         .multiPart("imageFile", "test.txt", invalidTypeImage, "text/plain")
         .when().post("components/2/image")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo("El tipo de archivo no es válido. Solo se permiten imágenes JPEG, PNG y WebP."));
   }
 
@@ -634,7 +634,7 @@ public class ComponentsSystemTests {
             }
             """)
         .when().put("components/5")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El nombre del componente es obligatorio.\n• La descripción es obligatoria.\n• La marca es obligatoria.\n• El precio es obligatorio.\n• El stock es obligatorio."));
   }
@@ -667,7 +667,7 @@ public class ComponentsSystemTests {
             }
             """)
         .when().put("components/5")
-        .then().statusCode(500).contentType(ContentType.JSON)
+        .then().statusCode(400).contentType(ContentType.JSON)
         .body("message", equalTo(
             "Validación fallida:\n• El nombre del componente es obligatorio.\n• La descripción es obligatoria.\n• La marca es obligatoria.\n• El precio es obligatorio.\n• El stock es obligatorio."));
   }
@@ -700,8 +700,8 @@ public class ComponentsSystemTests {
             }
             """)
         .when().put("components/5")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo("Validación fallida:\n• Ya existe un componente con ese nombre."));
   }
 
@@ -733,8 +733,8 @@ public class ComponentsSystemTests {
             }
             """)
         .when().put("components/5")
-        .then().statusCode(500).contentType(ContentType.JSON)
-        .body("status", equalTo(500))
+        .then().statusCode(400).contentType(ContentType.JSON)
+        .body("status", equalTo(400))
         .body("message", equalTo(
             "Validación fallida:\n• El precio del producto ha de ser mayor de 0.00 €.\n• El stock del producto ha de ser 0 o mayor."));
   }

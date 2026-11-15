@@ -207,7 +207,7 @@ public class ComponentsIntegrationTests {
 
     Component newComponent = new Component("", "", ComponentType.CPU, "", BigDecimal.valueOf(100.00), 5);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> componentsService.save(newComponent));
   }
 
@@ -223,7 +223,7 @@ public class ComponentsIntegrationTests {
 
     Component newComponent = new Component(null, null, ComponentType.CPU, null, BigDecimal.valueOf(100.00), 5);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> componentsService.save(newComponent));
   }
 
@@ -240,7 +240,7 @@ public class ComponentsIntegrationTests {
     Component newComponent = new Component("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC", "sampleDescription",
         ComponentType.CPU, "sampleBrand", BigDecimal.valueOf(100.00), 5);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> componentsService.save(newComponent));
   }
 
@@ -257,7 +257,7 @@ public class ComponentsIntegrationTests {
     Component newComponent = new Component("sampleName", "sampleDescription", ComponentType.CPU, "sampleBrand",
         BigDecimal.valueOf(-100.00), -5);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> componentsService.save(newComponent));
   }
 
@@ -419,7 +419,7 @@ public class ComponentsIntegrationTests {
         "image", "image.txt", "text/plain", new byte[1024]);
     Component component = componentsRepository.findAll().get(0);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> componentsService.addComponentImage(component.getId(), invalidTypeImage));
 
   }
@@ -617,7 +617,7 @@ public class ComponentsIntegrationTests {
 
     Component updatedComponent = new Component("", "", ComponentType.CPU, "", BigDecimal.valueOf(100.00), 5);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> componentsService.updateComponent(updatedComponent, component.getId()));
   }
 
@@ -634,7 +634,7 @@ public class ComponentsIntegrationTests {
 
     Component updatedComponent = new Component(null, null, ComponentType.CPU, null, BigDecimal.valueOf(100.00), 5);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> componentsService.updateComponent(updatedComponent, component.getId()));
   }
 
@@ -652,7 +652,7 @@ public class ComponentsIntegrationTests {
     Component updatedComponent = new Component("NVIDIA GeForce RTX 5060 WINDFORCE MAX OC", "sampleDescription",
         ComponentType.CPU, "sampleBrand", BigDecimal.valueOf(100.00), 5);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> componentsService.updateComponent(updatedComponent, component.getId()));
   }
 
@@ -670,7 +670,7 @@ public class ComponentsIntegrationTests {
     Component updatedComponent = new Component("sampleName", "sampleDescription", ComponentType.CPU, "sampleBrand",
         BigDecimal.valueOf(-100.00), -5);
 
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(ResponseStatusException.class,
         () -> componentsService.updateComponent(updatedComponent, component.getId()));
   }
 
