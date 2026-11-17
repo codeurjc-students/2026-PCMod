@@ -41,6 +41,12 @@ public class User {
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Review> reviews = new ArrayList<>();
 
+  @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Cart cart;
+
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Order> orders = new ArrayList<>();
+
   public User() {
   }
 
@@ -53,12 +59,18 @@ public class User {
     this.email = email;
     this.encodedPassword = encodedPassword;
     this.reviews = new ArrayList<>();
+    this.orders = new ArrayList<>();
     this.roles = List.of(roles);
   }
 
   public void addReview(Review review) {
     reviews.add(review);
     review.setUser(this);
+  }
+
+  public void addOrder(Order order) {
+    orders.add(order);
+    order.setUser(this);
   }
 
   public Long getId() {
@@ -141,4 +153,19 @@ public class User {
     this.reviews = reviews;
   }
 
+  public Cart getCart() {
+    return cart;
+  }
+
+  public void setCart(Cart cart) {
+    this.cart = cart;
+  }
+
+  public List<Order> getOrders() {
+    return orders;
+  }
+
+  public void setOrders(List<Order> orders) {
+    this.orders = orders;
+  }
 }

@@ -1,0 +1,14 @@
+package es.codeurjcstudents.pcmod.dto;
+
+import java.math.BigDecimal;
+
+public record ComponentBasicDTO(
+    Long id,
+    String name,
+    String description,
+    String type,
+    String brand,
+    BigDecimal price,
+    Integer stock,
+    ImageDTO image) {
+}

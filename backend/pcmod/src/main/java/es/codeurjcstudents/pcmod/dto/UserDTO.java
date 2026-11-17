@@ -10,5 +10,7 @@ public record UserDTO(
     String address,
     String email,
     ImageDTO image,
-    List<String> roles) {
+    List<String> roles,
+    CartDTO cart,
+    List<OrderDTO> orders) {
 }

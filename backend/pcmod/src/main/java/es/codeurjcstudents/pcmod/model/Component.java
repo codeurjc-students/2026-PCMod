@@ -52,6 +52,9 @@ public class Component {
   @OneToMany(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Review> reviews = new ArrayList<>();
 
+  @OneToMany(mappedBy = "component", cascade = CascadeType.REMOVE, orphanRemoval = true)
+  private List<CartItem> cartItems = new ArrayList<>();
+
   public Component() {
   }
 
@@ -156,5 +159,13 @@ public class Component {
 
   public void setReviews(List<Review> reviews) {
     this.reviews = reviews;
+  }
+
+  public List<CartItem> getCartItems() {
+    return cartItems;
+  }
+
+  public void setCartItems(List<CartItem> cartItems) {
+    this.cartItems = cartItems;
   }
 }

@@ -12,7 +12,11 @@ public interface ComponentMapper {
 
   ComponentDTO toDTO(Component component);
 
+  ComponentBasicDTO toBasicDTO(Component component);
+
   List<ComponentDTO> toDTOs(Collection<Component> components);
+
+  List<ComponentBasicDTO> toBasicDTOs(Collection<Component> components);
 
   Component toDomain(ComponentDTO componentDTO);
 }

@@ -2,6 +2,8 @@ package es.codeurjcstudents.pcmod.service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,11 +12,18 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import es.codeurjcstudents.pcmod.enums.ComponentType;
+import es.codeurjcstudents.pcmod.enums.OrderStatus;
+import es.codeurjcstudents.pcmod.model.Cart;
+import es.codeurjcstudents.pcmod.model.CartItem;
 import es.codeurjcstudents.pcmod.model.Component;
 import es.codeurjcstudents.pcmod.model.User;
 import es.codeurjcstudents.pcmod.model.Image;
+import es.codeurjcstudents.pcmod.model.Order;
+import es.codeurjcstudents.pcmod.model.OrderItem;
 import es.codeurjcstudents.pcmod.model.Review;
 import es.codeurjcstudents.pcmod.repository.ComponentsRepository;
+import es.codeurjcstudents.pcmod.repository.OrdersRepository;
+import es.codeurjcstudents.pcmod.repository.CartRepository;
 import jakarta.annotation.PostConstruct;
 
 @Service
@@ -34,6 +43,12 @@ public class DatabaseInitializer {
 
   @Autowired
   private ReviewsService reviewsService;
+
+  @Autowired
+  private OrdersRepository orderRepository;
+
+  @Autowired
+  private CartRepository cartRepository;
 
   @Autowired
   private ImageService imageService;
@@ -201,6 +216,31 @@ public class DatabaseInitializer {
     "Las Corsair Vengeance LPX 2x8 GB me parecen una muy buena opción para montar o actualizar un PC.\nSus 16 GB de memoria RAM ofrecen un rendimiento más que suficiente para jugar a la mayoría de videojuegos y realizar tareas cotidianas sin problemas.", 
     4);
     reviewsService.createReview(Long.valueOf(1), Long.valueOf(4), review4);
+
+    // Sample Orders and Cart
+
+    User customer = userService.getUser(1L);
+
+    Order order1 = new Order(customer, OrderStatus.FINISHED, customer.getAddress(), LocalDateTime.now(ZoneId.of("Europe/Madrid")).minusDays(5));
+    OrderItem orderItem1 = new OrderItem(order1, component10, 1, component10.getPrice());
+    order1.addItem(orderItem1);
+    order1.setTotalPrice(component10.getPrice().multiply(BigDecimal.valueOf(1)));
+    orderRepository.save(order1);
+
+    User admin = userService.getUser(2L);
+
+    Order order2 = new Order(admin, OrderStatus.FINISHED, customer.getAddress(), LocalDateTime.now(ZoneId.of("Europe/Madrid")).minusDays(5));
+    OrderItem orderItem2 = new OrderItem(order2, component10, 5, component10.getPrice());
+    order2.addItem(orderItem2);
+    order2.setTotalPrice(component10.getPrice().multiply(BigDecimal.valueOf(5)));
+    orderRepository.save(order2);
+
+    Cart cart = new Cart(customer);
+    CartItem cartItem1 = new CartItem(cart, component10, 1);
+    CartItem cartItem2 = new CartItem(cart, component11, 1);
+    cart.addItem(cartItem1);
+    cart.addItem(cartItem2);
+    cartRepository.save(cart);
   }
 
   // Auxiliar functions
