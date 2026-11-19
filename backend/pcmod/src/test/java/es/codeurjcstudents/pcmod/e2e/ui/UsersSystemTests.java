@@ -402,7 +402,7 @@ public class UsersSystemTests {
   }
 
   @Test
-  public void loadProfilePageTest() {
+  public void loadProfilePageWithOrdersTest() {
 
     driver.get("http://localhost:5173/login");
 
@@ -434,6 +434,55 @@ public class UsersSystemTests {
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("purchases")));
     String loadedPurchasesTitle = driver.findElement(By.id("purchases")).getText();
     assertThat(loadedPurchasesTitle).isEqualTo("Mis compras:");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-1-title")));
+    String purchaseTitle = driver.findElement(By.id("order-1-title")).getText();
+    assertThat(purchaseTitle).contains("Pedido #");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-1-user")));
+    String purchaseUser= driver.findElement(By.id("order-1-user")).getText();
+    assertThat(purchaseUser).isEqualTo("Cliente: user_example");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-1-date")));
+    String purchaseDate = driver.findElement(By.id("order-1-date")).getText();
+    assertThat(purchaseDate).contains("Fecha de compra:");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-1-address")));
+    String purchaseAddress = driver.findElement(By.id("order-1-address")).getText();
+    assertThat(purchaseAddress).isEqualTo("Dirección de entrega: c/example_address 1");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-1-status")));
+    String purchaseStatus = driver.findElement(By.id("order-1-status")).getText();
+    assertThat(purchaseStatus).isEqualTo("Estado: FINISHED");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-1-total")));
+    String purchaseTotal = driver.findElement(By.id("order-1-total")).getText();
+    assertThat(purchaseTotal).isEqualTo("Total: 121.99 €");
+    assertThat(driver.findElements(By.id("empty-purchases"))).isEmpty();
+
+  }
+
+  @Test
+  public void loadProfilePageWithoutOrdersTest() {
+
+    driver.get("http://localhost:5173/register");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("name")));
+    driver.findElement(By.id("name")).sendKeys("user");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("surname")));
+    driver.findElement(By.id("surname")).sendKeys("test");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
+    driver.findElement(By.id("username")).sendKeys("userTestNoOrder");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("address")));
+    driver.findElement(By.id("address")).sendKeys("c/test");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    driver.findElement(By.id("email")).sendKeys("userNoOrder@test.com");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("password")).sendKeys("R3gister_Test");
+
+    scrollToAndClick(By.name("register-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+    driver.get("http://localhost:5173/me");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("empty-purchases-text")));
+    String purchasesEmpty = driver.findElement(By.id("empty-purchases-text")).getText();
+    assertThat(purchasesEmpty).isEqualTo("No se han realizado compras todavía.");
 
   }
 

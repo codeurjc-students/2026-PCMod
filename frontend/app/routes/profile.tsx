@@ -10,6 +10,7 @@ import { useUserStore } from "~/stores/user-store";
 import { getUserFormValues } from "~/utils/user-form-utils";
 import type { UserFormValues } from "~/utils/user-form-utils";
 import { handleFormSubmit, validateImage } from "~/utils/general-form-utils";
+import OrderCard from "~/components/orderCard";
 
 const API_URL = "/api/v1/users";
 
@@ -241,10 +242,18 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
                 <h2 id="purchases">Mis compras:</h2>
               </div>
             </div>
-            <div className="empty-purchases">
-              <CartX aria-hidden="true" />
-              <p>No se han realizado compras todavía.</p>
-            </div>
+            {(profile.orders && profile.orders.length > 0) ? (
+              <div className="orders-list">
+                {profile.orders.map((order) => (
+                  <OrderCard order={order} key={order.id} />
+                ))}
+              </div>
+            ) : (
+              <div className="empty-purchases">
+                <CartX aria-hidden="true" />
+                <p id="empty-purchases-text">No se han realizado compras todavía.</p>
+              </div>
+            )}
           </div>
         </div>
       </main>

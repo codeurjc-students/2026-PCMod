@@ -10,5 +10,7 @@ export default [
     route("/components/:id", "routes/detail-component.tsx"),
     route("/components/create", "routes/components-create.tsx"),
     route("/components/:id/update", "routes/components-update.tsx"),
+    route("/orders/:id", "routes/detail-order.tsx"),
+    route("/cart", "routes/cart.tsx"),
   ]),
 ] satisfies RouteConfig;

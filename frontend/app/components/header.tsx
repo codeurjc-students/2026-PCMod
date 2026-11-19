@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { Dropdown, Image } from "react-bootstrap";
 import { useUserStore } from "~/stores/user-store";
-import { BoxArrowInRight, Person, PersonAdd, BoxArrowRight, ShieldLock } from "react-bootstrap-icons";
+import { BoxArrowInRight, Person, PersonAdd, BoxArrowRight, ShieldLock, Cart } from "react-bootstrap-icons";
 
 export default function Header() {
   let { user, loadLoggedUser, logoutUser } = useUserStore();
@@ -28,47 +28,52 @@ export default function Header() {
 
         <div className="ms-auto">
           {user ? (
-            <Dropdown align="end" className="user-dropdown">
-              <Dropdown.Toggle
-                as="button"
-                className="avatar-toggle-btn"
-                id="dropdown-user"
-              >
-                <Image
-                  src={`/api/v1/users/${user.id}/image`}
-                  width="45"
-                  height="45"
-                  alt="User"
-                  className="rounded-circle"
-                />
-              </Dropdown.Toggle>
-
-              <Dropdown.Menu>
-                <Dropdown.Item as={Link} id="profile-option" className="menu-option" to={`/me`}>
-                  <Person /> Mi perfil
-                </Dropdown.Item>
-
-                {user.roles?.includes("ADMIN") && (
-                  <>
-                    <Dropdown.Divider />
-                    <Dropdown.Item as={Link} id="administration-option" className="menu-option" to="/admin">
-                      <ShieldLock /> Administración
-                    </Dropdown.Item>
-                  </>
-                )}
-
-                <Dropdown.Divider />
-                <Dropdown.Item
-                  id="logout-option"
-                  className="menu-option"
-                  style={{ textAlign: 'left', border: 'none' }}
-                  onClick={handleLogout}
+            <>
+              <Link id="cart-link" to="/cart" className="header-cart-link">
+                <Cart />
+              </Link>
+              <Dropdown align="end" className="user-dropdown">
+                <Dropdown.Toggle
+                  as="button"
+                  className="avatar-toggle-btn"
+                  id="dropdown-user"
                 >
-                  <BoxArrowRight />
-                  Cerrar sesión
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
+                  <Image
+                    src={`/api/v1/users/${user.id}/image`}
+                    width="45"
+                    height="45"
+                    alt="User"
+                    className="rounded-circle"
+                  />
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu>
+                  <Dropdown.Item as={Link} id="profile-option" className="menu-option" to={`/me`}>
+                    <Person /> Mi perfil
+                  </Dropdown.Item>
+
+                  {user.roles?.includes("ADMIN") && (
+                    <>
+                      <Dropdown.Divider />
+                      <Dropdown.Item as={Link} id="administration-option" className="menu-option" to="/admin">
+                        <ShieldLock /> Administración
+                      </Dropdown.Item>
+                    </>
+                  )}
+
+                  <Dropdown.Divider />
+                  <Dropdown.Item
+                    id="logout-option"
+                    className="menu-option"
+                    style={{ textAlign: 'left', border: 'none' }}
+                    onClick={handleLogout}
+                  >
+                    <BoxArrowRight />
+                    Cerrar sesión
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </>
           ) : (
             <>
               <Link className="header-btn" to="/login">

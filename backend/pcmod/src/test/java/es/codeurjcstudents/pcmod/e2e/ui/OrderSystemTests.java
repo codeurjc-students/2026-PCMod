@@ -1,0 +1,118 @@
+package es.codeurjcstudents.pcmod.e2e.ui;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.Duration;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+@Tag("client-system")
+public class OrderSystemTests {
+
+  private WebDriver driver;
+  private WebDriverWait wait;
+
+  @BeforeEach
+  public void setupTest() {
+    ChromeOptions options = new ChromeOptions();
+    options.addArguments("--incognito");
+    options.addArguments("--disable-notifications");
+    options.addArguments("--disable-features=PasswordLeakDetection");
+    options.addArguments("--headless");
+    options.addArguments("--no-sandbox");
+    options.addArguments("--disable-dev-shm-usage");
+    options.addArguments("--window-size=1920,1080");
+
+    driver = new ChromeDriver(options);
+    wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+  }
+
+  @AfterEach
+  public void teardown() {
+    if (driver != null) {
+      driver.quit();
+    }
+  }
+
+  private void scrollToAndClick(By locator) {
+
+    WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+
+    new Actions(driver)
+        .scrollToElement(element)
+        .perform();
+
+    wait.until(ExpectedConditions.elementToBeClickable(element)).click();
+
+  }
+
+  private void login(String email, String pass) {
+
+    driver.get("http://localhost:5173/login");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("password")));
+    driver.findElement(By.id("email")).sendKeys(email);
+    driver.findElement(By.id("password")).sendKeys(pass);
+
+    scrollToAndClick(By.name("login-button"));
+
+    wait.until(ExpectedConditions.urlToBe("http://localhost:5173/"));
+
+  }
+
+  @Test
+  public void OrderDetailRenderTest() {
+
+    login("user@example.com", "userpass");
+
+    driver.get("http://localhost:5173/orders/1");
+
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-title")));
+    String orderTitle = driver.findElement(By.id("order-title")).getText();
+    assertThat(orderTitle).contains("Pedido #");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-user")));
+    String orderUser = driver.findElement(By.id("order-user")).getText();
+    assertThat(orderUser).isEqualTo("Cliente: user_example");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-date")));
+    String orderDate = driver.findElement(By.id("order-date")).getText();
+    assertThat(orderDate).contains("Fecha de compra:");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-address")));
+    String orderAddress = driver.findElement(By.id("order-address")).getText();
+    assertThat(orderAddress).isEqualTo("Dirección de entrega: c/example_address 1");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-total")));
+    String orderTotal = driver.findElement(By.id("order-total")).getText();
+    assertThat(orderTotal).isEqualTo("Precio total del pedido: 121.99 €");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("order-components-title")));
+    String orderComponentsTitle = driver.findElement(By.id("order-components-title")).getText();
+    assertThat(orderComponentsTitle).isEqualTo("Componentes del pedido:");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("item-1-name")));
+    String itemName = driver.findElement(By.id("item-1-name")).getText();
+    assertThat(itemName).isEqualTo("Seagate BarraCuda 3.5");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("item-1-brand-type")));
+    String itemBrandType = driver.findElement(By.id("item-1-brand-type")).getText();
+    assertThat(itemBrandType).isEqualTo("Seagate | STORAGE");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("item-1-quantity")));
+    String itemQuantity = driver.findElement(By.id("item-1-quantity")).getText();
+    assertThat(itemQuantity).isEqualTo("Cantidad: 1");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("item-1-price")));
+    String itemPrice = driver.findElement(By.id("item-1-price")).getText();
+    assertThat(itemPrice).isEqualTo("Precio unitario: 121.99 €");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("item-1-total")));
+    String itemTotal = driver.findElement(By.id("item-1-total")).getText();
+    assertThat(itemTotal).isEqualTo("Precio total del producto: 121.99 €");
+
+  }
+  
+}

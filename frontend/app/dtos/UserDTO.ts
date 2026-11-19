@@ -1,4 +1,6 @@
+import type CartItemDTO from "./CartItemDTO";
 import type ImageDTO from "./ImageDTO";
+import type OrderDTO from "./OrderDTO";
 
 export default interface UserDTO {
   id: number;
@@ -9,5 +11,7 @@ export default interface UserDTO {
   email: string;
   password: string;
   image: ImageDTO;
-  roles: Array<string>
+  roles: Array<string>;
+  cart: Array<CartItemDTO>;
+  orders: Array<OrderDTO>;
 }

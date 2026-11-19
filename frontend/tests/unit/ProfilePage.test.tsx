@@ -7,14 +7,55 @@ import userEvent from "@testing-library/user-event";
 import { addImage, deleteUser, getUser, logOut, reqIsLogged, updateUser } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
 
+const order1 = {
+  id: 1,
+  status: "FINISHED",
+  totalPrice: 121.99,
+  shippingAddress: "User address",
+  createdAt: "2026/11/19 12:00:00",
+  userUsername: "user_example",
+  items: [
+    {
+      id: 1,
+      component: {
+        id: 1,
+        name: "Seagate BarraCuda 3.5",
+        description: "Disco duro de 3.5 pulgadas con capacidad de 1TB y velocidad de 7200 RPM.",
+        type: "STORAGE",
+        brand: "Seagate",
+        price: 121.99,
+        stock: 10,
+        image: {}
+      },
+      componentName: "Seagate BarraCuda 3.5",
+      quantity: 1,
+      unitPriceAtPurchase: 121.99
+    }
+  ]
+}
+
 const userAccount = {
   id: 1,
   name: "User",
   surname: "Example",
-  username: "user@example.com",
+  username: "user_example",
   address: "User address",
   email: "user@example.com",
   roles: ["REGISTERED_USER"],
+  cart: [],
+  orders:[order1]
+};
+
+const userWithoutPurchasesAccount = {
+  id: 2,
+  name: "User",
+  surname: "NoPurchases",
+  username: "user_example_nopurchases",
+  address: "User Address NoPurchases",
+  email: "userNoPurchases@example.com",
+  roles: ["REGISTERED_USER"],
+  cart: [],
+  orders:[]
 };
 
 vi.mock("~/services/users-service", () => ({
@@ -33,7 +74,7 @@ describe("ProfilePage", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the profile page", async () => {
+  it("renders the profile page with purchases", async () => {
 
     const RouterStub = createRoutesStub([
       { path: "/me", Component: Profile, loader: () => userAccount },
@@ -50,6 +91,27 @@ describe("ProfilePage", () => {
       expect(screen.getByRole("button", { name: "Borrar cuenta" })).toBeInTheDocument();
       expect(screen.getByRole("img", { name: "UserImage" })).toBeInTheDocument();
       expect(screen.getByRole("heading", { level: 2, name: "Mis compras:" })).toBeInTheDocument();
+      expect(screen.queryByText("No se han realizado compras todavía.")).not.toBeInTheDocument();
+      expect(screen.getByText(/Pedido #1-/)).toBeInTheDocument();
+      expect(screen.getByText("Cliente: user_example")).toBeInTheDocument();
+      expect(screen.getByText("Dirección de entrega: User address")).toBeInTheDocument();
+      expect(screen.getByText("Estado: FINISHED")).toBeInTheDocument();
+      expect(screen.getByText("Total: 121.99 €")).toBeInTheDocument();
+    });
+
+  });
+
+  it("renders the profile page without purchases", async () => {
+
+    const RouterStub = createRoutesStub([
+      { path: "/me", Component: Profile, loader: () => userWithoutPurchasesAccount },
+    ]);
+
+    render(<RouterStub initialEntries={["/me"]} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { level: 2, name: "Mis compras:" })).toBeInTheDocument();
+      expect(screen.getByText("No se han realizado compras todavía.")).toBeInTheDocument();
     });
 
   });

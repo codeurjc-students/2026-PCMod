@@ -229,7 +229,7 @@ public class DatabaseInitializer {
 
     User admin = userService.getUser(2L);
 
-    Order order2 = new Order(admin, OrderStatus.FINISHED, customer.getAddress(), LocalDateTime.now(ZoneId.of("Europe/Madrid")).minusDays(5));
+    Order order2 = new Order(admin, OrderStatus.FINISHED, admin.getAddress(), LocalDateTime.now(ZoneId.of("Europe/Madrid")).minusDays(5));
     OrderItem orderItem2 = new OrderItem(order2, component10, 5, component10.getPrice());
     order2.addItem(orderItem2);
     order2.setTotalPrice(component10.getPrice().multiply(BigDecimal.valueOf(5)));
@@ -237,7 +237,7 @@ public class DatabaseInitializer {
 
     Cart cart = new Cart(customer);
     CartItem cartItem1 = new CartItem(cart, component10, 1);
-    CartItem cartItem2 = new CartItem(cart, component11, 1);
+    CartItem cartItem2 = new CartItem(cart, component11, 2);
     cart.addItem(cartItem1);
     cart.addItem(cartItem2);
     cartRepository.save(cart);

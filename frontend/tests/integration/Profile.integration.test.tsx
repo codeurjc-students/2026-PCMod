@@ -10,6 +10,7 @@ import Profile, { clientLoader } from "~/routes/profile";
 import { addImage, register } from "~/services/users-service";
 import { useUserStore } from "~/stores/user-store";
 import type ImageDTO from "~/dtos/ImageDTO";
+import Register from "~/routes/register";
 
 function RootRoute() {
   const user = useUserStore((state) => state.user);
@@ -27,7 +28,7 @@ describe("ProfileIntegration", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders the profile page with the correct data", async () => {
+  it("renders the profile page with the correct data and purchases", async () => {
     const user = userEvent.setup();
     const RouterStub = createRoutesStub([
       { path: "/login", Component: Login },
@@ -47,6 +48,37 @@ describe("ProfileIntegration", () => {
       expect(screen.getByText("user_example")).toBeInTheDocument();
       expect(screen.getByText("c/example_address 1")).toBeInTheDocument();
       expect(screen.getByText("user@example.com")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Mis compras:" })).toBeInTheDocument();
+      expect(screen.queryByText("No se han realizado compras todavía.")).not.toBeInTheDocument();
+      expect(screen.getByText(/Pedido #1-/)).toBeInTheDocument();
+      expect(screen.getByText("Cliente: user_example")).toBeInTheDocument();
+      expect(screen.getByText("Dirección de entrega: c/example_address 1")).toBeInTheDocument();
+      expect(screen.getByText("Estado: FINISHED")).toBeInTheDocument();
+      expect(screen.getByText("Total: 121.99 €")).toBeInTheDocument();
+    });
+  });
+
+  it("renders the profile page with the correct data and no purchases", async () => {
+    const user = userEvent.setup();
+    const RouterStub = createRoutesStub([
+      { path: "/register", Component: Register },
+      { path: "/", Component: () => <Navigate to="/me" replace /> },
+      { path: "/me", Component: Profile, loader: clientLoader },
+    ]);
+
+    render(<RouterStub initialEntries={["/register"]} />);
+
+    await user.type(screen.getByLabelText("Nombre:"), "user");
+    await user.type(screen.getByLabelText("Apellido:"), "test");
+    await user.type(screen.getByLabelText("Nombre de usuario:"), "userTestNoPurchases");
+    await user.type(screen.getByLabelText("Dirección:"), "c/test");
+    await user.type(screen.getByLabelText("Correo electrónico:"), "userNoPurchases@test.com");
+    await user.type(screen.getByLabelText("Contraseña:"), "R3gister_Test");
+
+    const registerButton = screen.getByRole("button", { name: /Registrarse/i });
+    await user.click(registerButton);
+
+    await waitFor(() => {
       expect(screen.getByRole("heading", { name: "Mis compras:" })).toBeInTheDocument();
       expect(screen.getByText("No se han realizado compras todavía.")).toBeInTheDocument();
     });
